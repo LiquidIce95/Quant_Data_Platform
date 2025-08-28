@@ -54,7 +54,19 @@ Metrics of success:
 - [Appendix](#appendix)
 
 
-# The Data Set
+# The Data Sources
+We use three main data sources: Interactive Brokers API, www.cftc.gov,www.eia.gov,www.opec.org
+
+Interactive Brokers API is an API provided by interactive brokers a global broker, brokers enable institutions and individuals alike to place orders at various exchanges around the globe, such as NYMEX (New York Mercantile Exchange) where energy futures are traded. Interactive Brokers also provides very cheap real-time streaming data for NYMEX and level 2 market depth. The Author of this project is well aware that for a real business case, the institution should consider switching to a more expensive but faster alternative.
+
+The CFTC (commodity futures trading commission) is the official U.S. regulatory body for futures market and its goal is to promote the integrity, resilience, and vibrancy of the U.S. derivatives markets through sound regulation.
+
+The U.S. Energy Information Administration (EIA) is the Department of Energy’s independent statistical agency that collects, analyzes, and disseminates impartial energy data and forecasts to inform policy, ensure efficient markets, and enhance public understanding of energy’s economic and environmental impacts.
+
+OPEC (Organization of the Petroleum Exporting Countries) is a permanent intergovernmental cartel of oil-exporting states whose mission is to coordinate and unify members’ petroleum policies to stabilize oil markets—ensuring efficient supply to consumers, steady income to producers, and fair returns to investors.
+
+
+
 - Explain the data set
 - Why did you choose it?
 - What do you like about it?
