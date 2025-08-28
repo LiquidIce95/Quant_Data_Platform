@@ -57,7 +57,7 @@ Metrics of success:
 - [Appendix](#appendix)
 
 # Financial jargon
-If the reader is not somewhat familiar with financial jargen (futures, derivatives, tick data, limit orders ) then this section is dedicated to explaining the terms used here.
+If the reader is not somewhat familiar with financial jargon (futures, derivatives, tick data, limit orders ) then this section is dedicated to explaining the terms used here.
 
 TODO
 
