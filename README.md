@@ -62,15 +62,13 @@ If the reader is not somewhat familiar with financial jargon (futures, futures c
 TODO
 
 # The Data Sources
-We use three main data sources: Interactive Brokers API, www.cftc.gov, www.eia.gov, www.opec.org
+We use three main data sources: Interactive Brokers API, www.cftc.gov, www.eia.gov
 
 Interactive Brokers API is an API provided by interactive brokers a global broker, brokers enable institutions and individuals alike to place orders at various exchanges around the globe, such as NYMEX (New York Mercantile Exchange) where energy futures are traded. Interactive Brokers also provides very cheap real-time streaming data for NYMEX and level 2 market depth. The Author of this project is well aware that for a real business case, the institution should consider switching to a more expensive but faster alternative.
 
 The CFTC (commodity futures trading commission) is the official U.S. regulatory body for futures market and its goal is to promote the integrity, resilience, and vibrancy of the U.S. derivatives markets through sound regulation.
 
 The U.S. Energy Information Administration (EIA) is the Department of Energy’s independent statistical agency that collects, analyzes, and disseminates impartial energy data and forecasts to inform policy, ensure efficient markets, and enhance public understanding of energy’s economic and environmental impacts.
-
-OPEC (Organization of the Petroleum Exporting Countries) is a permanent intergovernmental cartel of oil-exporting states whose mission is to coordinate and unify members’ petroleum policies to stabilize oil markets—ensuring efficient supply to consumers, steady income to producers, and fair returns to investors.
 
 These sources were chosen not only because they provide relevant data and are credible but also because they are the first publishers of that data (except from Interactive Brokeres) and thus its performance critical to use the actual source to reduce latency (again, conscious choice about interactive brokers due to budget limitations of the author).
 
@@ -86,24 +84,31 @@ From the IB API we request real-time live tick-by-tick streaming data (tick is t
 
 From the CFTC we are interested in the committment of traders report (COT) that is published every week outside trading hours, so its impact can only be observed in the next monday trading session. The COT reports are based on position data supplied by reporting firms (FCMs, clearing members, foreign brokers and exchanges). While the position data is supplied by reporting firms, the actual trader category or classification is based on the predominant business purpose self-reported by traders on the CFTC Form 40 and is subject to review by CFTC staff for reasonableness. CFTC staff does not know specific reasons for traders’ positions and hence this information does not factor in determining trader classifications. In practice this means, for example, that the position data for a trader classified in the “producer/merchant/processor/user” category for a particular commodity will include all of its positions in that commodity, regardless of whether the position is for hedging or speculation. Note that traders are able to report business purpose by commodity and, therefore, can have different classifications in the COT reports for different commodities.
 
-This report allows to categorize the current open Interest of a contract by Commercial, Large speculative and small speculative traders. The commercial traders (producers or buyers of the physical commodity) are reported explicit, the Large speculators or hedgers are interpreted to be the NonCommercial traders traders buying or selling these contracts not for buying or selling the commodity but presuably for speculation. Subtracting these two categories from the total open interest of a contract gives a remaining category often interpreted as "small traders" or "small speculators". This way traders may use the report to "see" how other traders are positioned in the market.
+This report allows to categorize the current open Interest of a contract by Commercial, Large speculative and small speculative traders. The commercial traders (producers or buyers of the physical commodity) are reported explicit, the Large speculators or hedgers are interpreted to be the NonCommercial traders traders buying or selling these contracts not for buying or selling the commodity but presuably for speculation. Subtracting these two categories from the total open interest of a contract gives a remaining category often interpreted as "small traders" or "small speculators". This way traders may use the report to "see" how other traders are positioned in the market. 
+
+The report is published weekly
 
 The CFTC mentiones an API for retrieving the report but its provided by what seems to be a non government organization so using it somewhat defeats the whole purpose of getting it from the source directly. Or one can try to use the endpoints from the CFTC directly.
 
-
+The report is at most 10 GB
 
 ### EIA
 
 The U.S. Energy Information Administration (EIA) is the Department of Energy’s independent statistical agency. It collects, analyzes, and publishes impartial energy data and forecasts to inform policy, markets, and the public.
 
 Here we are interested in the following:
-Weekly patroleum stock/storage data : https://www.eia.gov/opendata/browser/petroleum/stoc/wstk?frequency=weekly&data=value;&sortColumn=period;&sortDirection=desc;
-Monthly crude oil production data : https://www.eia.gov/opendata/browser/petroleum/crd/crpdn?frequency=monthly&data=value;&sortColumn=period;&sortDirection=desc;
 
-Monthly Natural Gas withdrawal and production data : https://www.eia.gov/opendata/browser/natural-gas/prod/sum?frequency=monthly&data=value;&sortColumn=period;&sortDirection=desc;
-Weekly Natural Gas storage data : https://www.eia.gov/opendata/browser/natural-gas/stor/wkly?frequency=weekly&data=value;&sortColumn=period;&sortDirection=desc;
+Weekly patroleum stock/storage data : https://www.eia.gov/opendata/browser/petroleum/stoc/wstk
 
+Monthly crude oil production data : https://www.eia.gov/opendata/browser/petroleum/crd/crpdn
 
+Monthly Natural Gas withdrawal and production data : https://www.eia.gov/opendata/browser/natural-gas/prod/sum
+
+Weekly Natural Gas storage data : https://www.eia.gov/opendata/browser/natural-gas/stor/wkly
+
+Because these are expected to move the cude oil and natural gas market.
+
+The data can be accessed via API and each of these reports are at most 10 GB large
 
 - Explain the data set
 - Why did you choose it?
