@@ -57,7 +57,7 @@ Metrics of success:
 - [Appendix](#appendix)
 
 # Financial jargon
-If the reader is not somewhat familiar with financial jargon (futures, derivatives, tick data, limit orders ) then this section is dedicated to explaining the terms used here.
+If the reader is not somewhat familiar with financial jargon (futures, futures contracts, derivatives, tick data, limit orders, volume, open interest ) then this section is dedicated to explaining the terms used here.
 
 TODO
 
@@ -84,7 +84,13 @@ From the IB API we request real-time live tick-by-tick streaming data (tick is t
 
 ### CFTC
 
+From the CFTC we are interested in the committment of traders report (COT) that is published every week outside trading hours, so its impact can only be observed in the next monday trading session. The COT reports are based on position data supplied by reporting firms (FCMs, clearing members, foreign brokers and exchanges). While the position data is supplied by reporting firms, the actual trader category or classification is based on the predominant business purpose self-reported by traders on the CFTC Form 40 and is subject to review by CFTC staff for reasonableness. CFTC staff does not know specific reasons for traders’ positions and hence this information does not factor in determining trader classifications. In practice this means, for example, that the position data for a trader classified in the “producer/merchant/processor/user” category for a particular commodity will include all of its positions in that commodity, regardless of whether the position is for hedging or speculation. Note that traders are able to report business purpose by commodity and, therefore, can have different classifications in the COT reports for different commodities.
 
+This report allows to categorize the current open Interest of a contract by Commercial, Large speculative and small speculative traders. The commercial traders (producers or buyers of the physical commodity) are reported explicit, the Large speculators or hedgers are interpreted to be the NonCommercial traders traders buying or selling these contracts not for buying or selling the commodity but presuably for speculation. Subtracting these two categories from the total open interest of a contract gives a remaining category often interpreted as "small traders" or "small speculators". This way traders may use the report to "see" how other traders are positioned in the market.
+
+The CFTC mentiones an API for retrieving the report but its provided by what seems to be a non government organization so using it somewhat defeats the whole purpose of getting it from the source directly. Or one can try to use the endpoints from the CFTC directly.
+
+### EIA
 
 - Explain the data set
 - Why did you choose it?
