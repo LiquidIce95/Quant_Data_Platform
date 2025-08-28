@@ -37,7 +37,8 @@ Metrics of success:
 
 # Contents
 
-- [The Data Set](#the-data-set)
+- [The Data Set](#the-data-sources)
+- [Financial jargon](#financial-jargon)
 - [Used Tools](#used-tools)
   - [Connect](#connect)
   - [Buffer](#buffer)
@@ -55,7 +56,7 @@ Metrics of success:
 - [Follow Me On](#follow-me-on)
 - [Appendix](#appendix)
 
-# financial jargon
+# Financial jargon
 If the reader is not somewhat familiar with financial jargen (futures, derivatives, tick data, limit orders ) then this section is dedicated to explaining the terms used here.
 
 TODO
