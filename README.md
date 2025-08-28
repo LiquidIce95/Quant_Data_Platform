@@ -33,6 +33,8 @@ Metrics of success:
 - Report timeliness and availability 99% (out of 100 proper releases, 99 work flawlessly).  
 - Easy-to-understand and explorable as well as scalable data warehouse.  
 - End-to-end latency ≤500 milliseconds from Interactive Brokers to chart / dashboards / API users in Switzerland.
+
+
 # Contents
 
 - [The Data Set](#the-data-set)
@@ -53,9 +55,13 @@ Metrics of success:
 - [Follow Me On](#follow-me-on)
 - [Appendix](#appendix)
 
+# financial jargon
+If the reader is not somewhat familiar with financial jargen (futures, derivatives, tick data, limit orders ) then this section is dedicated to explaining the terms used here.
+
+TODO
 
 # The Data Sources
-We use three main data sources: Interactive Brokers API, www.cftc.gov,www.eia.gov,www.opec.org
+We use three main data sources: Interactive Brokers API, www.cftc.gov, www.eia.gov, www.opec.org
 
 Interactive Brokers API is an API provided by interactive brokers a global broker, brokers enable institutions and individuals alike to place orders at various exchanges around the globe, such as NYMEX (New York Mercantile Exchange) where energy futures are traded. Interactive Brokers also provides very cheap real-time streaming data for NYMEX and level 2 market depth. The Author of this project is well aware that for a real business case, the institution should consider switching to a more expensive but faster alternative.
 
@@ -64,6 +70,18 @@ The CFTC (commodity futures trading commission) is the official U.S. regulatory 
 The U.S. Energy Information Administration (EIA) is the Department of Energy’s independent statistical agency that collects, analyzes, and disseminates impartial energy data and forecasts to inform policy, ensure efficient markets, and enhance public understanding of energy’s economic and environmental impacts.
 
 OPEC (Organization of the Petroleum Exporting Countries) is a permanent intergovernmental cartel of oil-exporting states whose mission is to coordinate and unify members’ petroleum policies to stabilize oil markets—ensuring efficient supply to consumers, steady income to producers, and fair returns to investors.
+
+These sources were chosen not only because they provide relevant data and are credible but also because they are the first publishers of that data (except from Interactive Brokeres) and thus its performance critical to use the actual source to reduce latency (again, conscious choice about interactive brokers due to budget limitations of the author).
+
+It also represents a more realistic scenario when gathering data from public sources, organizations like these are the most likelily to publish good public data (non-profit or government).
+
+## Data from the sources
+
+### Interactive Brokers API
+
+From the IB API we request real-time live tick-by-tick streaming data (tick is the smallest unit the price of an asset or a derivative can move) as well as full market depth level 2 data (buy and sell limit orders at varous levels / prices). The API is authenticated with a demo account to prevent financial ruin of the author.
+
+### CFTC
 
 
 
