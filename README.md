@@ -90,7 +90,20 @@ This report allows to categorize the current open Interest of a contract by Comm
 
 The CFTC mentiones an API for retrieving the report but its provided by what seems to be a non government organization so using it somewhat defeats the whole purpose of getting it from the source directly. Or one can try to use the endpoints from the CFTC directly.
 
+
+
 ### EIA
+
+The U.S. Energy Information Administration (EIA) is the Department of Energy’s independent statistical agency. It collects, analyzes, and publishes impartial energy data and forecasts to inform policy, markets, and the public.
+
+Here we are interested in the following:
+Weekly patroleum stock/storage data : https://www.eia.gov/opendata/browser/petroleum/stoc/wstk?frequency=weekly&data=value;&sortColumn=period;&sortDirection=desc;
+Monthly crude oil production data : https://www.eia.gov/opendata/browser/petroleum/crd/crpdn?frequency=monthly&data=value;&sortColumn=period;&sortDirection=desc;
+
+Monthly Natural Gas withdrawal and production data : https://www.eia.gov/opendata/browser/natural-gas/prod/sum?frequency=monthly&data=value;&sortColumn=period;&sortDirection=desc;
+Weekly Natural Gas storage data : https://www.eia.gov/opendata/browser/natural-gas/stor/wkly?frequency=weekly&data=value;&sortColumn=period;&sortDirection=desc;
+
+
 
 - Explain the data set
 - Why did you choose it?
