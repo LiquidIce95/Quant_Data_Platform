@@ -67,7 +67,7 @@ If the reader is not somewhat familiar with financial jargon (futures, futures c
 
 In the below graphic imagine the price curve to be of a commodity, depending on at which piont in the future the contract is settled the buyer or the seller profits.
 
-<img width="480" height="317" alt="image" src="https://github.com/user-attachments/assets/b55b97b4-1256-4203-a8b1-6a41bc778fe4" />
+<img width="467" height="251" alt="image" src="https://github.com/user-attachments/assets/fdda3afa-6855-4e56-a07d-f47b479c7f49" />
 
 
 **Derivatives** — Financial contracts whose value comes from something else (an asset), hence futures are derivatives because the value of the contract is "derived" from the value of the commodity.  
