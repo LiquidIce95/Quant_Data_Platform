@@ -56,10 +56,50 @@ Metrics of success:
 - [Follow Me On](#follow-me-on)
 - [Appendix](#appendix)
 
-# Financial jargon
+# Financial jargon and context
 If the reader is not somewhat familiar with financial jargon (futures, futures contracts, derivatives, tick data, limit orders, volume, open interest ) then this section is dedicated to explaining the terms used here.
 
-TODO
+**Market** a place where buyers and sellers agree on a price on which an exchange of goods happens
+
+**Trade** - successfull transaction that happens on a market
+
+**Derivatives** — Financial contracts whose value comes from something else (e.g., crude oil or natural gas).  
+**Futures / futures contract** — A standardized agreement to buy or sell a commodity at a future date. Traded on exchanges like NYMEX.
+
+**Front month** — The nearest-expiring futures contract (the most actively traded).  
+**Roll** — The process of moving a position or dataset from one expiry to the next so analysis stays on the active contract.  
+
+**Tick data** — The smallest real-time updates from the market (every trade and order-book change).  
+**Level 1 (L1) vs Level 2 (L2)** — L1 shows the best available buy/sell price; L2 shows multiple price levels (“depth”) on both sides.  
+**Depth of Market (DOM)** — A ladder-style view of that L2 depth.
+
+**Market order (MKT)** — “Buy/Sell now at the best available price.” Fast, may cause **slippage** if not enough liquidity.  
+**Limit order (LMT)** — “Buy/Sell only at this price or better.” Adds liquidity but may not fill.  
+**Liquidity** — How much you can trade without moving the price.
+
+**Volume** — How much traded over a period.  
+**Open interest (OI)** — How many futures contracts are still open (positions that haven’t been closed).  
+**Settlement price** — The official end-of-day price used for accounting and risk.
+
+**COT (Commitments of Traders)** — Weekly CFTC report showing how different groups (commercial hedgers, large speculators, small traders) are positioned.  
+**EIA WPSR / WNGSR** — Weekly U.S. oil (WPSR) and natural-gas (WNGSR) reports. These are *high-impact* scheduled releases that often move prices.  
+**Cushing stocks** — Amount of crude stored in Cushing, Oklahoma (delivery point for WTI). Highly watched by oil traders.
+
+---
+
+## How the auction works (what actually happens when you trade)
+- The exchange runs a **continuous double auction**: buyers and sellers post **limit orders** into a central book.  
+- Orders are matched by **best price first**, then **time priority** (who got there first).  
+- A **market order** hits the book immediately, taking whatever is available; if the order is big and depth is thin, price moves.  
+- Result: prices change as liquidity is added/removed at different levels.
+
+---
+
+## Why this matters for the project
+- **Relevance:** Our platform ingests real-time L2 data and overlays it with the EIA and CFTC releases that can move markets in seconds.  
+- **Analyst experience:** Instead of manual CSVs and scattered files, analysts get a clean warehouse, live charts, and repeatable queries.  
+- **Business impact:** Faster, consistent data reduces operational risk and enables short-term insights right when market-moving reports drop.
+
 
 # The Data Sources
 We use three main data sources: Interactive Brokers API, www.cftc.gov, www.eia.gov
