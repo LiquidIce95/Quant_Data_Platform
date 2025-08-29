@@ -67,7 +67,7 @@ If the reader is not somewhat familiar with financial jargon (futures, futures c
 
 **Derivatives** — Financial contracts whose value comes from something else (an asset), hence futures are derivatives because the value of the contract is "derived" from the value of the commodity.  
 
-## How the auction works (what actually happens when you trade)
+**How the auction works (what actually happens when you trade)**
 An Exchange runs an auction process where participants either place market or limit orders. If someone submits a limit order for price x , then the exchange garantees them that they will get paired with a counterparty for x or better. If someone submits a market order then the exchange promises them to fullfill that order as fast as possible without a garantee about the price they get, the algirthm will simply move up or down the price "ladder" until a counterparty is found (limit orders). For instance if someone submits a sell market order and the next limit order is at 100 then the market order will be filled at 100 even if the last traded price was 120. Through the interaction of these order types the price "moves" up or down. If there are more buy market order than sell limit orders at a given price level then the limit orders will be completely consumed and the remaining market orders are "filled" at the next higher "tick" (see below). Beware that this description is an extreme simplification of the actual auction process (for instance can market order also fill each other, buy and sell market orders) but it captures the core idea. Or look at the image and you will immediately understand
 
 <img width="1081" height="827" alt="image" src="https://github.com/user-attachments/assets/b58c9e75-a8bc-44a5-ba42-52554a1e1970" />
