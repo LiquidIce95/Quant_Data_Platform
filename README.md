@@ -94,7 +94,7 @@ The author is well aware that in a practical setting one would actually want to 
 
 **What are potential problems of this data ?**
 
-Managing the volume and processing it in a timely manner.
+Managing the volume, concurrency and processing it in a timely manner and cost efficient.
 
 
 **Why are we picking this data ?**
@@ -119,7 +119,7 @@ It will be completely persisted in the data warehouse.
 
 **What are potential problems of this data ?**
 
-The CFTC's API seems a bit complicated to use. Also getting the right timing to fetch the report will pose a problem.
+The CFTC's API seems a bit complicated to use. Also getting the right timing to fetch the report will pose a problem even with a completely deterministic schedule adding to this comes the fact that the specific release times may vary and we need to consider holidays.
 
 **Why are we picking this data ?**
 
@@ -148,7 +148,7 @@ Weekly or monthly as described above and these reports are at most 10 GB large
 
 **What are potential problems of this data ?**
 
-Getting the right timing to fetch the report will be challenging even though there is an email alert, its not clear of how fast these alerts are.
+Getting the right timing to fetch the report will be challenging even though there is an email alert, its not clear of how fast these alerts are. Even with a completely deterministic schedule adding to this comes the fact that the specific release times may vary and we need to consider holidays.
 
 **Why are we picking this data ?**
 
