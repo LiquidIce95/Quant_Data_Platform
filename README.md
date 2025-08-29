@@ -59,47 +59,27 @@ Metrics of success:
 # Financial jargon and context
 If the reader is not somewhat familiar with financial jargon (futures, futures contracts, derivatives, tick data, limit orders, volume, open interest ) then this section is dedicated to explaining the terms used here.
 
-**Market** a place where buyers and sellers agree on a price on which an exchange of goods happens
+**Market** a place where buyers and sellers agree on a price on which an exchange of goods or services happens
 
-**Trade** - successfull transaction that happens on a market
+**Trade** - successfull exchange between a buyer and seller on a financial market is called a trade, trades are usually done with short term intentions otherwise its usually called an investment. In the context of futures contracts duties are traded.
 
-**Derivatives** — Financial contracts whose value comes from something else (e.g., crude oil or natural gas).  
-**Futures / futures contract** — A standardized agreement to buy or sell a commodity at a future date. Traded on exchanges like NYMEX.
+**Futures / futures contract** — A standardized contract to buy or sell a commodity at a future date for a price that will be agreed on now (fix price now, buy or sell commodity later), this allow producers to hedge themselves against falling prices because they can sell their commodity in the future but for the current price. Likewise this allows buyers of commodities to hedge themselves against rising prices since they can secure a price now and buy the commodity later. The buyer of the contract has the duty to buy the commodity for the agreed upon price (which is the price the future contract is currently listed) for the delivery time defined by the  contract (which is in the future, hence futures). The seller of the contract has the duty to sell the commodity at the agreed price also at the defined delivery date, when the date arrives and the commodity is exchanged then the contract is considered (physically) settled. A party (buyer or seller) can only opt out of the contract, by reverting the trade and thus closing the position, concretely if a party is the buyer, then it sells the contract to another buyer, to replace the buying party of the contract and thus opting out of the contract. Likewise a seller needs to buy "back" the contract by finding a new seller to opt out of the contract. The more people participate in a financial market the easier it is to open and close these contracts and the less influence a single party has over the entire market, such a market is said to be liquid.
 
-**Front month** — The nearest-expiring futures contract (the most actively traded).  
-**Roll** — The process of moving a position or dataset from one expiry to the next so analysis stays on the active contract.  
+**Derivatives** — Financial contracts whose value comes from something else (an asset), hence futures are derivatives because the value of the contract is "derived" from the value of the commodity.  
+
+## How the auction works (what actually happens when you trade)
+An Exchange runs an auction process where participants either place market or limit orders. If someone submits a limit order for price x , then the exchange garantees them that they will get paired with a counterparty for x or better. If someone submits a market order then the exchange promises them to fullfill that order as fast as possible without a garantee about the price they get, the algirthm will simply move up or down the price "ladder" until a counterparty is found (limit orders). For instance if someone submits a sell market order and the next limit order is at 100 then the market order will be filled at 100 even if the last traded price was 120. Through the interaction of these order types the price "moves" up or down. If there are more buy market order than sell limit orders at a given price level then the limit orders will be completely consumed and the remaining market orders are "filled" at the next higher "tick" (see below). Beware that this description is an extreme simplification of the actual auction process (for instance can market order also fill each other, buy and sell market orders) but it captures the core idea.
+
+**Tick** - smallest unit a price can move in the auction process
 
 **Tick data** — The smallest real-time updates from the market (every trade and order-book change).  
-**Level 1 (L1) vs Level 2 (L2)** — L1 shows the best available buy/sell price; L2 shows multiple price levels (“depth”) on both sides.  
-**Depth of Market (DOM)** — A ladder-style view of that L2 depth.
-
-**Market order (MKT)** — “Buy/Sell now at the best available price.” Fast, may cause **slippage** if not enough liquidity.  
-**Limit order (LMT)** — “Buy/Sell only at this price or better.” Adds liquidity but may not fill.  
-**Liquidity** — How much you can trade without moving the price.
+**Level 1 (L1) vs Level 2 (L2)** — L1 shows the best available buy/sell price (closest limit orders to last traded price); L2 shows multiple price levels (“depth”) on both sides (limit orders further away from current price).  
+**Depth of Market (DOM)** — A ladder-style view of that L2 depth, shows you 'all' the limit orders at varous price levels.
 
 **Volume** — How much traded over a period.  
 **Open interest (OI)** — How many futures contracts are still open (positions that haven’t been closed).  
-**Settlement price** — The official end-of-day price used for accounting and risk.
-
-**COT (Commitments of Traders)** — Weekly CFTC report showing how different groups (commercial hedgers, large speculators, small traders) are positioned.  
-**EIA WPSR / WNGSR** — Weekly U.S. oil (WPSR) and natural-gas (WNGSR) reports. These are *high-impact* scheduled releases that often move prices.  
-**Cushing stocks** — Amount of crude stored in Cushing, Oklahoma (delivery point for WTI). Highly watched by oil traders.
 
 ---
-
-## How the auction works (what actually happens when you trade)
-- The exchange runs a **continuous double auction**: buyers and sellers post **limit orders** into a central book.  
-- Orders are matched by **best price first**, then **time priority** (who got there first).  
-- A **market order** hits the book immediately, taking whatever is available; if the order is big and depth is thin, price moves.  
-- Result: prices change as liquidity is added/removed at different levels.
-
----
-
-## Why this matters for the project
-- **Relevance:** Our platform ingests real-time L2 data and overlays it with the EIA and CFTC releases that can move markets in seconds.  
-- **Analyst experience:** Instead of manual CSVs and scattered files, analysts get a clean warehouse, live charts, and repeatable queries.  
-- **Business impact:** Faster, consistent data reduces operational risk and enables short-term insights right when market-moving reports drop.
-
 
 # The Data Sources
 We use three main data sources: Interactive Brokers API, www.cftc.gov, www.eia.gov
