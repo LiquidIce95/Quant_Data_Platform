@@ -78,27 +78,63 @@ It also represents a more realistic scenario when gathering data from public sou
 
 ### Interactive Brokers API
 
-From the IB API we request real-time live tick-by-tick streaming data (tick is the smallest unit the price of an asset or a derivative can move) as well as full market depth level 2 data (buy and sell limit orders at varous levels / prices). The API is authenticated with a demo account to prevent financial ruin of the author.
+**What data are we interested in ?**
+
+From the IB API we request real-time live tick-by-tick streaming data (tick is the smallest unit the price of an asset or a derivative can move) as well as full market depth level 2 data (buy and sell limit orders at varous levels / prices) for all futures contracts of crude oil WTI and natural gas. The API is authenticated with a demo account to prevent financial ruin of the author.
+
+**How often is this data updated and how large is the data ?**
+
+its quite a lot of data and could generate up to 1 TB per month.  The events from the stream could be generated at the micro second level thus its common to set a fixed sampling intervall of maybe 5 to 20 milliseconds. The stream is only active during trading hours.
+
+**How is the data persisted ?**
+
+The idea is to compress the data on 1 minute time intervalls (open, high, low, close, volume, open interest) to avoid excessive storage costs and to provide historical data. 
+The author is well aware that in a practical setting one would actually want to store historical tick data since its very expensive to buy but because we are getting the real-time tick data from IB we are not allowed to sell it thus there is no value in storing it.
+
+
+**What are potential problems of this data ?**
+
+Managing the volume and processing it in a timely manner.
+
+
+**Why are we picking this data ?**
+
+These tick event data streams are selected because they are data that is crucial for real-world low latecny trading operations and its always fascinating to observe markets with the DOM and real time charts. Furthermore IB is possibly the cheapest vendor for that data and a credible and reliable source of it and their api seems to be well maintained and documented.
 
 ### CFTC
+
+**What data are we interested in ?**
 
 From the CFTC we are interested in the committment of traders report (COT) that is published every week outside trading hours, so its impact can only be observed in the next monday trading session. The COT reports are based on position data supplied by reporting firms (FCMs, clearing members, foreign brokers and exchanges). While the position data is supplied by reporting firms, the actual trader category or classification is based on the predominant business purpose self-reported by traders on the CFTC Form 40 and is subject to review by CFTC staff for reasonableness. CFTC staff does not know specific reasons for traders’ positions and hence this information does not factor in determining trader classifications. In practice this means, for example, that the position data for a trader classified in the “producer/merchant/processor/user” category for a particular commodity will include all of its positions in that commodity, regardless of whether the position is for hedging or speculation. Note that traders are able to report business purpose by commodity and, therefore, can have different classifications in the COT reports for different commodities.
 
 This report allows to categorize the current open Interest of a contract by Commercial, Large speculative and small speculative traders. The commercial traders (producers or buyers of the physical commodity) are reported explicit, the Large speculators or hedgers are interpreted to be the NonCommercial traders traders buying or selling these contracts not for buying or selling the commodity but presuably for speculation. Subtracting these two categories from the total open interest of a contract gives a remaining category often interpreted as "small traders" or "small speculators". This way traders may use the report to "see" how other traders are positioned in the market. 
 
-The report is published weekly
+**How often is this data updated and how large is the data ?**
 
-The CFTC mentiones an API for retrieving the report but its provided by what seems to be a non government organization so using it somewhat defeats the whole purpose of getting it from the source directly. Or one can try to use the endpoints from the CFTC directly.
+The report is published weekly and is at most 10 GB
 
-The report is at most 10 GB
+**How is the data persisted ?**
+
+It will be completely persisted in the data warehouse.
+
+**What are potential problems of this data ?**
+
+The CFTC's API seems a bit complicated to use. Also getting the right timing to fetch the report will pose a problem.
+
+**Why are we picking this data ?**
+
+Being able to see an estimate of how major market participants are positioned in the markets can serve as feedback for models trying to predict that positioning. Also if extreme positions are reached its indicative of high volatility. Lastly its something commonly used in retail trading circles.
+
 
 ### EIA
+
+**What data are we interested in ?**
 
 The U.S. Energy Information Administration (EIA) is the Department of Energy’s independent statistical agency. It collects, analyzes, and publishes impartial energy data and forecasts to inform policy, markets, and the public.
 
 Here we are interested in the following:
 
-Weekly patroleum stock/storage data : https://www.eia.gov/opendata/browser/petroleum/stoc/wstk
+Weekly crude oil stock/storage data : https://www.eia.gov/opendata/browser/petroleum/stoc/wstk
 
 Monthly crude oil production data : https://www.eia.gov/opendata/browser/petroleum/crd/crpdn
 
@@ -106,15 +142,20 @@ Monthly Natural Gas withdrawal and production data : https://www.eia.gov/opendat
 
 Weekly Natural Gas storage data : https://www.eia.gov/opendata/browser/natural-gas/stor/wkly
 
-Because these are expected to move the cude oil and natural gas market.
+**How often is this data updated and how large is the data ?**
 
-The data can be accessed via API and each of these reports are at most 10 GB large
+Weekly or monthly as described above and these reports are at most 10 GB large
 
-- Explain the data set
-- Why did you choose it?
-- What do you like about it?
-- What is problematic?
-- What do you want to do with it?
+**What are potential problems of this data ?**
+
+Getting the right timing to fetch the report will be challenging even though there is an email alert, its not clear of how fast these alerts are.
+
+**Why are we picking this data ?**
+
+This source seems to have an easy to use and well documented API. Also the source has more interesting data that can also be fetched with the API and the data sets contain data that directly relates to price action (supply data)
+
+
+
 
 # Used Tools
 - Explain which tools do you use and why
