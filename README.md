@@ -65,6 +65,11 @@ If the reader is not somewhat familiar with financial jargon (futures, futures c
 
 **Futures / futures contract** — A standardized contract to buy or sell a commodity at a future date for a price that will be agreed on now (fix price now, buy or sell commodity later), this allow producers to hedge themselves against falling prices because they can sell their commodity in the future but for the current price. Likewise this allows buyers of commodities to hedge themselves against rising prices since they can secure a price now and buy the commodity later. The buyer of the contract has the duty to buy the commodity for the agreed upon price (which is the price the future contract is currently listed) for the delivery time defined by the  contract (which is in the future, hence futures). The seller of the contract has the duty to sell the commodity at the agreed price also at the defined delivery date, when the date arrives and the commodity is exchanged then the contract is considered (physically) settled. A party (buyer or seller) can only opt out of the contract, by reverting the trade and thus closing the position, concretely if a party is the buyer, then it sells the contract to another buyer, to replace the buying party of the contract and thus opting out of the contract. Likewise a seller needs to buy "back" the contract by finding a new seller to opt out of the contract. The more people participate in a financial market the easier it is to open and close these contracts and the less influence a single party has over the entire market, such a market is said to be liquid.
 
+In the below graphic imagine the price curve to be of a commodity, depending on at which piont in the future the contract is settled the buyer or the seller profits.
+
+<img width="480" height="317" alt="image" src="https://github.com/user-attachments/assets/b55b97b4-1256-4203-a8b1-6a41bc778fe4" />
+
+
 **Derivatives** — Financial contracts whose value comes from something else (an asset), hence futures are derivatives because the value of the contract is "derived" from the value of the commodity.  
 
 **How the auction works (what actually happens when you trade)**
