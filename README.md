@@ -16,9 +16,9 @@ Right now the analysts manually download CSV files containing macro data for US 
 Your first objective is to provide a unified, clean and simple-to-use data platform for the various analysis teams and their analysts. You may assume that the analysts are comfortable in basic SQL and can self-service dashboards and analytics.  
 
 Metrics of success:  
-- Pipeline reliability 99% (out of 100 proper releases, 99 work flawlessly).
-- Pipeline timeliness the released reports should be in the data warehouse within 1 hours of release.
-- Easy-to-understand and explorable as well as scalable data warehouse (clean data catalagoe and data model).
+- Pipeline reliability: 99% (out of 100 proper releases, 99 work flawlessly).
+- Pipeline timeliness: the released reports should be in the data warehouse within 1 hours of release.
+- Easy-to-understand and explorable as well as scalable data warehouse (clean data catalogue and data model).
 - Clear and automated data and dev Ops
 - Clear and sensisble Data governance
 
@@ -43,7 +43,9 @@ If the analysts are confident in their speculation, your third objective is to i
 
 Metrics of success:  
 - The api should be in accordance to best practices of REST
-
+- End-to-end latency ≤500 milliseconds from Interactive Brokers to chart / dashboards / API users in Switzerland.
+- Use of true event tick data (no sampling)
+- Clear and automated data and dev Ops
 
 ---
 
