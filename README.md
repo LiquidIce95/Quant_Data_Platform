@@ -49,6 +49,9 @@ Metrics of success:
 
 ---
 
+Constraints
+- The entire project must be completed within 15 weeks with at most 10 hours per week
+- The entire project cannot cost more than 250 USD per month to keep running
 
 # Contents
 
