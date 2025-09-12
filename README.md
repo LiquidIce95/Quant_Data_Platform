@@ -5,7 +5,7 @@ This is a portfolio project to showcase understanding, skills and expertise in t
 
 # Introduction & Goals
 Business Case:  
-You got hired as a Data Engineer at a trading firm in Zug focusing on energy markets and quantitative approaches.  
+You got hired as a Data Engineer at a commodity trading firm in Zug focusing on energy markets and quantitative approaches.  
 
 The firm wants to reduce operational risk and latency in its macro data handling to support analysts and potentially open new short-term trading strategies.  
 
@@ -13,7 +13,7 @@ The firm wants to reduce operational risk and latency in its macro data handling
 
 Objective 1:  
 Right now the analysts manually download CSV files containing macro data for US Oil (futures) and store them on SharePoint. Until now it wasn’t a problem because most of these reports are published weekly or monthly. However, sometimes analysts forget to download these reports and the organization of these files varies widely amongst analysis teams, leading to duplicate and inconsistent work.  
-Your first objective is to provide a unified, clean and simple-to-use data platform for the various analysis teams and their analysts. You may assume that the analysts are comfortable in basic SQL and can self-service dashboards and analytics.  
+Your first objective is to provide a unified, clean and simple-to-use data platform for the various analysis teams and their analysts. You may assume that the analysts are comfortable in basic SQL and can self-service dashboards and analytics. The Platform needs to be scalable and open for integration of other business data from other sources and Types (product and service data, suppliers, clients, ect)
 
 Metrics of success:  
 - Pipeline reliability: 99% (out of 100 proper releases, 99 work flawlessly).
