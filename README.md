@@ -29,7 +29,7 @@ The firm trades on larger time frames with trades often running from days to mon
 
 Thus your second objective is to engineer a pipeline from live market data of Interactive Brokers to a real-time chart where it is indicated when the macro data is released and then updated in the chart with minimal delay such that analysts can observe the impact of the release and results of these reports in real-time on futures markets. This chart should support basic chart functionality and loading of historical data (historical charts).  
 Metrics of success:  
-- End-to-end latency ≤500 milliseconds from Interactive Brokers to chart / dashboards / API users in Switzerland.
+- Dashboard must be responsive and fluid ≤500 milliseconds lag or sampling.
 - Use of true event tick data (no sampling)
 - Clear and automated data and dev Ops
 - Clear and sensisble Data governance
@@ -37,21 +37,23 @@ Metrics of success:
 
 ---
 
-Objective 3 (optional):  
-If the analysts are confident in their speculation, your third objective is to implement an API for the quant engineers to use the low-latency data (provided to the real-time dashboard) for implementing these trading algorithms.  
+Objective 3:  
+The firm uses various statistical and machine learning models, however the process of training and feeding these models with new data involves a lot of manual labor from the analysts part. Furthermore it is currently not possible to feed live data into the models. Your third objective is to implement an API that provides real time market data from IB and historical data from the warehouse.
 
 
 Metrics of success:  
 - The api should be in accordance to best practices of REST
-- End-to-end latency ≤500 milliseconds from Interactive Brokers to chart / dashboards / API users in Switzerland.
+- End-to-end latency ≤500 milliseconds from Interactive Brokers API users in Switzerland.
 - Use of true event tick data (no sampling)
 - Clear and automated data and dev Ops
 
+For more details on the objectives see the user_stories.md
 ---
 
 Constraints
 - The entire project must be completed within 15 weeks with at most 10 hours per week
-- The entire project cannot cost more than 250 USD per month to keep running
+- The entire project cannot cost more than 150 USD per month to keep running
+- To keep costs low we only run the streaming pipeline during US cash open (15:30 - 18:30 CET)
 
 # Contents
 
