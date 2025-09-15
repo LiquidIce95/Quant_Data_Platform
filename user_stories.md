@@ -1,6 +1,6 @@
 # Analysts
 
-As an analyst I want to have realtime dashboads, where I can observe the impact of the release of macro economic data to gain insights and ideas for models or algorithms. These dashbords should support candle stick charts (1 min, 5 min, 15 min, 60 min, 1 day, 1 week), selection of single futures contracts (crude oil and natural gas current 8 contract months, ES (E-mini S&P 500) current and next month, historical data, forward curves in real time and the  macro economic data as well as L2 (full order book) data. Dashboard should feel responsive and (less than 500ms lags or sampling).
+As an analyst I want to have realtime dashboads, where I can observe the impact of the release of macro economic data to gain insights and ideas for models or algorithms. These dashbords should support candle stick charts (1 min, 5 min, 15 min, 60 min, 1 day, 1 week), selection of single futures contracts (crude oil and natural gas current 8 contract months, historical data, forward curves in real time and the  macro economic data as well as L2 (full order book) data. Dashboard should feel responsive and (less than 500ms lags or sampling).
 
 As an analyst I want to have a data catalogue for our data warehouse to quickly discover and understand datasets we currently have in a centralized place.
 
