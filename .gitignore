@@ -1,0 +1,7 @@
+.metals/
+.bsp/
+.vscode
+.scala-uild/
+.bloop
+target
+project
