@@ -6,5 +6,11 @@
   "mounts": [ "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached" ],
   "remoteUser": "root",
   "updateRemoteUserUID": false,
-  "postCreateCommand": "sh -lc 'git config --global --add safe.directory /work'"
+  "postCreateCommand": "sh -lc 'git config --global --add safe.directory /work'",
+  "runArgs": ["--network=host"],                     // <— key line
+  "containerEnv": {
+    "IB_HOST": "127.0.0.1",                          // now loopback hits your host
+    "IB_PORT": "4002",
+    "IB_CLIENT_ID": "1"
+  }
 }
