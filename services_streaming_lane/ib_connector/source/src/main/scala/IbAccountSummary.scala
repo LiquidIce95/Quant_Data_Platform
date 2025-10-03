@@ -1,3 +1,4 @@
+package src.main.scala
 import com.ib.client._
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 
