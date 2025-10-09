@@ -1,0 +1,31 @@
+# infra/kafka/20-topics.yml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: ticklast                # <-- lowercase k8s name
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: dev-kafka
+spec:
+  topicName: ticklast           # <-- actual Kafka topic used by your app
+  partitions: 12
+  replicas: 1
+  config:
+    cleanup.policy: delete
+    retention.ms: 86400000
+
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: l2-data                 # <-- lowercase k8s name
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: dev-kafka
+spec:
+  topicName: l2-data            # <-- actual Kafka topic used by your app
+  partitions: 12
+  replicas: 1
+  config:
+    cleanup.policy: delete
+    retention.ms: 86400000

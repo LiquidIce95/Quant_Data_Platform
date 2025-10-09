@@ -1,0 +1,9 @@
+.metals/
+.bsp/
+.vscode
+.scala-uild/
+.bloop
+target
+project
+services_streaming_lane/app.jar
+services_streaming_lane/spark-4.0.1-bin-hadoop3/

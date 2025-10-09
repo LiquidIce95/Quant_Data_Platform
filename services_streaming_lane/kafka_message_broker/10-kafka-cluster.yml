@@ -1,0 +1,40 @@
+# infra/kafka/10-kafka-cluster.yml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: dev-kafka
+spec:
+  kafka:
+    version: 4.1.0
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+    config:
+      auto.create.topics.enable: "false"
+      # sensible single-node defaults for dev:
+      inter.broker.listener.name: INTERNAL
+      offsets.topic.replication.factor: 1
+      transaction.state.log.replication.factor: 1
+      transaction.state.log.min.isr: 1
+      default.replication.factor: 1
+      min.insync.replicas: 1
+  entityOperator:
+    topicOperator: {}
+    userOperator: {}
+
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: dev-kafka-all
+  labels:
+    strimzi.io/cluster: dev-kafka
+spec:
+  replicas: 1
+  roles:
+    - controller
+    - broker
+  storage:
+    type: ephemeral

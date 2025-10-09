@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ib-connector
+  namespace: ${NAMESPACE_KAFKA}
+spec:
+  containers:
+    - name: ib-connector
+      image: ib-connector:dev
+      env:
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "${KAFKA_NAME}-kafka-bootstrap.${NAMESPACE_KAFKA}:9092"
+  nodeSelector:
+    ${LBL_KEY}: ${LBL_VAL_KAFKA}
+  restartPolicy: Always

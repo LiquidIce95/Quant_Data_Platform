@@ -1,0 +1,19 @@
+# Stage 1: app jar (already built with sbt-assembly)
+FROM eclipse-temurin:21-jre AS app
+WORKDIR /opt/app
+COPY target/scala-2.13/spark-processor-assembly-*.jar /opt/app/app.jar
+
+# Stage 2: start from your devcontainer image and add Spark runtime
+FROM myorg/spark-devbase:local AS runtime
+ARG SPARK_VERSION=4.0.1
+ARG HADOOP_PROFILE=3
+WORKDIR /opt
+# Install Spark (vanilla Apache tarball) into /opt/spark
+RUN curl -fsSL https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_PROFILE}.tgz \
+    | tar -xz && mv spark-${SPARK_VERSION}-bin-hadoop${HADOOP_PROFILE} spark
+ENV SPARK_HOME=/opt/spark
+ENV PATH=$SPARK_HOME/bin:$PATH
+
+# Copy your app
+COPY --from=app /opt/app/app.jar /opt/spark/app/app.jar
+ENV SPARK_APPLICATION_JAR=/opt/spark/app/app.jar
