@@ -1,0 +1,170 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+
+Table numeric_macro_events {
+  ingestion_time    timestamp [not null] // designated + partitioned (DAY)
+  commodity         symbol   [not null]
+  event_name        symbol   [not null]
+  event_value       double   [not null]
+  event_value_unit  symbol   [not null]
+  event_value_name  symbol   [not null]
+  event_time        timestamp [not null]
+  source            symbol   [not null]
+  event_id          uuid
+}
+
+// is ingestion table, physical
+// ingestion_time is Index , partitioned by week, 
+// commodity is secondary index
+// event_name is also index (not needed?)
+// source is also an index (not needed?)
+
+Table market_order_levels {
+  ingestion_time    timestamp [not null] // designated + partitioned (DAY)
+  event_time        timestamp            // vendor/origin time
+  trading_symbol    symbol   [not null]
+  source            symbol   [not null]  // 'IB', etc.
+  side              symbol   [not null]  // 'bid' | 'ask'
+  level             int      [not null]  // 0 = top of book
+  price             double   [not null]
+  size              long     [not null]
+  event_id          uuid                   // optional lineage/dedup
+}
+
+// is ingestion table, physical
+// ingestion_time is index , partitioned by hour
+// trading_symbol is secondary index
+// source is another index
+
+Table market_trades {
+  ingestion_time    timestamp [not null]
+  event_time        timestamp
+  trading_symbol    symbol   [not null]
+  source            symbol   [not null]
+  price             double   [not null]
+  size              long     [not null]
+  event_id          uuid                   // optional lineage/dedup
+}
+
+
+
+// is ingestion table, physical
+// ingestion_time is index , partitioned by hour
+// trading_symbol is secondary index
+// source is another index
+
+Table market_trades_latest {
+  ingestion_time    timestamp [not null]
+  event_time        timestamp
+  trading_symbol    symbol   [not null]
+  source            symbol   [not null]
+  price             double   [not null]
+  size              long     [not null]
+  event_id          uuid                   // optional lineage/dedup
+}
+
+// is materialized view, per trading_symbol there should be 
+// exactly one row
+// trading_symbol is index 
+
+Table book_latest { // snapshot of current ladder, not historical
+  ingestion_time    timestamp [not null]
+  trading_symbol    symbol   [not null]
+  side              symbol   [not null]  // 'bid' | 'ask'
+  level             int      [not null]
+  price             double   [not null]
+  size              long     [not null]
+  event_id          uuid
+}
+
+// is materialized view, we only want the latest data of 
+// each trading_symbol , so per trading_symbol, side , level there should be
+// exactly one entry with price, size and ingestion_time
+// trading_symbol is primary index (does this make sense in the contex
+// of views????)
+// source is another index
+
+
+Table bars_1s { // maintained by MV: SAMPLE BY 1s over market_trades
+  trading_symbol            symbol    [not null] // trading_symbol
+  open              double    [not null]
+  high              double    [not null]
+  low               double    [not null]
+  close             double    [not null]
+  volume            long      [not null]
+  bar_start_time timestamp [not null]
+  bar_end_time timestamp [not null]
+}
+
+// is materialized view
+// bar_start_time is index , partitioned by hour
+// trading_symbol is secondary index
+
+Table bars_1m { // maintained by MV from bars_5s: SAMPLE BY 1m
+  trading_symbol            symbol    [not null]
+  open              double    [not null]
+  high              double    [not null]
+  low               double    [not null]
+  close             double    [not null]
+  volume            long      [not null]
+  bar_start_time timestamp [not null]
+  bar_end_time timestamp [not null]
+
+}
+
+
+// is materialized view
+// bar_start_time is index, partitioned by 6-hour window
+// trading_symbol is secondary index
+
+Table bars_1h { // maintained by MV from bars_5s: SAMPLE BY 1m
+  trading_symbol            symbol    [not null]
+  open              double    [not null]
+  high              double    [not null]
+  low               double    [not null]
+  close             double    [not null]
+  volume            long      [not null]
+  bar_start_time timestamp [not null]
+  bar_end_time timestamp [not null]
+
+}
+
+
+// is materialized view
+// bar_start_time is index, partitioned by 6-hour window
+// trading_symbol is secondary index
+
+Table trading_symbol {
+  code symbol unique [not null]
+  commodity symbol [not null]
+  contract_description varchar [not null]
+  contract_size float [not null]
+  tick_size float [not null]
+  trading_hours varchar [not null]
+  exchange symbol [not null]
+  point_value float [not null]
+}
+
+
+// is fixed constant table (no ingestion or changes during the day)
+// code is index, no parition needed since at most 250 values
+// exchange is secondary index
+
+// Logical references (documentation-oriented)
+Ref: market_trades.trading_symbol - trading_symbol.code
+Ref: numeric_macro_events.commodity - trading_symbol.commodity
+Ref: market_order_levels.trading_symbol - trading_symbol.code
+Ref: book_latest.trading_symbol - trading_symbol.code 
+Ref: bars_1s.trading_symbol - trading_symbol.code 
+Ref: bars_1m.trading_symbol - trading_symbol.code
+Ref: bars_1h.trading_symbol - trading_symbol.code
+Ref: book_latest.event_id - market_order_levels.event_id
+Ref: market_trades_latest.trading_symbol - trading_symbol.code
+Ref: market_trades_latest.event_id - market_trades.event_id
+
+// Notes schema in both azure synapese and QuestDB the same, the only 
+// difference is that 'symbol' dtype does not exist in azure since QuestDB
+// feature, and Data of current trading day is stored in QuestDB for speed
+// Data older than current trading day, is stored in azure, 
+// in a realistic setting the boundaries would probably different...
