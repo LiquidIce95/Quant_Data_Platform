@@ -3,8 +3,8 @@
 
 
 Table numeric_macro_events {
-  ingestion_time    timestamp [not null] // designated + partitioned (DAY)
-  commodity         symbol   [not null]
+  ingestion_time    timestamp [not null] // indexed
+  commodity         symbol   [not null] //partitioned
   event_name        symbol   [not null]
   event_value       double   [not null]
   event_value_unit  symbol   [not null]
@@ -21,9 +21,9 @@ Table numeric_macro_events {
 // source is also an index (not needed?)
 
 Table market_order_levels {
-  ingestion_time    timestamp [not null] // designated + partitioned (DAY)
+  ingestion_time    timestamp [not null] // indexed
   event_time        timestamp            // vendor/origin time
-  trading_symbol    symbol   [not null]
+  trading_symbol    symbol   [not null] // partitioned by 
   source            symbol   [not null]  // 'IB', etc.
   side              symbol   [not null]  // 'bid' | 'ask'
   level             int      [not null]  // 0 = top of book
@@ -38,9 +38,9 @@ Table market_order_levels {
 // source is another index
 
 Table market_trades {
-  ingestion_time    timestamp [not null]
+  ingestion_time    timestamp [not null] // indexed
   event_time        timestamp
-  trading_symbol    symbol   [not null]
+  trading_symbol    symbol   [not null] // partitioned
   source            symbol   [not null]
   price             double   [not null]
   size              long     [not null]
