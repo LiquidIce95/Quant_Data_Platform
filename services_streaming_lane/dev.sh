@@ -13,10 +13,15 @@ BOOTSTRAP_LOCAL_PORT="${BOOTSTRAP_LOCAL_PORT:-9092}"
 # Spark (K8s)
 NAMESPACE_SPARK="${NAMESPACE_SPARK:-spark}"
 SPARK_SA="${SPARK_SA:-spark-sa}"
-SPARK_VERSION="${SPARK_VERSION:-4.0.1}"
+SPARK_VERSION="${SPARK_VERSION:-3.5.7}"
 SPARK_IMAGE_TAG="${SPARK_IMAGE_TAG:-our-own-apache-spark-kb8}"        # built by docker-image-tool.sh
 APP_IMAGE_TAG="${APP_IMAGE_TAG:-${SPARK_IMAGE_TAG}-app}"              # overlay image w/ app.jar
-SPARK_APP_CLASS="${SPARK_APP_CLASS:-com.yourorg.spark.ReadTicklastPrint}"
+# Use the class you provided (case-sensitive)
+SPARK_APP_CLASS="${SPARK_APP_CLASS:-com.yourorg.spark.ReadTickLastPrint}"
+
+# ClickHouse (runs in Spark ns by default)
+NAMESPACE_CLICKHOUSE="${NAMESPACE_CLICKHOUSE:-${NAMESPACE_SPARK}}"
+CLICKHOUSE_IMAGE_TAG="${CLICKHOUSE_IMAGE_TAG:-clickhouse:dev}"
 
 # Node labels
 LBL_KEY="streamlane/role"
@@ -30,7 +35,10 @@ ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 KAFKA_DIR="$ROOT/services_streaming_lane/kafka_message_broker"
 IB_DIR="$ROOT/services_streaming_lane/ib_connector/source"
 SPARK_DIR="$ROOT/services_streaming_lane/spark_processor"
-SPARK_HOME="$ROOT/services_streaming_lane/spark-4.0.1-bin-hadoop3"
+SPARK_HOME="$ROOT/services_streaming_lane/spark-${SPARK_VERSION}-bin-hadoop3"
+
+CLICKHOUSE_DIR="$ROOT/services_streaming_lane/click_house"
+CLICKHOUSE_INFRA_DIR="$CLICKHOUSE_DIR/infra"
 
 # Kafka manifests
 NS_FILE="$KAFKA_DIR/00-namespace.yml"
@@ -47,17 +55,21 @@ SPARK_DEFAULTS_FILE="$SPARK_DIR/infra/30-spark-defaults.conf"
 # IB infra
 IB_POD_FILE="$ROOT/services_streaming_lane/ib_connector/infra/10-ib-connector-pod.yml"
 
+# ClickHouse infra
+CLICKHOUSE_POD_FILE="$CLICKHOUSE_INFRA_DIR/10-clickhouse-pod.yml"
+CLICKHOUSE_SVC_FILE="$CLICKHOUSE_INFRA_DIR/20-clickhouse-svc.yml"
+
 # ========= JAR paths (ABSOLUTE, NO find/symlink) =========
-# NOTE: We copy whatever sbt assembled into a FIXED host path:
 JAR_DEST="$ROOT/services_streaming_lane/app.jar"
-# If you keep the sbt output name stable, set it here (ABSOLUTE). Adjust the scala version / artifact as needed.
-SBT_ASSEMBLY_ABS="${SPARK_DIR}/source/target/scala-2.13/spark-processor-assembly-0.1.0-SNAPSHOT.jar"
-# Path INSIDE the container image (NOT under work-dir to avoid Spark copy clash)
+# You are on Spark 3.5.x -> Scala 2.12 line, keep 2.12 output path:
+SBT_ASSEMBLY_ABS="${SPARK_DIR}/source/target/scala-2.12/spark-processor-assembly-0.1.0-SNAPSHOT.jar"
 APP_JAR_PATH_IN_IMAGE="/opt/spark/app/app.jar"
 
 # ========= Helpers =========
 need() { command -v "$1" >/dev/null 2>&1 || { echo "Missing dependency: $1"; exit 1; }; }
 have() { [[ -f "$1" ]] || { echo "Required file not found: $1"; exit 1; }; }
+
+ns_exists() { kubectl get ns "$1" >/dev/null 2>&1; }
 
 # ========= Cluster creation (kind) =========
 create_cluster_dev() {
@@ -139,20 +151,18 @@ build_base_spark_image() {
 }
 
 # ========= Spark: build fat jar (copy to ABSOLUTE fixed path) =========
-# No 'find', no symlink. We copy a KNOWN assembled file to JAR_DEST.
 build_fat_jar() {
   need docker
   local SRC_DIR="${SPARK_DIR%/}/source"
   have "${SRC_DIR}/build.sbt"
 
-  # Build inside sbt image; output lands at ${SBT_ASSEMBLY_ABS}
   docker run --rm \
     -v "${SRC_DIR}":/work \
     -v "$HOME/.ivy2":/root/.ivy2 \
     -v "$HOME/.sbt":/root/.sbt \
     -v "$HOME/.cache/coursier":/root/.cache/coursier \
     -w /work \
-    docker.io/sbtscala/scala-sbt:eclipse-temurin-21.0.8_9_1.11.6_2.13.16 \
+    docker.io/sbtscala/scala-sbt:eclipse-temurin-21.0.8_9_1.11.6_2.12.20 \
     sbt -batch clean assembly
 
   have "${SBT_ASSEMBLY_ABS}"
@@ -212,7 +222,8 @@ start_spark_sim() {
   kubectl -n "${NAMESPACE_SPARK}" logs -f "$(kubectl -n "${NAMESPACE_SPARK}" get pods -l spark-role=driver -o name | tail -n1 | cut -d/ -f2)" || true
 }
 
-# ========= Spark submit (MINIMAL, like tutorial: SparkPi from examples) =========
+
+# ========= Spark submit (MINIMAL) =========
 start_spark_sim2() {
   need kubectl
   local K8S_SERVER
@@ -235,6 +246,64 @@ start_spark_sim2() {
   kubectl -n "${NAMESPACE_SPARK}" logs -f "$(kubectl -n "${NAMESPACE_SPARK}" get pods -l spark-role=driver -o name | tail -n1 | cut -d/ -f2)" || true
 }
 
+# ========= ClickHouse =========
+build_clickhouse_image() {
+  need docker
+  have "$CLICKHOUSE_DIR/Dockerfile"
+  have "$CLICKHOUSE_DIR/create_data_model.sql"
+  (cd "$CLICKHOUSE_DIR" && docker build -t "${CLICKHOUSE_IMAGE_TAG}" .)
+}
+
+deploy_clickhouse() {
+  need docker; need kind; need kubectl; need envsubst
+  build_clickhouse_image
+  kind load docker-image "${CLICKHOUSE_IMAGE_TAG}" --name "${CLUSTER_NAME}"
+
+  ns_exists "${NAMESPACE_CLICKHOUSE}" || kubectl create namespace "${NAMESPACE_CLICKHOUSE}"
+
+  have "${CLICKHOUSE_POD_FILE}"
+  have "${CLICKHOUSE_SVC_FILE}"
+  export NAMESPACE_CLICKHOUSE LBL_KEY LBL_VAL_SPARK
+  envsubst < "${CLICKHOUSE_POD_FILE}" | kubectl apply -f -
+  envsubst < "${CLICKHOUSE_SVC_FILE}" | kubectl apply -f -
+
+  # Wait for readiness
+  kubectl -n "${NAMESPACE_CLICKHOUSE}" wait --for=condition=Ready pod/clickhouse --timeout=240s || true
+  kubectl -n "${NAMESPACE_CLICKHOUSE}" get pods -o wide
+  kubectl -n "${NAMESPACE_CLICKHOUSE}" get svc clickhouse -o wide || true
+}
+
+peek_clickhouse_market_trades() {
+  need kubectl
+  local Q="
+    SELECT
+      ingestion_time,
+      event_time,
+      trading_symbol,
+      source,
+      price,
+      size,
+      event_id
+    FROM quant.market_trades
+    ORDER BY event_time DESC
+    LIMIT 10"
+  kubectl -n "${NAMESPACE_CLICKHOUSE}" exec -it clickhouse -- \
+    clickhouse-client --user spark --password sparkpass --multiquery --query "$Q"
+}
+
+peek_spark() {
+  need kubectl
+  echo "== Spark driver pod =="
+  kubectl -n "${NAMESPACE_SPARK}" get pods -l spark-role=driver -o name | tail -n1 || true
+  DRIVER_POD="$(kubectl -n "${NAMESPACE_SPARK}" get pods -l spark-role=driver -o name | tail -n1 | cut -d/ -f2 || true)"
+  if [[ -n "${DRIVER_POD:-}" ]]; then
+    echo "---- Driver logs (following) ----"
+    kubectl -n "${NAMESPACE_SPARK}" logs -f "${DRIVER_POD}" || true
+  else
+    echo "[spark] No driver pod found."
+  fi
+}
+
 # ========= Misc =========
 status() {
   echo "== Nodes =="; kubectl get nodes -o wide --show-labels || true
@@ -242,6 +311,8 @@ status() {
   echo "== Services (kafka) =="; kubectl -n "$NAMESPACE_KAFKA" get svc || true
   echo "== Topics =="; kubectl -n "$NAMESPACE_KAFKA" get kafkatopic || true
   echo "== Spark Pods =="; kubectl -n "$NAMESPACE_SPARK" get pods -o wide || true
+  echo "== ClickHouse Pods =="; kubectl -n "$NAMESPACE_CLICKHOUSE" get pods -o wide || true
+  echo "== ClickHouse Svc =="; kubectl -n "$NAMESPACE_CLICKHOUSE" get svc clickhouse -o wide || true
 }
 
 down() { kind delete cluster --name "${CLUSTER_NAME}" || true; }
@@ -269,6 +340,11 @@ Spark:
   deploy_spark          Apply spark infra, build base image, build app.jar, bake overlay image
   start_spark_sim       Submit YOUR baked app (local:///opt/spark/app/app.jar)
   start_spark_sim2      Minimal tutorial-style SparkPi using examples JAR
+  peek_spark            Shows logs from the driver pod
+
+ClickHouse:
+  deploy_clickhouse     Build clickhouse:dev image, load to kind, deploy pod + service on spark node
+  peek_clickhouse_market_trades  Show 10 latest rows from quant.market_trades
 EOF
 }
 
@@ -285,8 +361,11 @@ case "$cmd" in
   deploy_spark) deploy_spark ;;
   start_spark_sim) start_spark_sim ;;
   start_spark_sim2) start_spark_sim2 ;;
+  deploy_clickhouse) deploy_clickhouse ;;
+  peek_clickhouse_market_trades) peek_clickhouse_market_trades ;;
   peek_topic_ticklast) peek_topic_ticklast ;;
   peek_topic_l2_data) peek_topic_l2_data ;;
+  peek_spark) peek_spark ;;
   pf) port_forward ;;
   status) status ;;
   down) down ;;

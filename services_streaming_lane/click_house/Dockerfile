@@ -1,0 +1,8 @@
+# Pin to a specific ClickHouse LTS build — no "latest"
+# (25.8 is the current LTS line; using a concrete patch build)
+FROM clickhouse/clickhouse-server:25.8.10.7
+
+
+# Auto-apply schema on first start
+WORKDIR /docker-entrypoint-initdb.d
+COPY ./create_data_model.sql /docker-entrypoint-initdb.d/01_create_data_model.sql

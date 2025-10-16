@@ -2,7 +2,7 @@
 import sbtassembly.AssemblyPlugin.autoImport._
 import sbtassembly.PathList
 
-ThisBuild / scalaVersion := "2.13.16"
+ThisBuild / scalaVersion := "2.12.18"
 
 lazy val root = (project in file("."))
   .settings(
@@ -19,14 +19,14 @@ lazy val root = (project in file("."))
       // Keep Kafka source in the fat jar (compile scope)
       "org.apache.spark" %% "spark-sql-kafka-0-10" % "3.5.7",
 
+      // ClickHouse native Spark connector + JDBC (matching 0.8.1 line)
+      "com.clickhouse.spark" %% "clickhouse-spark-runtime-3.5" % "0.8.1",
+      "com.clickhouse"        % "clickhouse-jdbc"              % "0.8.1",
+
       // Tests
       "org.slf4j"     %  "slf4j-simple" % "2.0.13" % Test,
       "org.scalatest" %% "scalatest"    % "3.2.19" % Test,
       "org.mockito"   %% "mockito-scala-scalatest" % "1.17.37" % Test,
-
-      // ClickHouse native Spark connector + JDBC (matching 0.8.1 line)
-      "com.clickhouse.spark" %% "clickhouse-spark-runtime-3.5" % "0.8.1",
-      "com.clickhouse"        % "clickhouse-jdbc"              % "0.8.1" classifier "all",
 
     ),
 

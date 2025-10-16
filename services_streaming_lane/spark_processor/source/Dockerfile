@@ -1,4 +1,4 @@
-FROM sbtscala/scala-sbt:eclipse-temurin-21.0.8_9_1.11.6_2.13.16
+FROM sbtscala/scala-sbt:eclipse-temurin-21.0.8_9_1.11.6_2.12.20
 
 USER root
 
