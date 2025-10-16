@@ -33,19 +33,12 @@ lazy val root = (project in file("."))
     // sbt-assembly settings
     assembly / test := {},
     assembly / assemblyMergeStrategy := {
-      // Keep SPI registrations so Spark can discover "kafka"
       case PathList("META-INF", "services", _ @ _*) => MergeStrategy.concat
-
-      // Drop manifest & signature clutter
       case PathList("META-INF", "MANIFEST.MF")                      => MergeStrategy.discard
       case PathList("META-INF", x) if x.toLowerCase.endsWith(".sf") => MergeStrategy.discard
       case PathList("META-INF", x) if x.toLowerCase.endsWith(".dsa")=> MergeStrategy.discard
       case PathList("META-INF", x) if x.toLowerCase.endsWith(".rsa")=> MergeStrategy.discard
-
-      // Discard other META-INF noise
       case PathList("META-INF", _ @ _*) => MergeStrategy.discard
-
-      // Default: first wins
       case _ => MergeStrategy.first
     },
     // Don’t bundle Scala stdlib or Spark; DO include your app deps
