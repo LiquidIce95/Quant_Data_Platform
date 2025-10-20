@@ -34,6 +34,12 @@ final class EwrapperImplementation(
   private val REQ_SNAP = 5002
   private val REQ_STREAM = 5001
 
+  // New: default max depth for all order books
+  private val MAX_BOOK_DEPTH: Int = 12
+
+  // New: contract code -> BookState
+  private val BookStatesMap: mutable.HashMap[String, BookState] = mutable.HashMap.empty[String, BookState]
+
   val cdsCL = ListBuffer.empty[ContractDetails]
   val cdsNG = ListBuffer.empty[ContractDetails]
 
@@ -107,6 +113,10 @@ final class EwrapperImplementation(
         val reqId = REQ_STREAM + i
         val code  = Option(con.localSymbol).filter(_.nonEmpty).getOrElse(con.symbol)
         lookupMap.update(reqId, code)
+        // New: initialize BookState for this contract code
+        if (!BookStatesMap.contains(code)) {
+          BookStatesMap.update(code, new BookState(MAX_BOOK_DEPTH))
+        }
         c.reqMktData(reqId, con, "233", false, false, null) // RTVolume
         println(s"[ib] subscribed reqId=$reqId -> $code")
       }
@@ -115,7 +125,7 @@ final class EwrapperImplementation(
       System.err.println("[ib] no months found for CL/NG (permissions/exchange?)")
     }
   }
-// ---- Tick-by-tick Last ----
+  // ---- Tick-by-tick Last ----
   override def tickByTickAllLast(
     reqId: Int,
     tickType: Int,            // 0="Last", 1="AllLast"
@@ -159,6 +169,33 @@ final class EwrapperImplementation(
   ): Unit = {
     try {
       val code = codeFor(reqId)
+
+      // New: apply operation to our in-memory book state (must already exist)
+      try {
+        val book = BookStatesMap.get(code).getOrElse {
+          throw new IllegalStateException(s"No BookState initialized for code=$code")
+        }
+        val ts  = System.currentTimeMillis()
+        val qty = if (size == null) 0.0 else {
+          val s = size.toString
+          if (s == null || s.isEmpty) 0.0 else java.lang.Double.parseDouble(s)
+        }
+
+        val new_l2_data: List[(Int, Int, Double, Double, Long)] = operation match {
+          case 0 => book.insert(side, position, price, qty, ts)
+          case 1 => book.update(side, position, price, qty, ts)
+          case 2 => book.delete(side, position, ts)
+          case _ => Nil // ignore unknown ops
+        }
+      } catch {
+        case _: IllegalArgumentException =>
+          // Invariant violation or bad args in BookState -> signal need to restart
+          System.err.println(s"oops we need to restart stream for $code")
+        case NonFatal(e) =>
+          System.err.println(s"[book][$code] unexpected failure: ${e.getMessage}")
+      }
+
+      // Old JSON path remains unchanged (still emitted)
       val json = Transforms.l2Json(
         reqId         = reqId,
         position      = position,
