@@ -55,16 +55,15 @@ object Transforms {
     reqId: Int,
     position: Int,
     marketMaker: String,
-    operation: Int,
+    update_time: Long,
     side: Int,
     price: Double,
-    size: Decimal,
+    size: Double,
     isSmartDepth: Boolean,
     tradingSymbol: String
   ): String = {
     val extraction = nowMillis
-    val sizeStr    = decToString(size)
 
-    s"""{"type":"l2","trading_symbol":"${esc(tradingSymbol)}","extraction_time":$extraction,"source_system":"$SourceSystem","req_id":$reqId,"position":$position,"market_maker":"${esc(marketMaker)}","operation":$operation,"side":$side,"price":$price,"size":"$sizeStr","is_smart_depth":$isSmartDepth}"""
+    s"""{"type":"l2","trading_symbol":"${esc(tradingSymbol)}","extraction_time":$extraction,"source_system":"$SourceSystem","req_id":$reqId,"position":$position,"market_maker":"${esc(marketMaker)}","update_time":$update_time,"side":$side,"price":$price,"size":"$size","is_smart_depth":$isSmartDepth}"""
   }
 }

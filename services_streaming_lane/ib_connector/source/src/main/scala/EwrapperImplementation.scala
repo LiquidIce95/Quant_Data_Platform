@@ -5,6 +5,8 @@ import scala.util.control.NonFatal
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Try
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 /**
   * Minimal EWrapper impl that forwards:
@@ -12,9 +14,12 @@ import scala.util.Try
   *  - L2 depth (SMART)      → topic "L2_data"
   *
   * @param producer   Kafka producer wrapper
-  * @param lookupCode function to resolve trading symbol for a given reqId (e.g., reqIdToCode.get)
+  * @param lookupMap  reqId → trading symbol mapping
   * @param topicTickLast Kafka topic for tick-by-tick "Last"
   * @param topicL2       Kafka topic for L2 book updates
+  *
+  * Also maintains an in-memory order book per symbol (BookStatesMap) to validate and
+  * transform IB L2 operations into simple rows suitable for Kafka downstream consumers.
   */
 final class EwrapperImplementation(
   producer: KafkaProducerApi,
@@ -48,13 +53,27 @@ final class EwrapperImplementation(
   @volatile var started = false
   var ends = 0
 
+  /** Build a generic FUT contract query.
+    *
+    * @param sym root symbol, e.g. "CL" or "NG"
+    * @return Contract with secType=FUT, exchange/currency set from config.
+    *
+    * Used to request contract details to enumerate front-month futures.
+    */
   def futQuery(sym: String): Contract = {
     val k = new Contract
     k.symbol(sym); k.secType("FUT"); k.exchange(EXCHANGE); k.currency(CURRENCY)
     k
   }
 
-  // FIRST n unique months from the given buffer (no shadowing!)
+  /** Extract the first N unique contract months from a buffer of ContractDetails.
+    *
+    * @param n   number of unique months desired
+    * @param buf collected contract details from IB callbacks
+    * @return List of Contracts ordered by ascending yyyymm, deduplicated by month.
+    *
+    * This ensures we subscribe deterministically to a small set of near-dated futures.
+    */
   def fronts(n: Int, buf: ListBuffer[ContractDetails]): List[Contract] = {
     import scala.collection.mutable.{ListBuffer => LB, LinkedHashSet}
     val seen = LinkedHashSet.empty[String]
@@ -67,11 +86,57 @@ final class EwrapperImplementation(
       }
     out.toList
   }
-  
+
+  /** Restart a single market-depth stream for a given reqId.
+    *
+    * Why: If our in-memory book invariants fail (missing ops or corruption), we resubscribe
+    *      the specific depth stream to rebuild a clean book with fresh incremental updates.
+    *
+    * Steps:
+    *  1) cancel existing depth with the same reqId
+    *  2) wait ~2s to let TWS/GW settle
+    *  3) resubscribe to market depth using same reqId and localSymbol
+    *
+    * @param reqId IB stream id to restart
+    */
+  def restartStream(reqId: Int): Unit = {
+    try {
+      val code = codeFor(reqId)
+      require(code != "?", s"unknown code for reqId=$reqId")
+
+      
+      c.cancelMktDepth(reqId,false)
+ 
+      Thread.sleep(2000L)
+
+      // Rebuild a contract using localSymbol (code) and same venue settings
+      val con = new Contract
+      con.secType("FUT")
+      con.exchange(EXCHANGE)
+      con.currency(CURRENCY)
+      con.localSymbol(code)
+
+      // Resubscribe to market depth using the configured depth
+      c.reqMktDepth(reqId,con,MAX_BOOK_DEPTH,false,null)
+      println(s"[ib] restarted stream reqId=$reqId -> $code")
+    } catch {
+      case NonFatal(e) =>
+        System.err.println(s"[restart][$reqId] failed: ${e.getMessage}")
+    }
+  }
+
+  /** IB callback acknowledging the socket connection; kicks off id allocation. */
   override def connectAck(): Unit = { c.startAPI(); c.reqIds(-1) }
 
+  /** Resolve trading symbol for a given reqId.
+    *
+    * @param reqId subscription id
+    * @return mapped symbol or "?" if not found
+    */
   private def codeFor(reqId: Int): String =
     lookupMap.getOrElse(reqId,"?")
+
+  /** First valid id allocation from IB; issues initial contract detail requests once. */
   override def nextValidId(id: Int): Unit = {
     if (started) return
     started = true
@@ -84,7 +149,7 @@ final class EwrapperImplementation(
     println(s"[ib] reqContractDetails(${REQ_CD + 1}) for $SYMBOL_NG …")
   }
 
-  // route each detail to the correct buffer by reqId
+  /** Collect contract details; routes entries to CL/NG buffers based on reqId/symbol. */
   override def contractDetails(r: Int, cd: ContractDetails): Unit = {
     if (r == REQ_CD) cdsCL += cd
     else if (r == REQ_CD + 1) cdsNG += cd
@@ -95,7 +160,11 @@ final class EwrapperImplementation(
     }
   }
 
-  // wait until BOTH details have ended, then subscribe once
+  /** After both details streams end, compute front months, initialize books, and subscribe.
+    *
+    * - Creates BookState per code (if absent).
+    * - Subscribes both tick-by-tick last and market depth with same reqIds.
+    */
   override def contractDetailsEnd(r: Int): Unit = if (!sub) {
     ends += 1
     if (ends < 2) return
@@ -117,7 +186,8 @@ final class EwrapperImplementation(
         if (!BookStatesMap.contains(code)) {
           BookStatesMap.update(code, new BookState(MAX_BOOK_DEPTH))
         }
-        c.reqMktData(reqId, con, "233", false, false, null) // RTVolume
+        c.reqTickByTickData(reqId,con,"AllLast",0,false)
+        c.reqMktDepth(reqId,con,MAX_BOOK_DEPTH,false,null)
         println(s"[ib] subscribed reqId=$reqId -> $code")
       }
       sub = true
@@ -125,7 +195,18 @@ final class EwrapperImplementation(
       System.err.println("[ib] no months found for CL/NG (permissions/exchange?)")
     }
   }
-  // ---- Tick-by-tick Last ----
+
+  /** Tick-by-tick last trade callback → serialize and publish to Kafka.
+    *
+    * @param reqId stream id
+    * @param tickType 0="Last", 1="AllLast"
+    * @param time IB epoch seconds
+    * @param price last price
+    * @param size IB Decimal size (may be null)
+    * @param tickAttribLast IB flags
+    * @param exchange venue
+    * @param specialConditions IB string with extra flags
+    */
   override def tickByTickAllLast(
     reqId: Int,
     tickType: Int,            // 0="Last", 1="AllLast"
@@ -156,7 +237,21 @@ final class EwrapperImplementation(
     }
   }
 
-  // ---- L2 depth (SMART) ----
+  /** L2 (SMART) depth callback:
+    *
+    * - Applies the IB operation (insert/update/delete) to our in-memory BookState.
+    * - On invariant failure, logs and **asynchronously** restarts only this stream (reqId).
+    * - Emits one Kafka message per changed book row using the simple L2 JSON format.
+    *
+    * @param reqId        stream id
+    * @param position     book level index from IB (0-based)
+    * @param marketMaker  MM code (opaque)
+    * @param operation    0=insert, 1=update, 2=delete
+    * @param side         0=ask, 1=bid
+    * @param price        level price from IB
+    * @param size         level size (IB Decimal, may be null)
+    * @param isSmartDepth IB smart-depth flag
+    */
   override def updateMktDepthL2(
     reqId: Int,
     position: Int,
@@ -169,7 +264,7 @@ final class EwrapperImplementation(
   ): Unit = {
     try {
       val code = codeFor(reqId)
-
+      var new_l2_data: List[(Int, Int, Double, Double, Long)] = Nil
       // New: apply operation to our in-memory book state (must already exist)
       try {
         val book = BookStatesMap.get(code).getOrElse {
@@ -181,46 +276,51 @@ final class EwrapperImplementation(
           if (s == null || s.isEmpty) 0.0 else java.lang.Double.parseDouble(s)
         }
 
-        val new_l2_data: List[(Int, Int, Double, Double, Long)] = operation match {
+        new_l2_data = operation match {
           case 0 => book.insert(side, position, price, qty, ts)
           case 1 => book.update(side, position, price, qty, ts)
           case 2 => book.delete(side, position, ts)
-          case _ => Nil // ignore unknown ops
+          case _ => throw new IllegalStateException(s"Ib send an unown operation for code=$code") // ignore unknown ops
         }
       } catch {
         case _: IllegalArgumentException =>
           // Invariant violation or bad args in BookState -> signal need to restart
           System.err.println(s"oops we need to restart stream for $code")
+          Future { restartStream(reqId) }(ExecutionContext.global)
         case NonFatal(e) =>
           System.err.println(s"[book][$code] unexpected failure: ${e.getMessage}")
       }
 
-      // Old JSON path remains unchanged (still emitted)
-      val json = Transforms.l2Json(
-        reqId         = reqId,
-        position      = position,
-        marketMaker   = marketMaker,
-        operation     = operation,
-        side          = side,
-        price         = price,
-        size          = size,
-        isSmartDepth  = isSmartDepth,
-        tradingSymbol = code
-      )
-      producer.send(topicL2, /*key*/ code, /*value*/ json)
+      // Emit one Kafka message per changed row in new_l2_data using the new formatter
+      new_l2_data.foreach { case (s, lvl, p, sz, tsUpd) =>
+        val json = Transforms.l2Json(
+          reqId         = reqId,
+          position      = lvl,
+          marketMaker   = marketMaker,
+          update_time   = tsUpd,
+          side          = s,
+          price         = p,
+          size          = sz,
+          isSmartDepth  = isSmartDepth,
+          tradingSymbol = code
+        )
+        producer.send(topicL2, code, json)
+      }
     } catch {
       case NonFatal(e) =>
         System.err.println(s"[l2][reqId=$reqId] failed to produce: ${e.getMessage}")
     }
   }
 
-  // ---- (optional) basic logging ----
+  /** IB error callback: logs code/message and affected reqId. */
   override def error(reqId: Int, time: Long, code: Int, msg: String, adv: String): Unit =
     System.err.println(s"[err] code=$code msg=$msg reqId=$reqId")
 
+  /** Market data type changes: 1=real, 2=frozen, 3=delayed, 4=delayed-frozen. */
   override def marketDataType(reqId: Int, marketDataType: Int): Unit =
     println(s"[mdType][$reqId] $marketDataType (1=real,2=frozen,3=delayed,4=delayed-frozen)")
 
+  /** Connection closed notification. */
   override def connectionClosed(): Unit =
     println("[ib] connection closed (TwsApiImplementation)")
 }
