@@ -1,6 +1,7 @@
 // File: src/test/scala/TestBookState.scala
+package src.main.scala
 import org.scalatest.funsuite.AnyFunSuite
-import src.main.scala.BookState
+
 
 class TestBookState extends AnyFunSuite {
 
