@@ -20,7 +20,7 @@ final class ConnState {
 	private final val CALLER_MANAGER: Byte = 1
 	private final val CALLER_EWRAPPER: Byte = 2
 
-	private var connectionState: State = VALID
+	private var connectionState: State = INIT
 
 	def asManager: ConnState = {
 		callerCtx.set(CALLER_MANAGER)
