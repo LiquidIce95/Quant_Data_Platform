@@ -70,6 +70,5 @@ class TestDelayedStreaming extends AnyFunSuite {
       s"First lines:\n${out.linesIterator.take(40).mkString("\n")}"
     )
 
-	System.out.println(capture.toString())
   }
 }
