@@ -52,7 +52,7 @@ object StreamDelayedAndPrintConsole {
 
 		// allow some time to see ticks on the console; then end test
 		new Thread(() => {
-			try Thread.sleep(80_000L) catch { case _: Throwable => () }
+			try Thread.sleep(200_000L) catch { case _: Throwable => () }
 			try client.eDisconnect() catch { case _: Throwable => () }
 		}, "shutdown").start()
 
