@@ -4,10 +4,18 @@ package src.main.scala
 import com.ib.client._
 import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
-import scala.util.Try
 
-/* Convention: (left=TickByTick, right=L2) */
+/**
+  * Manages the lifecycle of market data streams on a dedicated thread.
+  * All IB socket calls are funneled through a single-writer IO lane (ClientIo)
+  * to avoid concurrency issues with EClientSocket.
+  *
+  * @param c          IB client socket (must be connected by the time streams start)
+  * @param stateMap   shared map: tradingSymbol → (ConnState for TickByTick, ConnState for L2)
+  * @param lookupMap  shared map: reqId → tradingSymbol (populated by the EWrapper during discovery)
+  * @param streamType "realtime" to request TBT+L2, any other value requests delayed L1 via reqMktData
+  * @param io         single-writer lane that serializes all calls into EClientSocket
+  */
 final class ConnManager(
 	c: EClientSocket,
 	stateMap: mutable.Map[String,(ConnState,ConnState)],
@@ -16,24 +24,20 @@ final class ConnManager(
 	io: ClientIo
 ) extends Runnable {
 
+	// ---- simple config ----
 	private val EXCHANGE = "NYMEX"
 	private val CURRENCY = "USD"
-	private val SYMBOL_CL = "CL"
-	private val SYMBOL_NG = "NG"
-	private val REQ_CD = 1001
 	private val REQ_BASE = 5001
 	private val MAX_BOOK_DEPTH: Int = 12
 
-	private val cdsCL: ListBuffer[ContractDetails] = ListBuffer.empty[ContractDetails]
-	private val cdsNG: ListBuffer[ContractDetails] = ListBuffer.empty[ContractDetails]
-	private var detailsEnds: Int = 0
-	private var started: Boolean = false
-	private var codes: List[String] = Nil
-
+	// ---- manager thread ----
 	private val work = new LinkedBlockingQueue[Runnable]()
 	@volatile private var running = false
 	private var thread: Thread = null
 
+	/**
+	  * Start the ConnManager thread (idempotent).
+	  */
 	def start(): Unit = {
 		if (running) return
 		running = true
@@ -42,6 +46,9 @@ final class ConnManager(
 		thread.start()
 	}
 
+	/**
+	  * Stop the ConnManager thread (best-effort).
+	  */
 	def stop(): Unit = {
 		running = false
 		if (thread != null) thread.interrupt()
@@ -54,64 +61,61 @@ final class ConnManager(
 		}
 	}
 
-	// ===== API called from EReader/Ewrapper thread; all enqueue to manager thread =====
-
-	def init(): Unit = {
+	/**
+	  * Wait for discovery to populate lookupMap/stateMap, then request all streams.
+	  * Rules (stupid simple):
+	  *  - If lookupMap or stateMap are empty, wait 10 seconds and retry once.
+	  *  - If still empty on second check, throw an error (IllegalStateException).
+	  *
+	  * IB socket calls are issued via the IO lane (ClientIo).
+	  */
+	def startStreams(): Unit = {
 		work.put(new Runnable {
 			def run(): Unit = {
-				if (started) return
-				started = true
-				io.submit(cc => cc.reqContractDetails(REQ_CD,     futQuery(SYMBOL_CL)))
-				io.submit(cc => cc.reqContractDetails(REQ_CD + 1, futQuery(SYMBOL_NG)))
-			}
-		})
-	}
-
-	def onContractDetails(r: Int, cd: ContractDetails): Unit = {
-		work.put(new Runnable {
-			def run(): Unit = {
-				if (r == REQ_CD) cdsCL += cd
-				else if (r == REQ_CD + 1) cdsNG += cd
-			}
-		})
-	}
-
-	def onContractDetailsEnd(r: Int): Unit = {
-		work.put(new Runnable {
-			def run(): Unit = {
-				detailsEnds += 1
-				if (detailsEnds < 2) return
-
-				val xsCL = fronts(8, cdsCL)
-				val xsNG = fronts(8, cdsNG)
-				val xs = xsCL ++ xsNG
-
-				codes = xs.map { con =>
-					val ls = con.localSymbol
-					if (ls != null && ls.nonEmpty) ls else con.symbol
+				// first check
+				println("start STreams called")
+				if (lookupMap.isEmpty || stateMap.isEmpty) {
+					try Thread.sleep(10_000L) catch { case _: Throwable => () }
 				}
+				// second (final) check
+				if (lookupMap.isEmpty || stateMap.isEmpty) {
+					throw new IllegalStateException("[ConnManager] discovery not ready: lookupMap/stateMap are empty")
+				}
+				println("maps are not empty")
+				// sort by reqId for determinism
+				val entries = lookupMap.toSeq.sortBy(_._1) // (reqId, code)
 
 				io.submit { cc =>
-					cc.reqMarketDataType(3)
-					var i = 0
-					while (i < xs.size) {
-						val con = xs(i)
-						val code = codes(i)
-						val reqId = REQ_BASE + i
+					cc.reqMarketDataType(if (streamType == "realtime") 1 else 3)
 
-						lookupMap.update(reqId, code)
-						if (!stateMap.contains(code)) stateMap.update(code, (new ConnState, new ConnState))
+					var i = 0
+					while (i < entries.size) {
+						val (reqId, code) = entries(i)
+
+						val con = new Contract
+						con.secType("FUT")
+						con.exchange(EXCHANGE)
+						con.currency(CURRENCY)
+						con.localSymbol(code)
+
+						// ensure ConnState tuple exists (INIT by default)
+						if (!stateMap.contains(code)) {
+							stateMap.update(code, (new ConnState, new ConnState))
+						}
+						val st = stateMap(code)
 
 						if (streamType == "realtime") {
 							cc.reqTickByTickData(reqId, con, "AllLast", 0, false)
 							cc.reqMktDepth(reqId, con, MAX_BOOK_DEPTH, false, null)
 						} else {
-							cc.reqMktData(reqId, con, "233", false, false, null) // RTVolume
+							// delayed L1 top-of-book (tickPrice/tickSize/tickString)
+							cc.reqMktData(reqId, con, "233", false, false, null)
 						}
 
-						val st = stateMap(code)
+						// mark both connections VALID (manager-only transition)
 						st._1.asManager -> ConnState.VALID
 						st._2.asManager -> ConnState.VALID
+
 						i += 1
 					}
 				}
@@ -119,26 +123,40 @@ final class ConnManager(
 		})
 	}
 
+	/**
+	  * Cancel all streams previously started via startStreams().
+	  * IB calls are serialized via the IO lane.
+	  */
 	def cancelAll(): Unit = {
 		work.put(new Runnable {
 			def run(): Unit = {
+				val entries = lookupMap.toSeq.sortBy(_._1)
+
 				var i = 0
-				while (i < codes.size) {
-					val reqId = REQ_BASE + i
-					val code = codes(i)
+				while (i < entries.size) {
+					val (reqId, code) = entries(i)
+
 					io.submit(cc => cc.cancelTickByTickData(reqId))
 					io.submit(cc => cc.cancelMktDepth(reqId, false))
+
 					val st = stateMap.getOrElse(code, (new ConnState, new ConnState))
 					st._1.asManager -> ConnState.DROPPED
 					st._2.asManager -> ConnState.DROPPED
 					st._1.asManager -> ConnState.INVALID
 					st._2.asManager -> ConnState.INVALID
+
 					i += 1
 				}
 			}
 		})
 	}
 
+	/**
+	  * Restart a single market-depth stream (helper).
+	  *
+	  * @param reqId stream id to restart
+	  * @param code  trading symbol (localSymbol) for the contract
+	  */
 	def restartDepth(reqId: Int, code: String): Unit = {
 		work.put(new Runnable {
 			def run(): Unit = {
@@ -150,27 +168,5 @@ final class ConnManager(
 				}
 			}
 		})
-	}
-
-	// ===== helpers (manager thread only) =====
-
-	private def futQuery(sym: String): Contract = {
-		val k = new Contract
-		k.symbol(sym); k.secType("FUT"); k.exchange(EXCHANGE); k.currency(CURRENCY)
-		k
-	}
-
-	private def fronts(n: Int, buf: ListBuffer[ContractDetails]): List[Contract] = {
-		val seen = new java.util.LinkedHashSet[String]()
-		val out = new ListBuffer[Contract]()
-		buf.sortBy(cd => Try(cd.contract.lastTradeDateOrContractMonth.take(6).toInt).getOrElse(Int.MaxValue))
-			.foreach { cd =>
-				val yyyymm = Try(cd.contract.lastTradeDateOrContractMonth.take(6)).getOrElse("")
-				if (yyyymm.nonEmpty && !seen.contains(yyyymm)) {
-					seen.add(yyyymm); out += cd.contract
-					if (out.size >= n) return out.toList
-				}
-			}
-		out.toList
 	}
 }

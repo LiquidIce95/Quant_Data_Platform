@@ -16,7 +16,7 @@ object SimulateStreaming {
 
 		val producer = KafkaProducerApi()
 		val dummyStateMap = mutable.Map.empty[String,(ConnState,ConnState)]
-		val ew = new EwrapperImplementation(producer, reqIdToCode, "ticklast", "l2-data")
+		val ew = new EwrapperImplementation(producer, reqIdToCode, dummyStateMap,"ticklast", "l2-data")
 
 		val exec = Executors.newSingleThreadScheduledExecutor()
 		val rand = new Random()
@@ -59,7 +59,7 @@ object SimulateStreaming {
 
 		val producer = KafkaProducerApi()
 		val dummyStateMap = mutable.Map.empty[String,(ConnState,ConnState)]
-		val ew = new EwrapperImplementation(producer, reqIdToCode, "ticklast", "l2-data")
+		val ew = new EwrapperImplementation(producer, reqIdToCode, dummyStateMap,"ticklast", "l2-data")
 
 		// Pre-create BookState for CL_SIM_FUT by poking the private HashMap via reflection.
 		val bsField = classOf[EwrapperImplementation].getDeclaredField("BookStatesMap")
