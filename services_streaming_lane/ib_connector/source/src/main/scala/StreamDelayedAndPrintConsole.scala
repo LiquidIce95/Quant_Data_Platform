@@ -1,29 +1,30 @@
-package src.main.scala 
-
-
+// File: src/main/scala/StreamDelayedAndPrintConsole.scala
+package src.main.scala
 
 import com.ib.client._
-import java.util.concurrent.LinkedBlockingQueue
-import scala.collection.mutable
 import java.util.concurrent.CountDownLatch
+import scala.collection.mutable
 
 object StreamDelayedAndPrintConsole {
-    def main(args : Array[String]) : Unit = {
-        // shared state
-		val stateMap  = mutable.Map.empty[String,(ConnState,ConnState)]
-		val lookupMap = mutable.Map.empty[Int, String]
-		val producer  = null
-		val done      = new CountDownLatch(1)
+	def main(args: Array[String]): Unit = {
+		// 1) prepare Connections with no actors yet (no one can mutate)
+		Connections.reset()
 
-		// IB plumbing
-		val sig = new EJavaSignal()
-		val ew = new EwrapperImplementation(producer, lookupMap, stateMap,"ticklast", "l2-data")
-		val client = new EClientSocket(ew, sig)
-		val io = new ClientIo(client)
-		val connMan = new ConnManager(client, stateMap, lookupMap, "delayed", io)
+		// 2) create wrapper/manager instances using Connections
+		val producer  = null
+		val ew        = new EwrapperImplementation(producer)
+		val sig       = new EJavaSignal()
+		val client    = new EClientSocket(ew, sig)
+		val io        = new ClientIo(client)
+		val connMan   = new ConnManager(client, io, "delayed")
+
+		// 3) register actors (now guarded mutations are possible)
+		Connections.setActors(ew, connMan)
+
+		// 4) IB reader plumbing
+		val done = new CountDownLatch(1)
 		connMan.start()
 
-		// connect & reader loop
 		client.eConnect("127.0.0.1", 4002, 1)
 		val r = new EReader(client, sig); r.start()
 		new Thread(() => {
@@ -31,31 +32,28 @@ object StreamDelayedAndPrintConsole {
 			done.countDown()
 		}, "ib-reader").start()
 
-		// kick server→client flow
 		client.startAPI()
 		client.reqIds(-1)
 
-		// discovery: request contract details (wrapper will collect and populate maps)
-		// use delayed mode for your setup
-		val EXCHANGE = "NYMEX"; val CURRENCY = "USD"
+		// 5) discovery: request CL/NG contract details (wrapper will fill Connections)
 		def futQuery(sym: String): Contract = {
 			val k = new Contract
-			k.symbol(sym); k.secType("FUT"); k.exchange(EXCHANGE); k.currency(CURRENCY)
+			k.symbol(sym); k.secType("FUT"); k.exchange("NYMEX"); k.currency("USD")
 			k
 		}
 		client.reqContractDetails(1001, futQuery("CL"))
 		client.reqContractDetails(1002, futQuery("NG"))
-        Thread.sleep(6_000L)
-		// let discovery complete and then start streams from the manager
-		// (ConnManager will re-check and either proceed or throw if still empty after retry)
+
+		// 6) let discovery populate, then start streams
+		Thread.sleep(6_000L)
 		connMan.startStreams()
 
-		// allow some time to see ticks on the console; then end test
+		// 7) run for a bit and shutdown
 		new Thread(() => {
 			try Thread.sleep(200_000L) catch { case _: Throwable => () }
 			try client.eDisconnect() catch { case _: Throwable => () }
 		}, "shutdown").start()
 
 		done.await()
-    }
+	}
 }

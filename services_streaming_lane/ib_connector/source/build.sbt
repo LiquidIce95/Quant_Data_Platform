@@ -5,6 +5,8 @@ ThisBuild / scalaVersion := "2.13.16"
 Test / logBuffered := false
 Test / parallelExecution := false
 Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oD", "-oF")
+Test / fork := true
+
 
 lazy val root = (project in file("."))
   .settings(

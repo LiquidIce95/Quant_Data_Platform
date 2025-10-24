@@ -2,36 +2,29 @@
 package src.main.scala
 
 import com.ib.client._
-import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
-  * Minimal EWrapper that:
-  *  - performs **discovery only** (reqContractDetails is triggered from main),
-  *  - builds the universe of codes,
-  *  - populates shared lookupMap (reqId → code) and stateMap (code → (ConnState, ConnState)),
-  *  - does **not** start/cancel streams (ConnManager owns lifecycle).
+  * Discovery-only EWrapper.
+  * - Collects contract details (CL/NG), derives near months,
+  * - Populates Connections.lookupMap and initializes Connections.stateMap entries to INIT,
+  * - Does NOT start/cancel streams (ConnManager owns lifecycle).
+  * Also prints delayed L1 ticks if requested.
   *
-  * For delayed data tests, also prints L1 ticks (tickPrice/tickSize/tickString).
-  *
-  * @param producer   Kafka producer wrapper (may be null for console-only runs)
-  * @param lookupMap  shared reqId → trading symbol map (populated here)
-  * @param topicTickLast Kafka topic for tick-by-tick "Last" (used if producer != null)
-  * @param topicL2       Kafka topic for L2 (used if producer != null)
+  * @param producer     Kafka producer wrapper (may be null)
+  * @param topicTickLast topic for tick-by-tick
+  * @param topicL2       topic for L2
   */
 final class EwrapperImplementation(
 	producer: KafkaProducerApi,
-	lookupMap: mutable.Map[Int, String],
-	stateMap: mutable.Map[String,(ConnState,ConnState)],
 	topicTickLast: String = "ticklast",
 	topicL2: String = "l2-data"
 ) extends DefaultEWrapper {
 
 	@volatile var started = false
 
-	// ---- discovery config ----
 	private val EXCHANGE = "NYMEX"
 	private val CURRENCY = "USD"
 	private val SYMBOL_CL = "CL"
@@ -39,27 +32,19 @@ final class EwrapperImplementation(
 	private val REQ_CD = 1001
 	private val REQ_BASE = 5001
 
-	// buffers for contract discovery
 	private val cdsCL = ListBuffer.empty[ContractDetails]
 	private val cdsNG = ListBuffer.empty[ContractDetails]
 	private var detailsEnds = 0
 
-	// optional: book state for realtime L2 path (kept for compatibility)
 	private val MAX_BOOK_DEPTH: Int = 12
-	private val BookStatesMap: mutable.HashMap[String, BookState] = mutable.HashMap.empty[String, BookState]
+	private val BookStatesMap = scala.collection.mutable.HashMap.empty[String, BookState]
 
-	/** Resolve trading symbol for a given reqId (for printing / producing). */
-	private def codeFor(reqId: Int): String =
-		lookupMap.getOrElse(reqId, "?")
-
-	/** Build a simple FUT contract query. */
 	private def futQuery(sym: String): Contract = {
 		val k = new Contract
 		k.symbol(sym); k.secType("FUT"); k.exchange(EXCHANGE); k.currency(CURRENCY)
 		k
 	}
 
-	/** FIRST n unique months from the given buffer (sorted by yyyymm). */
 	private def fronts(n: Int, buf: ListBuffer[ContractDetails]): List[Contract] = {
 		import scala.collection.mutable.{ListBuffer => LB, LinkedHashSet}
 		val seen = LinkedHashSet.empty[String]
@@ -73,13 +58,15 @@ final class EwrapperImplementation(
 		out.toList
 	}
 
-	// ---- discovery callbacks (no req*/cancel* here) ----
+	private def codeFor(reqId: Int): String =
+		Connections.lookupFor(reqId)
+
+	// ---- discovery callbacks ----
 
 	override def nextValidId(id: Int): Unit = {
 		if (started) return
 		started = true
-		// No-op: main will issue reqMarketDataType + reqContractDetails.
-		// Keeping this override to guard multiple-start semantics.
+		// main triggers reqContractDetails; we only collect results
 	}
 
 	override def contractDetails(r: Int, cd: ContractDetails): Unit = {
@@ -95,32 +82,31 @@ final class EwrapperImplementation(
 		val xsNG = fronts(8, cdsNG)
 		val xs   = xsCL ++ xsNG
 
-		// Populate reqId → code; leave ConnState in INIT (manager will set VALID on subscribe)
 		var i = 0
 		while (i < xs.size) {
 			val con  = xs(i)
 			val code = Option(con.localSymbol).filter(_.nonEmpty).getOrElse(con.symbol)
-			lookupMap.update(REQ_BASE + i, code)
-			stateMap.update(code,(new ConnState(), new ConnState()))
+			Connections.putLookup(REQ_BASE + i, code)
+			Connections.ensureEntry(code) // creates INIT state + DROPPED status for both legs
 			i += 1
 		}
 	}
 
-	// ---- tick forwarding/printing (useful for delayed L1 tests) ----
+	// ---- printing for delayed L1 tests ----
 
 	override def marketDataType(tid: Int, t: Int): Unit =
 		println(s"[mdType] $t (1=real,2=frozen,3=delayed,4=delayed-frozen)")
 
 	override def tickPrice(tid: Int, f: Int, p: Double, a: TickAttrib): Unit =
-		println(s"[tickPrice][$tid][${lookupMap.getOrElse(tid, "?")}] ${TickType.getField(f)} = $p")
+		println(s"[tickPrice][$tid][${Connections.lookupFor(tid)}] ${TickType.getField(f)} = $p")
 
 	override def tickSize(tid: Int, f: Int, s: Decimal): Unit =
-		println(s"[tickSize][$tid][${lookupMap.getOrElse(tid, "?")}] ${TickType.getField(f)} = $s")
+		println(s"[tickSize][$tid][${Connections.lookupFor(tid)}] ${TickType.getField(f)} = $s")
 
 	override def tickString(tid: Int, f: Int, v: String): Unit =
-		println(s"[tickString][$tid][${lookupMap.getOrElse(tid, "?")}] ${TickType.getField(f)} = $v")
+		println(s"[tickString][$tid][${Connections.lookupFor(tid)}] ${TickType.getField(f)} = $v")
 
-	// ---- optional L2 path (kept unchanged; only active if realtime L2 requested) ----
+	// ---- optional realtime L2 path (unchanged) ----
 
 	override def tickByTickAllLast(
 		reqId: Int,
