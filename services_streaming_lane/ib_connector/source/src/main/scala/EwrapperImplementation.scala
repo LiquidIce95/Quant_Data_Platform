@@ -9,10 +9,11 @@ import scala.util.control.NonFatal
 /**
   * Discovery + data processing (no lifecycle).
   * Populates Connections on details end.
+  *
   * Processing rules:
-  *   - VALID & ON      -> process
-  *   - VALID & DROPPED -> (L2) reset BookState, set INVALID (wrapper), skip
-  *   - INVALID         -> skip
+  *   - state=VALID & status=ON      -> process
+  *   - state=VALID & status=DROPPED -> (L2) reset BookState, set INVALID (wrapper), skip
+  *   - state=INVALID                -> skip
   */
 final class EwrapperImplementation(
 	producer: KafkaProducerApi,
@@ -76,7 +77,7 @@ final class EwrapperImplementation(
 			val con  = xs(i)
 			val code = Option(con.localSymbol).filter(_.nonEmpty).getOrElse(con.symbol)
 			Connections.putLookup(REQ_BASE + i, code)
-			Connections.ensureEntry(code)
+			Connections.ensureEntry(code) // default INVALID + DROPPED
 			i += 1
 		}
 	}
@@ -101,9 +102,8 @@ final class EwrapperImplementation(
 				val json = Transforms.tickLastJson(reqId, tickType, time, price, size, tickAttribLast, exchange, specialConditions, code)
 				if (producer != null) producer.send(topicTickLast, code, json)
 			} else if (s == ConnState.VALID && st == Connections.DROPPED) {
-				// invalidate this leg (wrapper-only)
 				Connections.setState(this, code, isL2 = false, ConnState.INVALID)
-			} // INVALID => ignore
+			}
 		} catch { case NonFatal(_) => () }
 	}
 
@@ -144,10 +144,9 @@ final class EwrapperImplementation(
 					producer.send(topicL2, code, json)
 				}
 			} else if (s == ConnState.VALID && st == Connections.DROPPED) {
-				// reset local book and invalidate via wrapper-only transition
 				BookStatesMap.remove(code)
 				Connections.setState(this, code, isL2 = true, ConnState.INVALID)
-			} // INVALID => ignore
+			}
 		} catch { case NonFatal(_) => () }
 	}
 

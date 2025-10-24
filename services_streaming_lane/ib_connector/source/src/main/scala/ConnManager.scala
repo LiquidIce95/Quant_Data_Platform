@@ -7,7 +7,12 @@ import java.util.concurrent.LinkedBlockingQueue
 /**
   * Lifecycle manager (runs on its own thread).
   * Uses ClientIo to serialize socket calls.
-  * Follows new rules: status flips manager-only; state INIT/INVALID → VALID manager-only.
+  *
+  * State/Status rules with no INIT:
+  *   - default state = INVALID
+  *   - default status = DROPPED
+  *   - startStreams(): set status ON and state VALID (manager-only)
+  *   - dropAll(): set status DROPPED (state left as-is)
   */
 final class ConnManager(
 	c: EClientSocket,
@@ -44,11 +49,11 @@ final class ConnManager(
 		}
 	}
 
-	/** Wait for discovery then start streams; set status ON and state VALID (manager-only). */
+	/** Wait for discovery then start streams; flip status→ON and state→VALID (manager-only). */
 	def startStreams(): Unit = {
 		work.put(new Runnable {
 			def run(): Unit = {
-				if (Connections.discoveryEmpty) { try Thread.sleep(10_000L) catch { case _: Throwable => () } }
+                if (Connections.discoveryEmpty) { try Thread.sleep(10_000L) catch { case _: Throwable => () } }
 				if (Connections.discoveryEmpty) throw new IllegalStateException("discovery not ready")
 
 				val entries = Connections.entriesSortedByReqId
@@ -69,7 +74,6 @@ final class ConnManager(
 
 						Connections.setStatus(ConnManager.this, code, isL2=false, Connections.ON)
 						Connections.setStatus(ConnManager.this, code, isL2=true,  Connections.ON)
-						// manager can INIT/INVALID -> VALID
 						Connections.setState(ConnManager.this, code, isL2=false, ConnState.VALID)
 						Connections.setState(ConnManager.this, code, isL2=true,  ConnState.VALID)
 
@@ -80,7 +84,7 @@ final class ConnManager(
 		})
 	}
 
-	/** Stop all streams; flip status to DROPPED (state left as-is; wrapper will invalidate on data if needed). */
+	/** Stop all streams; flip status to DROPPED (state left as-is). */
 	def dropAll(): Unit = {
 		work.put(new Runnable {
 			def run(): Unit = {
@@ -97,6 +101,4 @@ final class ConnManager(
 			}
 		})
 	}
-
-	
 }

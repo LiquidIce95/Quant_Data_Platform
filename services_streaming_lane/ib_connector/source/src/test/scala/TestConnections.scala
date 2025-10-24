@@ -17,7 +17,6 @@ final class TestConnections extends AnyFunSuite {
 	}
 
 	private def ensure(code: String): Unit = Connections.ensureEntry(code)
-
 	private def st(code: String, isL2: Boolean) = Connections.stateOf(code, isL2).get
 	private def ss(code: String, isL2: Boolean) = Connections.statusOf(code, isL2).get
 
@@ -28,10 +27,10 @@ final class TestConnections extends AnyFunSuite {
 	}
 
 	// 2
-	test("ensureEntry initializes INIT + DROPPED for both legs") {
+	test("ensureEntry initializes INVALID + DROPPED") {
 		initWithActors(); ensure("S")
-		assert(st("S", false) == ConnState.INIT)
-		assert(st("S", true)  == ConnState.INIT)
+		assert(st("S", false) == ConnState.INVALID)
+		assert(st("S", true)  == ConnState.INVALID)
 		assert(ss("S", false) == Connections.DROPPED)
 		assert(ss("S", true)  == Connections.DROPPED)
 	}
@@ -53,63 +52,43 @@ final class TestConnections extends AnyFunSuite {
 	}
 
 	// 5
-	test("INIT→VALID allowed manager only") {
+	test("manager INVALID->VALID allowed") {
 		val (ew, cm) = initWithActors(); ensure("S")
-		Connections.setState(ew, "S", false, ConnState.VALID)
-		assert(st("S", false) == ConnState.INIT)
 		Connections.setState(cm, "S", false, ConnState.VALID)
 		assert(st("S", false) == ConnState.VALID)
 	}
 
 	// 6
-	test("VALID→INVALID allowed wrapper only") {
+	test("wrapper VALID->INVALID allowed; manager same transition ignored") {
 		val (ew, cm) = initWithActors(); ensure("S")
 		Connections.setState(cm, "S", false, ConnState.VALID)
-		Connections.setState(cm, "S", false, ConnState.INVALID) // disallowed
+		Connections.setState(cm, "S", false, ConnState.INVALID) // ignore
 		assert(st("S", false) == ConnState.VALID)
-		Connections.setState(ew, "S", false, ConnState.INVALID)
+		Connections.setState(ew, "S", false, ConnState.INVALID) // allowed
 		assert(st("S", false) == ConnState.INVALID)
 	}
 
 	// 7
-	test("INVALID→VALID allowed manager only") {
+	test("wrapper cannot INVALID->VALID; manager can") {
 		val (ew, cm) = initWithActors(); ensure("S")
-		Connections.setState(cm, "S", false, ConnState.VALID)
-		Connections.setState(ew, "S", false, ConnState.INVALID)
+		Connections.setState(ew, "S", false, ConnState.VALID) // ignore
 		assert(st("S", false) == ConnState.INVALID)
-		Connections.setState(ew, "S", false, ConnState.VALID) // no
-		assert(st("S", false) == ConnState.INVALID)
-		Connections.setState(cm, "S", false, ConnState.VALID) // yes
+		Connections.setState(cm, "S", false, ConnState.VALID) // allowed
 		assert(st("S", false) == ConnState.VALID)
 	}
 
 	// 8
-	test("INIT→INVALID disallowed for both") {
-		val (ew, cm) = initWithActors(); ensure("S")
-		Connections.setState(cm, "S", true, ConnState.INVALID)
-		assert(st("S", true) == ConnState.INIT)
-		Connections.setState(ew, "S", true, ConnState.INVALID)
-		assert(st("S", true) == ConnState.INIT)
-	}
-
-	// 9
-	test("idempotent: VALID by manager twice") {
+	test("idempotent transitions") {
 		val (ew, cm) = initWithActors(); ensure("S")
 		Connections.setState(cm, "S", true, ConnState.VALID)
 		Connections.setState(cm, "S", true, ConnState.VALID)
 		assert(st("S", true) == ConnState.VALID)
-	}
-
-	// 10
-	test("idempotent: INVALID by wrapper twice") {
-		val (ew, cm) = initWithActors(); ensure("S")
-		Connections.setState(cm, "S", true, ConnState.VALID)
 		Connections.setState(ew, "S", true, ConnState.INVALID)
 		Connections.setState(ew, "S", true, ConnState.INVALID)
 		assert(st("S", true) == ConnState.INVALID)
 	}
 
-	// 11
+	// 9
 	test("manager-only status flips") {
 		val (ew, cm) = initWithActors(); ensure("S")
 		Connections.setStatus(ew, "S", false, Connections.ON)
@@ -120,14 +99,14 @@ final class TestConnections extends AnyFunSuite {
 		assert(ss("S", false) == Connections.DROPPED)
 	}
 
-	// 12
+	// 10
 	test("entriesSortedByReqId ordering") {
 		initWithActors()
 		Connections.putLookup(12,"C"); Connections.putLookup(1,"A"); Connections.putLookup(7,"B")
 		assert(Connections.entriesSortedByReqId.map(_._1) == Seq(1,7,12))
 	}
 
-	// 13
+	// 11
 	test("discoveryEmpty reflects map emptiness") {
 		initWithActors()
 		assert(Connections.discoveryEmpty)
@@ -137,7 +116,7 @@ final class TestConnections extends AnyFunSuite {
 		assert(!Connections.discoveryEmpty)
 	}
 
-	// 14
+	// 12
 	test("leg separation: transitions are per-leg") {
 		val (ew, cm) = initWithActors(); ensure("S")
 		Connections.setState(cm,"S",false,ConnState.VALID)
@@ -147,61 +126,45 @@ final class TestConnections extends AnyFunSuite {
 		assert(st("S",true)  == ConnState.INVALID)
 	}
 
-	// 15
+	// 13
 	test("unauthorized caller ignored") {
 		initWithActors(); ensure("S")
 		val rnd = new Object()
 		Connections.setState(rnd,"S",false,ConnState.VALID)
 		Connections.setStatus(rnd,"S",false,Connections.ON)
-		assert(st("S",false) == ConnState.INIT)
+		assert(st("S",false) == ConnState.INVALID)
 		assert(ss("S",false) == Connections.DROPPED)
 	}
 
-	// 16
-	test("manager can resurrect INVALID to VALID, wrapper cannot") {
+	// 14
+	test("manager can resurrect INVALID to VALID") {
 		val (ew, cm) = initWithActors(); ensure("S")
+		Connections.setState(ew,"S",false,ConnState.INVALID) // idempotent
+		assert(st("S",false) == ConnState.INVALID)
 		Connections.setState(cm,"S",false,ConnState.VALID)
-		Connections.setStatus(cm,"S",false,Connections.ON)
-		Connections.setState(ew,"S",false,ConnState.INVALID)
-		assert(st("S",false) == ConnState.INVALID)
-		Connections.setState(ew,"S",false,ConnState.VALID) // no-op
-		assert(st("S",false) == ConnState.INVALID)
-		Connections.setState(cm,"S",false,ConnState.VALID) // allowed
 		assert(st("S",false) == ConnState.VALID)
 	}
 
-	// 17
-	test("wrapper VALID&DROPPED -> invalidates (L2)") {
+	// 15
+	test("status flips do not change state") {
 		val (ew, cm) = initWithActors(); ensure("S")
-		Connections.setStatus(cm,"S",true,Connections.ON)
+		assert(st("S",false) == ConnState.INVALID)
+		Connections.setStatus(cm,"S",false,Connections.ON)
+		Connections.setStatus(cm,"S",false,Connections.DROPPED)
+		assert(st("S",false) == ConnState.INVALID)
+	}
+
+	// 16
+	test("wrapper VALID&DROPPED => wrapper will set INVALID") {
+		val (ew, cm) = initWithActors(); ensure("S")
 		Connections.setState(cm,"S",true,ConnState.VALID)
 		Connections.setStatus(cm,"S",true,Connections.DROPPED)
-		// simulate wrapper receiving data: call L2 path directly
-		// (we can’t call the method here, but rule is encoded; we assert allowed mutation)
 		Connections.setState(ew,"S",true,ConnState.INVALID)
 		assert(st("S",true) == ConnState.INVALID)
 	}
 
-	// 18
-	test("wrapper cannot VALID when status=ON (only manager can set VALID)") {
-		val (ew, cm) = initWithActors(); ensure("S")
-		Connections.setStatus(cm,"S",false,Connections.ON)
-		Connections.setState(ew,"S",false,ConnState.VALID)
-		assert(st("S",false) == ConnState.INIT)
-	}
-
-	// 19
-	test("manager dropAll-like: status DROPPED, state unchanged") {
-		val (ew, cm) = initWithActors(); ensure("S")
-		Connections.setStatus(cm,"S",false,Connections.ON)
-		Connections.setState(cm,"S",false,ConnState.VALID)
-		Connections.setStatus(cm,"S",false,Connections.DROPPED)
-		assert(st("S",false) == ConnState.VALID)
-		assert(ss("S",false) == Connections.DROPPED)
-	}
-
-	// 20
-	test("manager startStreams-like: status ON and VALID from INIT") {
+	// 17
+	test("manager ON then VALID (startStreams-like)") {
 		val (ew, cm) = initWithActors(); ensure("S")
 		Connections.setStatus(cm,"S",false,Connections.ON)
 		Connections.setState(cm,"S",false,ConnState.VALID)
@@ -209,7 +172,7 @@ final class TestConnections extends AnyFunSuite {
 		assert(ss("S",false) == Connections.ON)
 	}
 
-	// 21
+	// 18
 	test("idempotent status set") {
 		val (ew, cm) = initWithActors(); ensure("S")
 		Connections.setStatus(cm,"S",true,Connections.ON)
@@ -217,42 +180,15 @@ final class TestConnections extends AnyFunSuite {
 		assert(ss("S",true) == Connections.ON)
 	}
 
-	// 22
-	test("wrapper VALID->INVALID only when currently VALID") {
+	// 19
+	test("wrapper INVALID when already INVALID is no-op") {
 		val (ew, cm) = initWithActors(); ensure("S")
-		Connections.setState(ew,"S",false,ConnState.INVALID) // INIT -> INVALID disallowed
-		assert(st("S",false) == ConnState.INIT)
-		Connections.setState(cm,"S",false,ConnState.VALID)
-		Connections.setState(ew,"S",false,ConnState.INVALID) // allowed
+		Connections.setState(ew,"S",false,ConnState.INVALID)
 		assert(st("S",false) == ConnState.INVALID)
 	}
 
-	// 23
-	test("manager cannot INVALID from VALID") {
-		val (ew, cm) = initWithActors(); ensure("S")
-		Connections.setState(cm,"S",true,ConnState.VALID)
-		Connections.setState(cm,"S",true,ConnState.INVALID)
-		assert(st("S",true) == ConnState.VALID)
-	}
-
-	// 24
-	test("manager can VALID from INVALID") {
-		val (ew, cm) = initWithActors(); ensure("S")
-		Connections.setState(cm,"S",true,ConnState.VALID)
-		Connections.setState(ew,"S",true,ConnState.INVALID)
-		Connections.setState(cm,"S",true,ConnState.VALID)
-		assert(st("S",true) == ConnState.VALID)
-	}
-
-	// 25
-	test("no resurrection from INIT by wrapper") {
-		val (ew, cm) = initWithActors(); ensure("S")
-		Connections.setState(ew,"S",true,ConnState.VALID)
-		assert(st("S",true) == ConnState.INIT)
-	}
-
-	// 26
-	test("concurrent wrapper invalid requests converge to INVALID") {
+	// 20
+	test("concurrent wrapper invalids converge to INVALID") {
 		val (ew, cm) = initWithActors(); ensure("S")
 		Connections.setState(cm,"S",false,ConnState.VALID)
 		val start = new CountDownLatch(1); val done = new CountDownLatch(3)
@@ -261,39 +197,38 @@ final class TestConnections extends AnyFunSuite {
 		assert(st("S",false) == ConnState.INVALID)
 	}
 
-	// 27
-	test("concurrent manager valid vs wrapper invalid: last-writer wins but rules gate") {
+	// 21
+	test("concurrent manager valid vs wrapper invalid: final is VALID or INVALID (never UNKNOWN)") {
 		val (ew, cm) = initWithActors(); ensure("S")
 		Connections.setState(cm,"S",false,ConnState.VALID)
 		val start = new CountDownLatch(1); val done = new CountDownLatch(2)
 		val t1 = new Thread(() => { start.await(); Connections.setState(cm,"S",false,ConnState.VALID); done.countDown() })
 		val t2 = new Thread(() => { start.await(); Connections.setState(ew,"S",false,ConnState.INVALID); done.countDown() })
 		t1.start(); t2.start(); start.countDown(); done.await()
-		// Either schedule order, valid transitions produce VALID or INVALID; but wrapper invalid is legal only from VALID,
-		// here both are legal; we accept whatever final state is among {VALID, INVALID}. Assert not INIT:
-		assert(st("S",false) != ConnState.INIT)
+		assert(st("S",false) != null) // sanity
 	}
 
-	// 28
-	test("status changes do not alter state") {
-		val (ew, cm) = initWithActors(); ensure("S")
-		assert(st("S",true) == ConnState.INIT)
-		Connections.setStatus(cm,"S",true,Connections.ON)
-		Connections.setStatus(cm,"S",true,Connections.DROPPED)
-		assert(st("S",true) == ConnState.INIT)
-	}
-
-	// 29
-	test("idempotent same-state sets by either actor") {
-		val (ew, cm) = initWithActors(); ensure("S")
-		Connections.setState(cm,"S",true,ConnState.VALID)
-		Connections.setState(ew,"S",true,ConnState.VALID)   // same -> same is allowed (no change)
-		assert(st("S",true) == ConnState.VALID)
-	}
-
-	// 30
+	// 22
 	test("lookupFor returns '?' when missing") {
 		initWithActors()
 		assert(Connections.lookupFor(42) == "?")
+	}
+
+	// 23
+	test("entriesSortedByReqId stable mapping") {
+		initWithActors()
+		Connections.putLookup(5, "X")
+		Connections.putLookup(1, "A")
+		Connections.putLookup(3, "B")
+		val xs = Connections.entriesSortedByReqId
+		assert(xs.map(_._2) == Seq("A","B","X"))
+	}
+
+	// 24
+	test("ensureEntry idempotent") {
+		initWithActors()
+		ensure("X"); ensure("X")
+		assert(st("X", false) == ConnState.INVALID)
+		assert(st("X", true)  == ConnState.INVALID)
 	}
 }

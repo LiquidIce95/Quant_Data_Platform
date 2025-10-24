@@ -3,21 +3,37 @@ package src.main.scala
 
 import scala.collection.mutable
 
+/** Two-state connection state. */
+object ConnState {
+	sealed trait State
+	case object VALID extends State
+	case object INVALID extends State
+}
+
+/** Single connection state holder (no locks; visibility via @volatile). */
+final class ConnState {
+	@volatile private var connectionState: ConnState.State = ConnState.INVALID
+	def get: ConnState.State = connectionState
+	private[src] def unsafeSet(s: ConnState.State): Unit = { connectionState = s }
+}
+
 /**
-  * Singleton: owns discovery maps and enforces *who* may change *what*.
+  * Singleton: owns discovery maps and enforces which actor may change what.
   *
-  * Rules:
-  *   - State transitions:
-  *       INIT  -> VALID   (manager only)
-  *       VALID -> INVALID (wrapper only)
-  *       INVALID -> VALID (manager only)
-  *     Same->Same is idempotent (allowed). All others are ignored.
-  *   - Status (ON/DROPPED): manager only.
-  *   - Unknown code on any mutation => IllegalStateException.
+  * State machine (no INIT):
+  *   - Default state: INVALID
+  *   - VALID ←(manager only)— INVALID
+  *   - INVALID ←(wrapper only)— VALID
+  *   (same->same is idempotent; other transitions ignored)
+  *
+  * Status: ON / DROPPED (manager only)
+  *   - Default status: DROPPED
+  *
+  * Unknown code on mutation => throws IllegalStateException (programming error).
   */
 object Connections {
 
-	// Stronger typing than Enumeration
+	// Status ADT
 	sealed trait ConnStatus
 	case object ON extends ConnStatus
 	case object DROPPED extends ConnStatus
@@ -49,7 +65,7 @@ object Connections {
 	}
 
 	def ensureEntry(code: String): Unit = this.synchronized {
-		if (!stateMap.contains(code)) stateMap.update(code, (new ConnState, new ConnState))
+		if (!stateMap.contains(code)) stateMap.update(code, (new ConnState, new ConnState)) // both INVALID by default
 		if (!statusMap.contains(code)) statusMap.update(code, (DROPPED, DROPPED))
 	}
 
@@ -88,6 +104,11 @@ object Connections {
 	  * Apply state transition if allowed by rules.
 	  * @param caller ewRef or cmRef; others ignored.
 	  * @throws IllegalStateException if code unknown
+	  *
+	  * Rules (no INIT):
+	  *   - Manager: INVALID -> VALID (and VALID -> VALID idempotent)
+	  *   - Wrapper: VALID   -> INVALID (and INVALID -> INVALID idempotent)
+	  *   - Other combos ignored.
 	  */
 	def setState(caller: AnyRef, code: String, isL2: Boolean, target: ConnState.State): Unit = this.synchronized {
 		requireKnown(code)
@@ -100,10 +121,12 @@ object Connections {
 		val cur = cs.get
 
 		val legal = (cur, target) match {
-			case (x, y) if x == y                  => true // idempotent
-			case (ConnState.INIT,    ConnState.VALID)   => isMgr
+			case (x, y) if x == y => true // idempotent
+			// manager may make (INVALID -> VALID)
+			case (ConnState.INVALID, ConnState.VALID) => isMgr
+			// wrapper may make (VALID -> INVALID)
 			case (ConnState.VALID,   ConnState.INVALID) => isEw
-			case (ConnState.INVALID, ConnState.VALID)   => isMgr
+			// everything else ignored
 			case _ => false
 		}
 		if (legal) cs.unsafeSet(target)
