@@ -13,7 +13,7 @@ object ConnState {
   * No locks by design. Only the Connections singleton should mutate via unsafeSet.
   */
 final class ConnState {
-	private var connectionState: ConnState.State = ConnState.INIT
+	@volatile private var connectionState: ConnState.State = ConnState.INIT
 
 	// read-only for everyone
 	def get: ConnState.State = connectionState

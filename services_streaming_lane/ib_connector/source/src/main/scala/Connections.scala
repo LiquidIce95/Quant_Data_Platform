@@ -52,9 +52,11 @@ object Connections {
 
 	// ---- discovery helpers -------------------------------------------------
 
-	def putLookup(reqId: Int, code: String): Unit = lookupMap.update(reqId, code)
-
-	def ensureEntry(code: String): Unit = {
+	def putLookup(reqId: Int, code: String): Unit = this.synchronized {
+        lookupMap.update(reqId, code)
+    }
+    
+	def ensureEntry(code: String): Unit = this.synchronized {
 		if (!stateMap.contains(code)) stateMap.update(code, (new ConnState, new ConnState))
 		if (!statusMap.contains(code)) statusMap.update(code, (ConnStatus.DROPPED, ConnStatus.DROPPED))
 	}
@@ -85,7 +87,7 @@ object Connections {
 	  * @param isL2   false=tick-by-tick leg, true=L2 leg
 	  * @param target desired state (INIT, VALID, INVALID)
 	  */
-	def setState(caller: AnyRef, code: String, isL2: Boolean, target: ConnState.State): Unit = {
+	def setState(caller: AnyRef, code: String, isL2: Boolean, target: ConnState.State): Unit = this.synchronized {
 		val whoIsManager = caller eq cmRef
 		val whoIsEw      = caller eq ewRef
 		if (!whoIsManager && !whoIsEw) return // unauthorized
@@ -114,7 +116,7 @@ object Connections {
 	  * Change connection status (ON/DROPPED) for a specific code/leg.
 	  * Only ConnManager may change status.
 	  */
-	def setStatus(caller: AnyRef, code: String, isL2: Boolean, target: ConnStatus.Value): Unit = {
+	def setStatus(caller: AnyRef, code: String, isL2: Boolean, target: ConnStatus.Value): Unit = this.synchronized {
 		if (!(caller eq cmRef)) return
 		statusMap.get(code) match {
 			case None => ()
