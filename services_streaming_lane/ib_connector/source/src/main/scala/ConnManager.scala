@@ -12,7 +12,8 @@ import java.util.concurrent.LinkedBlockingQueue
 final class ConnManager(
 	c: EClientSocket,
 	io: ClientIo,
-	streamType: String
+	streamType: String,
+	distributed: Boolean = false
 ) extends Runnable {
 
 	private val EXCHANGE = "NYMEX"
