@@ -5,12 +5,9 @@ import com.ib.client._
 import java.util.concurrent.LinkedBlockingQueue
 
 /**
-  * Manages market data lifecycle on its own thread.
-  * All EClientSocket calls are serialized through ClientIo (single writer).
-  *
-  * @param c   IB client socket (already connected)
-  * @param io  single-writer lane that executes socket calls in-order
-  * @param streamType "realtime" → TBT+L2, otherwise delayed L1 via reqMktData
+  * Lifecycle manager (runs on its own thread).
+  * Uses ClientIo to serialize socket calls.
+  * Follows new rules: status flips manager-only; state INIT/INVALID → VALID manager-only.
   */
 final class ConnManager(
 	c: EClientSocket,
@@ -46,34 +43,21 @@ final class ConnManager(
 		}
 	}
 
-	/**
-	  * Waits for discovery (Connections has entries), then requests all streams.
-	  * If discovery empty, sleep 10s and retry; fail if still empty.
-	  */
+	/** Wait for discovery then start streams; set status ON and state VALID (manager-only). */
 	def startStreams(): Unit = {
 		work.put(new Runnable {
 			def run(): Unit = {
-				if (Connections.discoveryEmpty) {
-					try Thread.sleep(10_000L) catch { case _: Throwable => () }
-				}
-				if (Connections.discoveryEmpty) {
-					throw new IllegalStateException("[ConnManager] discovery not ready: Connections has no entries")
-				}
+				if (Connections.discoveryEmpty) { try Thread.sleep(10_000L) catch { case _: Throwable => () } }
+				if (Connections.discoveryEmpty) throw new IllegalStateException("discovery not ready")
 
 				val entries = Connections.entriesSortedByReqId
-
 				io.submit { cc =>
 					cc.reqMarketDataType(if (streamType == "realtime") 1 else 3)
-
 					var i = 0
 					while (i < entries.size) {
 						val (reqId, code) = entries(i)
-
 						val con = new Contract
-						con.secType("FUT")
-						con.exchange(EXCHANGE)
-						con.currency(CURRENCY)
-						con.localSymbol(code)
+						con.secType("FUT"); con.exchange(EXCHANGE); con.currency(CURRENCY); con.localSymbol(code)
 
 						if (streamType == "realtime") {
 							cc.reqTickByTickData(reqId, con, "AllLast", 0, false)
@@ -82,11 +66,11 @@ final class ConnManager(
 							cc.reqMktData(reqId, con, "", false, false, null)
 						}
 
-						// status+state changes are guarded by Connections
-						Connections.setStatus(ConnManager.this, code, isL2 = false, Connections.ConnStatus.ON)
-						Connections.setStatus(ConnManager.this, code, isL2 = true,  Connections.ConnStatus.ON)
-						Connections.setState(ConnManager.this, code, isL2 = false, ConnState.VALID)
-						Connections.setState(ConnManager.this, code, isL2 = true,  ConnState.VALID)
+						Connections.setStatus(ConnManager.this, code, isL2=false, Connections.ON)
+						Connections.setStatus(ConnManager.this, code, isL2=true,  Connections.ON)
+						// manager can INIT/INVALID -> VALID
+						Connections.setState(ConnManager.this, code, isL2=false, ConnState.VALID)
+						Connections.setState(ConnManager.this, code, isL2=true,  ConnState.VALID)
 
 						i += 1
 					}
@@ -95,43 +79,23 @@ final class ConnManager(
 		})
 	}
 
-	/**
-	  * Cancels all streams that were started via startStreams().
-	  * Changes status to DROPPED and state to INVALID (via Connections guards).
-	  */
-	def cancelAll(): Unit = {
+	/** Stop all streams; flip status to DROPPED (state left as-is; wrapper will invalidate on data if needed). */
+	def dropAll(): Unit = {
 		work.put(new Runnable {
 			def run(): Unit = {
 				val entries = Connections.entriesSortedByReqId
-
 				var i = 0
 				while (i < entries.size) {
 					val (reqId, code) = entries(i)
-
 					io.submit(cc => cc.cancelTickByTickData(reqId))
 					io.submit(cc => cc.cancelMktDepth(reqId, false))
-
-					Connections.setStatus(ConnManager.this, code, isL2 = false, Connections.ConnStatus.DROPPED)
-					Connections.setStatus(ConnManager.this, code, isL2 = true,  Connections.ConnStatus.DROPPED)
-					Connections.setState(ConnManager.this, code, isL2 = false, ConnState.INVALID)
-					Connections.setState(ConnManager.this, code, isL2 = true,  ConnState.INVALID)
-
+					Connections.setStatus(ConnManager.this, code, isL2=false, Connections.DROPPED)
+					Connections.setStatus(ConnManager.this, code, isL2=true,  Connections.DROPPED)
 					i += 1
 				}
 			}
 		})
 	}
 
-	def restartDepth(reqId: Int, code: String): Unit = {
-		work.put(new Runnable {
-			def run(): Unit = {
-				io.submit(cc => cc.cancelMktDepth(reqId, false))
-				io.submitDelayed(2000L) { cc =>
-					val con = new Contract
-					con.secType("FUT"); con.exchange(EXCHANGE); con.currency(CURRENCY); con.localSymbol(code)
-					cc.reqMktDepth(reqId, con, MAX_BOOK_DEPTH, false, null)
-				}
-			}
-		})
-	}
+	
 }

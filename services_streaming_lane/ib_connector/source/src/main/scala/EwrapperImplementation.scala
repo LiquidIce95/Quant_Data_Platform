@@ -7,15 +7,12 @@ import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
-  * Discovery-only EWrapper.
-  * - Collects contract details (CL/NG), derives near months,
-  * - Populates Connections.lookupMap and initializes Connections.stateMap entries to INIT,
-  * - Does NOT start/cancel streams (ConnManager owns lifecycle).
-  * Also prints delayed L1 ticks if requested.
-  *
-  * @param producer     Kafka producer wrapper (may be null)
-  * @param topicTickLast topic for tick-by-tick
-  * @param topicL2       topic for L2
+  * Discovery + data processing (no lifecycle).
+  * Populates Connections on details end.
+  * Processing rules:
+  *   - VALID & ON      -> process
+  *   - VALID & DROPPED -> (L2) reset BookState, set INVALID (wrapper), skip
+  *   - INVALID         -> skip
   */
 final class EwrapperImplementation(
 	producer: KafkaProducerApi,
@@ -58,16 +55,10 @@ final class EwrapperImplementation(
 		out.toList
 	}
 
-	private def codeFor(reqId: Int): String =
-		Connections.lookupFor(reqId)
+	private def codeFor(reqId: Int): String = Connections.lookupFor(reqId)
 
-	// ---- discovery callbacks ----
-
-	override def nextValidId(id: Int): Unit = {
-		if (started) return
-		started = true
-		// main triggers reqContractDetails; we only collect results
-	}
+	// ---- discovery ----
+	override def nextValidId(id: Int): Unit = { if (!started) started = true }
 
 	override def contractDetails(r: Int, cd: ContractDetails): Unit = {
 		if (r == REQ_CD) cdsCL += cd
@@ -77,37 +68,20 @@ final class EwrapperImplementation(
 	override def contractDetailsEnd(r: Int): Unit = {
 		detailsEnds += 1
 		if (detailsEnds < 2) return
-
 		val xsCL = fronts(8, cdsCL)
 		val xsNG = fronts(8, cdsNG)
 		val xs   = xsCL ++ xsNG
-
 		var i = 0
 		while (i < xs.size) {
 			val con  = xs(i)
 			val code = Option(con.localSymbol).filter(_.nonEmpty).getOrElse(con.symbol)
 			Connections.putLookup(REQ_BASE + i, code)
-			Connections.ensureEntry(code) // creates INIT state + DROPPED status for both legs
+			Connections.ensureEntry(code)
 			i += 1
 		}
 	}
 
-	// ---- printing for delayed L1 tests ----
-
-	override def marketDataType(tid: Int, t: Int): Unit =
-		println(s"[mdType] $t (1=real,2=frozen,3=delayed,4=delayed-frozen)")
-
-	override def tickPrice(tid: Int, f: Int, p: Double, a: TickAttrib): Unit =
-		println(s"[tickPrice][$tid][${Connections.lookupFor(tid)}] ${TickType.getField(f)} = $p")
-
-	override def tickSize(tid: Int, f: Int, s: Decimal): Unit =
-		println(s"[tickSize][$tid][${Connections.lookupFor(tid)}] ${TickType.getField(f)} = $s")
-
-	override def tickString(tid: Int, f: Int, v: String): Unit =
-		println(s"[tickString][$tid][${Connections.lookupFor(tid)}] ${TickType.getField(f)} = $v")
-
-	// ---- optional realtime L2 path (unchanged) ----
-
+	// ---- tick-by-tick (L1) ----
 	override def tickByTickAllLast(
 		reqId: Int,
 		tickType: Int,
@@ -120,13 +94,20 @@ final class EwrapperImplementation(
 	): Unit = {
 		try {
 			val code = codeFor(reqId)
-			val json = Transforms.tickLastJson(
-				reqId, tickType, time, price, size, tickAttribLast, exchange, specialConditions, code
-			)
-			if (producer != null) producer.send(topicTickLast, code, json)
+			val s  = Connections.stateOf(code, isL2 = false).getOrElse(ConnState.INVALID)
+			val st = Connections.statusOf(code, isL2 = false).getOrElse(Connections.DROPPED)
+
+			if (s == ConnState.VALID && st == Connections.ON) {
+				val json = Transforms.tickLastJson(reqId, tickType, time, price, size, tickAttribLast, exchange, specialConditions, code)
+				if (producer != null) producer.send(topicTickLast, code, json)
+			} else if (s == ConnState.VALID && st == Connections.DROPPED) {
+				// invalidate this leg (wrapper-only)
+				Connections.setState(this, code, isL2 = false, ConnState.INVALID)
+			} // INVALID => ignore
 		} catch { case NonFatal(_) => () }
 	}
 
+	// ---- L2 ----
 	override def updateMktDepthL2(
 		reqId: Int,
 		position: Int,
@@ -139,29 +120,46 @@ final class EwrapperImplementation(
 	): Unit = {
 		try {
 			val code = codeFor(reqId)
-			var new_l2_data: List[(Int, Int, Double, Double, Long)] = Nil
-			try {
-				val book = BookStatesMap.getOrElseUpdate(code, new BookState(MAX_BOOK_DEPTH))
-				val ts  = System.currentTimeMillis()
-				val qty = if (size == null) 0.0 else {
-					val s = size.toString; if (s == null || s.isEmpty) 0.0 else java.lang.Double.parseDouble(s)
-				}
-				new_l2_data = operation match {
-					case 0 => book.insert(side, position, price, qty, ts)
-					case 1 => book.update(side, position, price, qty, ts)
-					case 2 => book.delete(side, position, ts)
-					case _ => Nil
-				}
-			} catch { case _: IllegalArgumentException => () }
+			val s  = Connections.stateOf(code, isL2 = true).getOrElse(ConnState.INVALID)
+			val st = Connections.statusOf(code, isL2 = true).getOrElse(Connections.DROPPED)
 
-			new_l2_data.foreach { case (s, lvl, p, sz, tsUpd) =>
-				val json = Transforms.l2Json(
-					reqId, lvl, marketMaker, tsUpd, s, p, sz, isSmartDepth, code
-				)
-				if (producer != null) producer.send(topicL2, code, json)
-			}
+			if (s == ConnState.VALID && st == Connections.ON) {
+				var newRows: List[(Int, Int, Double, Double, Long)] = Nil
+				try {
+					val book = BookStatesMap.getOrElseUpdate(code, new BookState(MAX_BOOK_DEPTH))
+					val ts  = System.currentTimeMillis()
+					val qty = if (size == null) 0.0 else {
+						val s = size.toString; if (s == null || s.isEmpty) 0.0 else java.lang.Double.parseDouble(s)
+					}
+					newRows = operation match {
+						case 0 => book.insert(side, position, price, qty, ts)
+						case 1 => book.update(side, position, price, qty, ts)
+						case 2 => book.delete(side, position, ts)
+						case _ => Nil
+					}
+				} catch { case _: IllegalArgumentException => () }
+
+				newRows.foreach { case (sSide, lvl, p, sz, tsUpd) =>
+					val json = Transforms.l2Json(reqId, lvl, marketMaker, tsUpd, sSide, p, sz, isSmartDepth, code)
+					producer.send(topicL2, code, json)
+				}
+			} else if (s == ConnState.VALID && st == Connections.DROPPED) {
+				// reset local book and invalidate via wrapper-only transition
+				BookStatesMap.remove(code)
+				Connections.setState(this, code, isL2 = true, ConnState.INVALID)
+			} // INVALID => ignore
 		} catch { case NonFatal(_) => () }
 	}
+
+	// ---- console helpers for delayed tests ----
+	override def marketDataType(tid: Int, t: Int): Unit =
+		println(s"[mdType] $t (1=real,2=frozen,3=delayed,4=delayed-frozen)")
+	override def tickPrice(tid: Int, f: Int, p: Double, a: TickAttrib): Unit =
+		println(s"[tickPrice][$tid][${Connections.lookupFor(tid)}] ${TickType.getField(f)} = $p")
+	override def tickSize(tid: Int, f: Int, s: Decimal): Unit =
+		println(s"[tickSize][$tid][${Connections.lookupFor(tid)}] ${TickType.getField(f)} = $s")
+	override def tickString(tid: Int, f: Int, v: String): Unit =
+		println(s"[tickString][$tid][${Connections.lookupFor(tid)}] ${TickType.getField(f)} = $v")
 
 	override def error(reqId: Int, time: Long, code: Int, msg: String, adv: String): Unit =
 		System.err.println(s"[err] code=$code msg=$msg reqId=$reqId")
