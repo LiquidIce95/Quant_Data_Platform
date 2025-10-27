@@ -40,7 +40,7 @@ object Connections {
 
 	// tables
 	private val lookupMap: mutable.Map[Int, String] = mutable.HashMap.empty
-	private val stateMap:  mutable.Map[String,(ConnState, ConnState)] = mutable.HashMap.empty
+	private val stateMap:	mutable.Map[String,(ConnState, ConnState)] = mutable.HashMap.empty
 	private val statusMap: mutable.Map[String,(ConnStatus, ConnStatus)] = mutable.HashMap.empty
 
 	// authorized actors
@@ -77,12 +77,18 @@ object Connections {
 		lookupMap.toSeq.sortBy(_._1)
 	}
 
-	def stateOf(code: String, isL2: Boolean): Option[ConnState.State] = this.synchronized {
-		stateMap.get(code).map { case (tbt,l2) => if (isL2) l2.get else tbt.get }
+	def stateOf(code: String, isL2: Boolean): ConnState.State = this.synchronized {
+    // must exist once discovery finished
+		requireKnown(code)
+		val (tbt,l2) = stateMap(code)
+		if (isL2) l2.get else tbt.get
 	}
 
-	def statusOf(code: String, isL2: Boolean): Option[ConnStatus] = this.synchronized {
-		statusMap.get(code).map { case (tbt,l2) => if (isL2) l2 else tbt }
+	def statusOf(code: String, isL2: Boolean): ConnStatus = this.synchronized {
+    // must exist once discovery finished
+		requireKnown(code)
+		val (tbt,l2) = statusMap(code)
+		if (isL2) l2 else tbt
 	}
 
 	def lookupFor(reqId: Int): String = this.synchronized {
@@ -113,11 +119,11 @@ object Connections {
 	def setState(caller: AnyRef, code: String, isL2: Boolean, target: ConnState.State): Unit = this.synchronized {
 		requireKnown(code)
 		val isMgr = caller eq cmRef
-		val isEw  = caller eq ewRef
+		val isEw	= caller eq ewRef
 		if (!isMgr && !isEw) return
 
 		val (tbt, l2) = stateMap(code)
-		val cs  = if (isL2) l2 else tbt
+		val cs	= if (isL2) l2 else tbt
 		val cur = cs.get
 
 		val legal = (cur, target) match {
@@ -125,7 +131,7 @@ object Connections {
 			// manager may make (INVALID -> VALID)
 			case (ConnState.INVALID, ConnState.VALID) => isMgr
 			// wrapper may make (VALID -> INVALID)
-			case (ConnState.VALID,   ConnState.INVALID) => isEw
+			case (ConnState.VALID,	 ConnState.INVALID) => isEw
 			// everything else ignored
 			case _ => false
 		}
@@ -141,6 +147,6 @@ object Connections {
 		if (!(caller eq cmRef)) return
 		val (tbt, l2) = statusMap(code)
 		if (isL2) statusMap.update(code, (tbt, target))
-		else      statusMap.update(code, (target, l2))
+		else			statusMap.update(code, (target, l2))
 	}
 }

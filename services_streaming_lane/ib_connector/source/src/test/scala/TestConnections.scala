@@ -17,8 +17,8 @@ final class TestConnections extends AnyFunSuite {
 	}
 
 	private def ensure(code: String): Unit = Connections.ensureEntry(code)
-	private def st(code: String, isL2: Boolean) = Connections.stateOf(code, isL2).get
-	private def ss(code: String, isL2: Boolean) = Connections.statusOf(code, isL2).get
+	private def st(code: String, isL2: Boolean) = Connections.stateOf(code, isL2)
+	private def ss(code: String, isL2: Boolean) = Connections.statusOf(code, isL2)
 
 	// 1
 	test("reset empties tables and actors") {

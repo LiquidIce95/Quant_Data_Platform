@@ -11,9 +11,9 @@ import scala.util.control.NonFatal
   * Populates Connections on details end.
   *
   * Processing rules:
-  *   - state=VALID & status=ON      -> process
+  *   - state=VALID & status=ON			-> process
   *   - state=VALID & status=DROPPED -> (L2) reset BookState, set INVALID (wrapper), skip
-  *   - state=INVALID                -> skip
+  *   - state=INVALID							 -> skip
   */
 final class EwrapperImplementation(
 	producer: KafkaProducerApi,
@@ -46,7 +46,7 @@ final class EwrapperImplementation(
 	private def fronts(n: Int, buf: ListBuffer[ContractDetails]): List[Contract] = {
 		import scala.collection.mutable.{ListBuffer => LB, LinkedHashSet}
 		val seen = LinkedHashSet.empty[String]
-		val out  = LB.empty[Contract]
+		val out	 = LB.empty[Contract]
 		buf.sortBy(cd => Try(cd.contract.lastTradeDateOrContractMonth.take(6).toInt).getOrElse(Int.MaxValue))
 			.foreach { cd =>
 				val yyyymm = Try(cd.contract.lastTradeDateOrContractMonth.take(6)).getOrElse("")
@@ -71,10 +71,10 @@ final class EwrapperImplementation(
 		if (detailsEnds < 2) return
 		val xsCL = fronts(8, cdsCL)
 		val xsNG = fronts(8, cdsNG)
-		val xs   = xsCL ++ xsNG
+		val xs	 = xsCL ++ xsNG
 		var i = 0
 		while (i < xs.size) {
-			val con  = xs(i)
+			val con	 = xs(i)
 			val code = Option(con.localSymbol).filter(_.nonEmpty).getOrElse(con.symbol)
 			Connections.putLookup(REQ_BASE + i, code)
 			Connections.ensureEntry(code) // default INVALID + DROPPED
@@ -95,8 +95,8 @@ final class EwrapperImplementation(
 	): Unit = {
 		try {
 			val code = codeFor(reqId)
-			val s  = Connections.stateOf(code, isL2 = false).getOrElse(ConnState.INVALID)
-			val st = Connections.statusOf(code, isL2 = false).getOrElse(Connections.DROPPED)
+			val s	= Connections.stateOf(code, isL2 = false)
+			val st = Connections.statusOf(code, isL2 = false)
 
 			if (s == ConnState.VALID && st == Connections.ON) {
 				val json = Transforms.tickLastJson(reqId, tickType, time, price, size, tickAttribLast, exchange, specialConditions, code)
@@ -120,14 +120,14 @@ final class EwrapperImplementation(
 	): Unit = {
 		try {
 			val code = codeFor(reqId)
-			val s  = Connections.stateOf(code, isL2 = true).getOrElse(ConnState.INVALID)
-			val st = Connections.statusOf(code, isL2 = true).getOrElse(Connections.DROPPED)
+			val s	= Connections.stateOf(code, isL2 = true)
+			val st = Connections.statusOf(code, isL2 = true)
 
 			if (s == ConnState.VALID && st == Connections.ON) {
 				var newRows: List[(Int, Int, Double, Double, Long)] = Nil
 				try {
 					val book = BookStatesMap.getOrElseUpdate(code, new BookState(MAX_BOOK_DEPTH))
-					val ts  = System.currentTimeMillis()
+					val ts	= System.currentTimeMillis()
 					val qty = if (size == null) 0.0 else {
 						val s = size.toString; if (s == null || s.isEmpty) 0.0 else java.lang.Double.parseDouble(s)
 					}

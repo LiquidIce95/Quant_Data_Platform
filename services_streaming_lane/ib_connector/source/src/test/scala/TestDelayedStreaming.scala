@@ -61,11 +61,11 @@ class TestDelayedStreaming extends AnyFunSuite {
 
 			// 6) let discovery populate, then start streams
 			Thread.sleep(6_000L)
-			connMan.startStreams()
+			connMan.startStreams(500L)
 
 			// 7) run for a bit and shutdown
 			new Thread(() => {
-				try Thread.sleep(15_000L) catch { case _: Throwable => () }
+				try Thread.sleep(25_000L) catch { case _: Throwable => () }
 				try client.eDisconnect() catch { case _: Throwable => () }
 			}, "shutdown").start()
 

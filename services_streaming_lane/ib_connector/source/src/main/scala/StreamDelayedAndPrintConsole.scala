@@ -46,7 +46,7 @@ object StreamDelayedAndPrintConsole {
 
 		// 6) let discovery populate, then start streams
 		Thread.sleep(6_000L)
-		connMan.startStreams()
+		connMan.startStreams(500L)
 
 		// 7) run for a bit and shutdown
 		new Thread(() => {
