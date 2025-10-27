@@ -1,29 +1,25 @@
-// File: src/test/scala/TestConnManager.scala
+// File: src/test/scala/TestConnManagerShard.scala
 package src.main.scala
 
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.BeforeAndAfterEach
 
 import com.ib.client._
-import java.util
+import java.util.concurrent.atomic.AtomicReference
 
-// Pure Java Mockito — no Scala sugar:
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers.{eq => meq, _}
-import org.mockito.verification.VerificationMode
 
-final class TestConnManager extends AnyFunSuite with BeforeAndAfterEach {
-
-	// ----- helpers -----
+final class TestConnManagerShard extends AnyFunSuite with BeforeAndAfterEach {
 
 	private def newClient(): EClientSocket = mock(classOf[EClientSocket])
+	private def newIo(c: EClientSocket): ClientIo = new ClientIo(c)
 
-	private def newIo(c: EClientSocket): ClientIo =
-		new ClientIo(c) // real implementation from prod
-
-	private def seedDiscovery(reqId: Int, code: String): Unit = {
-		Connections.putLookup(reqId, code)
-		Connections.ensureEntry(code) // default: INVALID + DROPPED (both legs)
+	private def seed(reqs: (Int, String)*): Unit = {
+		reqs.foreach { case (rid, code) =>
+			Connections.putLookup(rid, code)
+			Connections.ensureEntry(code)
+		}
 	}
 
 	private def wireActors(mgr: ConnManager): Unit = {
@@ -31,13 +27,13 @@ final class TestConnManager extends AnyFunSuite with BeforeAndAfterEach {
 		Connections.setActors(ew, mgr)
 	}
 
-	private def startAndTick(mgr: ConnManager, pollMs: Long = 250L, extraWaitMs: Long = 200L): Unit = {
+	private def startAndWait(mgr: ConnManager, pollMs: Long = 250L, extra: Long = 250L): Unit = {
 		mgr.start()
 		mgr.startStreams(pollMs)
-		Thread.sleep(math.max(300L, pollMs + extraWaitMs))
+		Thread.sleep(math.max(350L, pollMs + extra))
 	}
 
-	private def shutdown(mgr: ConnManager): Unit = {
+	private def stop(mgr: ConnManager): Unit = {
 		mgr.stop()
 		Thread.sleep(50L)
 	}
@@ -46,169 +42,142 @@ final class TestConnManager extends AnyFunSuite with BeforeAndAfterEach {
 		Connections.reset()
 	}
 
-	// ======================================================================
-	// Single-symbol tests (distributed=false => shard == universe)
-	// ======================================================================
+	// ---------- Static strict-subset (single-entry map) ----------
 
-	test("both legs INVALID -> manager sets VALID and starts both legs (realtime)") {
+	test("static subset: one in-shard, one out-of-shard (invalid) — out gets canceled only, in starts both") {
 		val client = newClient()
 		val io = newIo(client)
-		val reqId = 101
-		val code	= "CLZ5"
 
-		seedDiscovery(reqId, code)
-		val mgr = new ConnManager(client, io, "realtime", distributed = false)
+		val a = 3001 -> "CLZ5"
+		val b = 3002 -> "NGZ5"
+		seed(a, b)
+
+		// shardingAlgorithm is a by-ref constant: returns Map("thisPod" -> List(a))
+		val algoRef = new AtomicReference[Map[String, List[(Int, String)]]](Map("this" -> List(a)))
+		val algo = (_: List[String]) => algoRef.get()
+
+		val mgr = new ConnManager(client, io, "realtime", shardingAlgorithm = algo)
 		wireActors(mgr)
 
-		startAndTick(mgr)
+		startAndWait(mgr)
 
-		// Market data type requested
-		verify(client, atLeastOnce()).reqMarketDataType(1)
+		// in-shard 'a' started
+		verify(client, atLeastOnce()).reqTickByTickData(meq(a._1), any(classOf[Contract]), meq("AllLast"), meq(0), meq(false))
+		verify(client, atLeastOnce()).reqMktDepth(meq(a._1), any(classOf[Contract]), meq(12), meq(false), any())
 
-		// Step (1): cancels for INVALID (safe even if not previously running)
-		verify(client, atLeastOnce()).cancelTickByTickData(meq(reqId))
-		verify(client, atLeastOnce()).cancelMktDepth(meq(reqId), meq(false))
 
-		// Step (3): in-shard => (re)start both legs from INVALID -> VALID
-		verify(client, atLeastOnce()).reqTickByTickData(
-			meq(reqId),
-			any(classOf[Contract]),
-			meq("AllLast"),
-			meq(0),
-			meq(false)
-		)
-		verify(client, atLeastOnce()).reqMktDepth(
-			meq(reqId),
-			any(classOf[Contract]),
-			meq(12),
-			meq(false),
-			any() // last arg (tags) — accept anything/null
-		)
+		// out-of-shard 'b' (invalid by default): canceled, not started
+		verify(client, atLeastOnce()).cancelTickByTickData(meq(b._1))
+		verify(client, atLeastOnce()).cancelMktDepth(meq(b._1), meq(false))
+		verify(client, never()).reqTickByTickData(meq(b._1), any(classOf[Contract]), anyString(), anyInt(), anyBoolean())
+		verify(client, never()).reqMktDepth(meq(b._1), any(classOf[Contract]), anyInt(), anyBoolean(), any())
 
-		// final states
-		assert(Connections.stateOf(code, isL2 = false) == ConnState.VALID)
-		assert(Connections.stateOf(code, isL2 = true)	== ConnState.VALID)
-		assert(Connections.statusOf(code, isL2 = false) == Connections.ON)
-		assert(Connections.statusOf(code, isL2 = true)	== Connections.ON)
-
-		shutdown(mgr)
+		stop(mgr)
 	}
 
-	test("only TBT INVALID (L2 already VALID) -> start TBT only") {
+	test("static subset: out-of-shard VALID & DROPPED — no cancels, no starts") {
 		val client = newClient()
 		val io = newIo(client)
-		val reqId = 201
-		val code	= "NGZ5"
 
-		seedDiscovery(reqId, code)
-		val mgr = new ConnManager(client, io, "realtime", distributed = false)
+		val a = 3101 -> "CLF6"
+		val b = 3102 -> "NGF6"
+		seed(a, b)
+
+		// prep b VALID & DROPPED using a throwaway manager as authorized actor
+		val prepMgr = new ConnManager(client, io, "realtime")
+		Connections.setActors(new EwrapperImplementation(null), prepMgr)
+		Connections.setState(prepMgr, b._2, isL2 = false, ConnState.VALID)
+		Connections.setState(prepMgr, b._2, isL2 = true,	ConnState.VALID)
+		Connections.setStatus(prepMgr, b._2, isL2 = false, Connections.DROPPED)
+		Connections.setStatus(prepMgr, b._2, isL2 = true,	Connections.DROPPED)
+
+		val algoRef = new AtomicReference[Map[String, List[(Int, String)]]](Map("this" -> List(a)))
+		val algo = (_: List[String]) => algoRef.get()
+
+		val mgr = new ConnManager(client, io, "realtime", shardingAlgorithm = algo)
 		wireActors(mgr)
 
-		// Precondition: L2 VALID, TBT INVALID
-		Connections.setState(mgr, code, isL2 = true, ConnState.VALID)
+		startAndWait(mgr)
 
-		startAndTick(mgr)
+		// out-of-shard case3: do not cancel valid legs, do not start
+		verify(client, never()).cancelTickByTickData(meq(b._1))
+		verify(client, never()).cancelMktDepth(meq(b._1), anyBoolean())
+		verify(client, never()).reqTickByTickData(meq(b._1), any(classOf[Contract]), anyString(), anyInt(), anyBoolean())
+		verify(client, never()).reqMktDepth(meq(b._1), any(classOf[Contract]), anyInt(), anyBoolean(), any())
 
-		// TBT must (re)start
-		verify(client, atLeastOnce()).reqTickByTickData(
-			meq(reqId),
-			any(classOf[Contract]),
-			meq("AllLast"),
-			meq(0),
-			meq(false)
-		)
-		// L2 must NOT (re)start
-		verify(client, never()).reqMktDepth(
-			meq(reqId),
-			any(classOf[Contract]),
-			anyInt(),
-			anyBoolean(),
-			any()
-		)
-
-		// final states
-		assert(Connections.stateOf(code, isL2 = false) == ConnState.VALID)
-		assert(Connections.stateOf(code, isL2 = true)	== ConnState.VALID)
-		assert(Connections.statusOf(code, isL2 = false) == Connections.ON)
-		assert(Connections.statusOf(code, isL2 = true)	== Connections.ON)
-
-		shutdown(mgr)
+		stop(mgr)
 	}
 
-	test("only L2 INVALID (TBT already VALID) -> start L2 only (realtime)") {
+	// ---------- Dynamic flips by swapping the constant algo ----------
+
+	test("flip out -> in: previously out & invalid gets started when the algo changes to include it") {
 		val client = newClient()
 		val io = newIo(client)
-		val reqId = 301
-		val code	= "CLF6"
 
-		seedDiscovery(reqId, code)
-		val mgr = new ConnManager(client, io, "realtime", distributed = false)
+		val a = 3201 -> "CLH6"
+		val b = 3202 -> "NGH6"
+		seed(a, b)
+
+		// start with only 'a' in shard, then swap to include both
+		val algoRef = new AtomicReference[Map[String, List[(Int, String)]]](Map("this" -> List(a)))
+		val algo = (_: List[String]) => algoRef.get()
+
+		val mgr = new ConnManager(client, io, "realtime", shardingAlgorithm = algo)
 		wireActors(mgr)
 
-		// Precondition: TBT VALID, L2 INVALID
-		Connections.setState(mgr, code, isL2 = false, ConnState.VALID)
+		startAndWait(mgr)
 
-		startAndTick(mgr)
+		// out-of-shard 'b' invalid -> canceled, not started
+		verify(client, atLeastOnce()).cancelTickByTickData(meq(b._1))
+		verify(client, atLeastOnce()).cancelMktDepth(meq(b._1), meq(false))
+		verify(client, never()).reqTickByTickData(meq(b._1), any(classOf[Contract]), anyString(), anyInt(), anyBoolean())
+		verify(client, never()).reqMktDepth(meq(b._1), any(classOf[Contract]), anyInt(), anyBoolean(), any())
 
-		// L2 must (re)start
-		verify(client, atLeastOnce()).reqMktDepth(
-			meq(reqId),
-			any(classOf[Contract]),
-			meq(12),
-			meq(false),
-			any()
-		)
-		// TBT must NOT (re)start
-		verify(client, never()).reqTickByTickData(
-			meq(reqId),
-			any(classOf[Contract]),
-			anyString(),
-			anyInt(),
-			anyBoolean()
-		)
+		// flip to include both
+		algoRef.set(Map("this" -> List(a, b)))
+		Thread.sleep(400L)
 
-		// final states
-		assert(Connections.stateOf(code, isL2 = false) == ConnState.VALID)
-		assert(Connections.stateOf(code, isL2 = true)	== ConnState.VALID)
-		assert(Connections.statusOf(code, isL2 = false) == Connections.ON)
-		assert(Connections.statusOf(code, isL2 = true)	== Connections.ON)
+		// now b must be started (both legs)
+		verify(client, atLeastOnce()).reqTickByTickData(meq(b._1), any(classOf[Contract]), meq("AllLast"), meq(0), meq(false))
+		verify(client, atLeastOnce()).reqMktDepth(meq(b._1), any(classOf[Contract]), meq(12), meq(false), any())
 
-		shutdown(mgr)
+		stop(mgr)
 	}
 
-	test("VALID & ON for both legs (in-shard) -> no restarts, no cancels") {
+	test("flip in -> out: valid & on becomes dropped only (no cancel); if a leg is invalid, that leg gets canceled") {
 		val client = newClient()
 		val io = newIo(client)
-		val reqId = 401
-		val code	= "NGF6"
 
-		seedDiscovery(reqId, code)
-		val mgr = new ConnManager(client, io, "realtime", distributed = false)
+		val a = 3301 -> "CLJ6"
+		val b = 3302 -> "NGJ6"
+		seed(a, b)
+
+		// start with both in shard
+		val algoRef = new AtomicReference[Map[String, List[(Int, String)]]](Map("this" -> List(a, b)))
+		val algo = (_: List[String]) => algoRef.get()
+
+		val mgr = new ConnManager(client, io, "realtime", shardingAlgorithm = algo)
 		wireActors(mgr)
 
-		// Precondition: both legs VALID & ON
-		Connections.setState(mgr, code, isL2 = false, ConnState.VALID)
-		Connections.setState(mgr, code, isL2 = true,	ConnState.VALID)
-		Connections.setStatus(mgr, code, isL2 = false, Connections.ON)
-		Connections.setStatus(mgr, code, isL2 = true,	Connections.ON)
+		startAndWait(mgr)
 
-		startAndTick(mgr)
+		// simulate wrapper invalidating TBT for b (so next loop cancels TBT)
+		val ew = new EwrapperImplementation(null)
+		Connections.setActors(ew, mgr) // ew authorized to flip VALID -> INVALID
+		Connections.setState(ew, b._2, isL2 = false, ConnState.INVALID)
 
-		// benign md type call allowed
-		verify(client, atLeastOnce()).reqMarketDataType(1)
+		Thread.sleep(300L)
+		verify(client, atLeastOnce()).cancelTickByTickData(meq(b._1))
 
-		// No cancels or restarts
-		verify(client, never()).cancelTickByTickData(meq(reqId))
-		verify(client, never()).cancelMktDepth(meq(reqId), anyBoolean())
-		verify(client, never()).reqTickByTickData(meq(reqId), any(classOf[Contract]), anyString(), anyInt(), anyBoolean())
-		verify(client, never()).reqMktDepth(meq(reqId), any(classOf[Contract]), anyInt(), anyBoolean(), any())
+		// now flip algo to drop b out of shard
+		algoRef.set(Map("this" -> List(a)))
+		Thread.sleep(400L)
 
-		// states unchanged
-		assert(Connections.stateOf(code, isL2 = false) == ConnState.VALID)
-		assert(Connections.stateOf(code, isL2 = true)	== ConnState.VALID)
-		assert(Connections.statusOf(code, isL2 = false) == Connections.ON)
-		assert(Connections.statusOf(code, isL2 = true)	== Connections.ON)
+		// out-of-shard case3: do not force-cancel valid legs (L2), and don't start anything for b
+		verify(client, never()).cancelMktDepth(meq(b._1), anyBoolean())
+		verify(client, never()).reqTickByTickData(meq(b._1), any(classOf[Contract]), anyString(), anyInt(), anyBoolean())
+		verify(client, never()).reqMktDepth(meq(b._1), any(classOf[Contract]), anyInt(), anyBoolean(), any())
 
-		shutdown(mgr)
+		stop(mgr)
 	}
 }

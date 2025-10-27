@@ -22,7 +22,7 @@ final class ConnManager(
 	c: EClientSocket,
 	io: ClientIo,
 	streamType: String,
-	distributed: Boolean = false
+	shardingAlgorithm: (List[String] => Map[String, List[(Int, String)]]) = null,
 ) extends Runnable {
 
 	private val EXCHANGE = "NYMEX"
@@ -97,7 +97,7 @@ final class ConnManager(
 
 	/** If distributed=false, return whole symbol universe; else (later) compute shard. */
 	private def computeSymbolsShardThisPod(): List[(Int, String)] = {
-		if (!distributed) Connections.entriesSortedByReqId.toList
+		if (shardingAlgorithm==null) Connections.entriesSortedByReqId.toList
 		else {
 			// TODO: use K8s API to compute shard for this pod
 			Connections.entriesSortedByReqId.toList
