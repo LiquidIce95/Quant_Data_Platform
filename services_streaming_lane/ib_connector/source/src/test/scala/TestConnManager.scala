@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicReference
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers.{eq => meq, _}
 
-final class TestConnManagerShard extends AnyFunSuite with BeforeAndAfterEach {
+final class TestConnManager extends AnyFunSuite with BeforeAndAfterEach {
 
 	private def newClient(): EClientSocket = mock(classOf[EClientSocket])
 	private def newIo(c: EClientSocket): ClientIo = new ClientIo(c)
