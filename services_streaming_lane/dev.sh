@@ -4,7 +4,7 @@ set -euo pipefail
 # ========= Settings (override via env if needed) =========
 CLUSTER_NAME="${CLUSTER_NAME:-kind}"
 
-# ib connector and tws gateway
+# IB namespace (new)
 NAMESPACE_IB="${NAMESPACE_IB:-ib-connector}"
 
 # Kafka / Strimzi
@@ -23,7 +23,7 @@ APP_IMAGE_TAG="${APP_IMAGE_TAG:-${SPARK_IMAGE_TAG}-app}"              # overlay 
 SPARK_APP_CLASS="${SPARK_APP_CLASS:-com.yourorg.spark.ReadTickLastPrint}"
 
 # ClickHouse (runs in Spark ns by default)
-NAMESPACE_CLICKHOUSE="${NAMESPACE_CLICKHOUSE:-clickhouse}"
+NAMESPACE_CLICKHOUSE="${NAMESPACE_CLICKHOUSE:-${NAMESPACE_SPARK}}"
 CLICKHOUSE_IMAGE_TAG="${CLICKHOUSE_IMAGE_TAG:-clickhouse:dev}"
 
 # Node labels
@@ -55,12 +55,11 @@ SPARK_DRIVER_POD_TMPL="$SPARK_DIR/infra/20-driver-pod-template.yml"
 SPARK_EXEC_POD_TMPL="$SPARK_DIR/infra/21-executor-pod-template.yml"
 SPARK_DEFAULTS_FILE="$SPARK_DIR/infra/30-spark-defaults.conf"
 
-# IB infra
+# IB infra (added IB namespace file)
 IB_NS_FILE="$ROOT/services_streaming_lane/ib_connector/infra/00-namespace.yml"
 IB_POD_FILE="$ROOT/services_streaming_lane/ib_connector/infra/10-ib-connector-pod.yml"
 
 # ClickHouse infra
-CLICKHOUSE_NS_FILE="$CLICKHOUSE_INFRA_DIR/00-namespace.yml"
 CLICKHOUSE_POD_FILE="$CLICKHOUSE_INFRA_DIR/10-clickhouse-pod.yml"
 CLICKHOUSE_SVC_FILE="$CLICKHOUSE_INFRA_DIR/20-clickhouse-svc.yml"
 
@@ -129,10 +128,13 @@ port_forward() {
 # ========= IB Connector =========
 deploy_ib_connector() {
   need docker; need kind; need kubectl; need envsubst
-  have "$IB_DIR/Dockerfile"; have "$IB_POD_FILE"
+  have "$IB_DIR/Dockerfile"; have "$IB_POD_FILE"; have "$IB_NS_FILE"
+  # ensure namespace exists (apply manifest)
+  kubectl apply -f "$IB_NS_FILE"
   docker build -t ib-connector:dev "$IB_DIR"
   kind load docker-image ib-connector:dev --name "$CLUSTER_NAME"
-  export NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
+  # export both ns vars for envsubst (pod yaml may need both)
+  export NAMESPACE_IB NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
   envsubst < "$IB_POD_FILE" | kubectl apply -f -
   kubectl -n "$NAMESPACE_IB" wait --for=condition=Ready pod/ib-connector --timeout=120s || true
   kubectl -n "$NAMESPACE_IB" get pods -o wide
@@ -226,7 +228,6 @@ start_spark_sim() {
   echo "[spark] Driver logs:"
   kubectl -n "${NAMESPACE_SPARK}" logs -f "$(kubectl -n "${NAMESPACE_SPARK}" get pods -l spark-role=driver -o name | tail -n1 | cut -d/ -f2)" || true
 }
-
 
 # ========= Spark submit (MINIMAL) =========
 start_spark_sim2() {

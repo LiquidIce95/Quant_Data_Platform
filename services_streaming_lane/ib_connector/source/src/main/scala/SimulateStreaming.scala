@@ -13,10 +13,23 @@ object SimulateStreaming {
 	def scenarioTickByTickLast(timeIntervalMs: Long = 300L, maxTicks: Double = math.pow(10, 6)): Unit = {
 		val reqId = 5001
 		val reqIdToCode = mutable.Map[Int, String](reqId -> "CL_SIM_FUT")
+		val code = "CL_SIM_FUT"
 
 		val producer = KafkaProducerApi()
 		val dummyStateMap = mutable.Map.empty[String,(ConnState,ConnState)]
 		val ew = new EwrapperImplementation(producer,"ticklast", "l2-data")
+
+		// --- minimal init so wrapper emits ---
+		Connections.reset()
+		val mgr = new ConnManager(null, null, "realtime", null) // authorize as manager
+		Connections.setActors(ew, mgr)
+		Connections.putLookup(reqId, code)
+		Connections.ensureEntry(code)
+		Connections.setStatus(mgr, code, isL2 = false, Connections.ON)
+		Connections.setStatus(mgr, code, isL2 = true,  Connections.ON)
+		Connections.setState(mgr,  code, isL2 = false, ConnState.VALID)
+		Connections.setState(mgr,  code, isL2 = true,  ConnState.VALID)
+		// -------------------------------------
 
 		val exec = Executors.newSingleThreadScheduledExecutor()
 		val rand = new Random()
@@ -60,6 +73,18 @@ object SimulateStreaming {
 		val producer = KafkaProducerApi()
 		val dummyStateMap = mutable.Map.empty[String,(ConnState,ConnState)]
 		val ew = new EwrapperImplementation(producer,"ticklast", "l2-data")
+
+		// --- minimal init so wrapper emits ---
+		Connections.reset()
+		val mgr = new ConnManager(null, null, "realtime", null) // authorize as manager
+		Connections.setActors(ew, mgr)
+		Connections.putLookup(reqId, code)
+		Connections.ensureEntry(code)
+		Connections.setStatus(mgr, code, isL2 = false, Connections.ON)
+		Connections.setStatus(mgr, code, isL2 = true,  Connections.ON)
+		Connections.setState(mgr,  code, isL2 = false, ConnState.VALID)
+		Connections.setState(mgr,  code, isL2 = true,  ConnState.VALID)
+		// -------------------------------------
 
 		// Pre-create BookState for CL_SIM_FUT by poking the private HashMap via reflection.
 		val bsField = classOf[EwrapperImplementation].getDeclaredField("BookStatesMap")
