@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: ib-connector
-  namespace: ${NAMESPACE_KAFKA}
+  namespace: ${NAMESPACE_IB}
 spec:
   containers:
     - name: ib-connector
@@ -10,6 +10,14 @@ spec:
       env:
         - name: KAFKA_BOOTSTRAP_SERVERS
           value: "${KAFKA_NAME}-kafka-bootstrap.${NAMESPACE_KAFKA}:9092"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
   nodeSelector:
     ${LBL_KEY}: ${LBL_VAL_KAFKA}
   restartPolicy: Always

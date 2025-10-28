@@ -4,6 +4,9 @@ set -euo pipefail
 # ========= Settings (override via env if needed) =========
 CLUSTER_NAME="${CLUSTER_NAME:-kind}"
 
+# ib connector and tws gateway
+NAMESPACE_IB="${NAMESPACE_IB:-ib-connector}"
+
 # Kafka / Strimzi
 NAMESPACE_KAFKA="${NAMESPACE_KAFKA:-kafka}"
 KAFKA_NAME="${KAFKA_NAME:-dev-kafka}"
@@ -20,7 +23,7 @@ APP_IMAGE_TAG="${APP_IMAGE_TAG:-${SPARK_IMAGE_TAG}-app}"              # overlay 
 SPARK_APP_CLASS="${SPARK_APP_CLASS:-com.yourorg.spark.ReadTickLastPrint}"
 
 # ClickHouse (runs in Spark ns by default)
-NAMESPACE_CLICKHOUSE="${NAMESPACE_CLICKHOUSE:-${NAMESPACE_SPARK}}"
+NAMESPACE_CLICKHOUSE="${NAMESPACE_CLICKHOUSE:-clickhouse}"
 CLICKHOUSE_IMAGE_TAG="${CLICKHOUSE_IMAGE_TAG:-clickhouse:dev}"
 
 # Node labels
@@ -53,9 +56,11 @@ SPARK_EXEC_POD_TMPL="$SPARK_DIR/infra/21-executor-pod-template.yml"
 SPARK_DEFAULTS_FILE="$SPARK_DIR/infra/30-spark-defaults.conf"
 
 # IB infra
+IB_NS_FILE="$ROOT/services_streaming_lane/ib_connector/infra/00-namespace.yml"
 IB_POD_FILE="$ROOT/services_streaming_lane/ib_connector/infra/10-ib-connector-pod.yml"
 
 # ClickHouse infra
+CLICKHOUSE_NS_FILE="$CLICKHOUSE_INFRA_DIR/00-namespace.yml"
 CLICKHOUSE_POD_FILE="$CLICKHOUSE_INFRA_DIR/10-clickhouse-pod.yml"
 CLICKHOUSE_SVC_FILE="$CLICKHOUSE_INFRA_DIR/20-clickhouse-svc.yml"
 
@@ -129,8 +134,8 @@ deploy_ib_connector() {
   kind load docker-image ib-connector:dev --name "$CLUSTER_NAME"
   export NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
   envsubst < "$IB_POD_FILE" | kubectl apply -f -
-  kubectl -n "$NAMESPACE_KAFKA" wait --for=condition=Ready pod/ib-connector --timeout=120s || true
-  kubectl -n "$NAMESPACE_KAFKA" get pods -o wide
+  kubectl -n "$NAMESPACE_IB" wait --for=condition=Ready pod/ib-connector --timeout=120s || true
+  kubectl -n "$NAMESPACE_IB" get pods -o wide
 }
 
 simulate_stream() {
@@ -138,7 +143,7 @@ simulate_stream() {
   local sim_id="${1:-1}"
   local interval_ms="${2:-250}"
   local max_ticks="${3:-1000}"
-  kubectl -n "${NAMESPACE_KAFKA}" exec -it ib-connector -- \
+  kubectl -n "${NAMESPACE_IB}" exec -it ib-connector -- \
     bash -lc "cd /work && sbt -batch 'runMain src.main.scala.SimulateStreaming ${sim_id} ${interval_ms} ${max_ticks}'"
 }
 

@@ -3,6 +3,9 @@ package src.main.scala
 
 import com.ib.client._
 import java.util.concurrent.LinkedBlockingQueue
+import scala.jdk.CollectionConverters._
+import io.fabric8.kubernetes.client.{KubernetesClient, KubernetesClientBuilder}
+
 
 /**
   * Lifecycle manager (runs on its own thread).
@@ -22,7 +25,7 @@ final class ConnManager(
 	c: EClientSocket,
 	io: ClientIo,
 	streamType: String,
-	shardingAlgorithm: (List[String] => Map[String, List[(Int, String)]]) = null,
+	shardingAlgorithm: ((List[String],Map[String, List[(Int, String)]]) => Map[String, List[(Int, String)]]) = null,
 ) extends Runnable {
 
 	private val EXCHANGE = "NYMEX"
@@ -32,6 +35,8 @@ final class ConnManager(
 	private val work = new LinkedBlockingQueue[Runnable]()
 	@volatile private var running = false
 	private var thread: Thread = null
+	private var currentSharding : Map[String,List[(Int,String)]] = null
+	private val kubernetesClient = new KubernetesClientBuilder().build()
 
 	def start(): Unit = {
 		if (running) return
@@ -95,14 +100,54 @@ final class ConnManager(
 		cc.cancelMktDepth(reqId, false)
 	}
 
-	/** If distributed=false, return whole symbol universe; else (later) compute shard. */
+	/**
+	  * Compute this pod's shard.
+	  *
+	  * - If shardingAlgorithm == null: return full symbol universe.
+	  * - Else:
+	  *     * Discover peer pod names from K8s namespace (default "ib-connector").
+	  *     * Determine this pod's name via system property "pod.name", then env "POD_NAME", else "this".
+	  *     * Call shardingAlgorithm(peers, currentSharding) -> next sharding map.
+	  *     * Update currentSharding and return this pod's slice (or Nil if absent).
+	  *
+	  * Any failure to discover peers is considered a hard problem and will throw.
+	  */
 	private def computeSymbolsShardThisPod(): List[(Int, String)] = {
-		if (shardingAlgorithm==null) Connections.entriesSortedByReqId.toList
-		else {
-			// TODO: use K8s API to compute shard for this pod
-			Connections.entriesSortedByReqId.toList
+		// No sharding algo => whole universe
+		if (shardingAlgorithm == null) {
+			return Connections.entriesSortedByReqId.toList
 		}
+
+		// Resolve self pod name (tests can set -Dpod.name=this)
+		val selfName =
+			Option(System.getProperty("pod.name"))
+				.orElse(sys.env.get("POD_NAME"))
+				.getOrElse("this")
+
+		// Namespace to query
+		val ns = sys.props.getOrElse("kubernetes.namespace", "ib-connector")
+
+		// Peer discovery via the class-level Fabric8 client (no swallowing)
+		val lst = kubernetesClient.pods().inNamespace(ns).list()
+		require(lst != null && lst.getItems != null, s"k8s pods list failed for namespace=$ns")
+		val peers = lst.getItems.asScala.flatMap { p =>
+			val m = p.getMetadata
+			if (m != null && m.getName != null) Some(m.getName) else None
+		}.toList
+
+		// Compute next sharding and pick our bucket
+		val prev = if (currentSharding == null) Map.empty[String, List[(Int, String)]] else currentSharding
+		val next = shardingAlgorithm(peers, prev)
+
+		currentSharding = next
+		val thisPodShard = next.getOrElse(selfName, Nil)
+
+		if (thisPodShard==Nil) {
+			throw new IllegalStateException()
+		}
+		thisPodShard
 	}
+
 
 	// --------------------------------------------------------------------------
 	// API
