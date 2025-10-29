@@ -6,6 +6,7 @@ CLUSTER_NAME="${CLUSTER_NAME:-kind}"
 
 # IB namespace (renamed to legacy)
 NAMESPACE_IB_LEGACY="${NAMESPACE_IB_LEGACY:-ib-connector-legacy}"
+NAMESPACE_IB="${NAMESPACE_IB:-ib-connector}"
 
 # Kafka / Strimzi
 NAMESPACE_KAFKA="${NAMESPACE_KAFKA:-kafka}"
@@ -17,9 +18,8 @@ BOOTSTRAP_LOCAL_PORT="${BOOTSTRAP_LOCAL_PORT:-9092}"
 NAMESPACE_SPARK="${NAMESPACE_SPARK:-spark}"
 SPARK_SA="${SPARK_SA:-spark-sa}"
 SPARK_VERSION="${SPARK_VERSION:-3.5.7}"
-SPARK_IMAGE_TAG="${SPARK_IMAGE_TAG:-our-own-apache-spark-kb8}"        # built by docker-image-tool.sh
-APP_IMAGE_TAG="${APP_IMAGE_TAG:-${SPARK_IMAGE_TAG}-app}"              # overlay image w/ app.jar
-# Use the class you provided (case-sensitive)
+SPARK_IMAGE_TAG="${SPARK_IMAGE_TAG:-our-own-apache-spark-kb8}"
+APP_IMAGE_TAG="${APP_IMAGE_TAG:-${SPARK_IMAGE_TAG}-app}"
 SPARK_APP_CLASS="${SPARK_APP_CLASS:-com.yourorg.spark.ReadTickLastPrint}"
 
 # ClickHouse (runs in Spark ns by default)
@@ -63,16 +63,24 @@ IB_POD_FILE_LEGACY="$ROOT/services_streaming_lane/ib_connector_legacy/infra/10-i
 CLICKHOUSE_POD_FILE="$CLICKHOUSE_INFRA_DIR/10-clickhouse-pod.yml"
 CLICKHOUSE_SVC_FILE="$CLICKHOUSE_INFRA_DIR/20-clickhouse-svc.yml"
 
+# ========= Client Portal =========
+CLIENT_PORTAL_NS="${CLIENT_PORTAL_NS:-client-portal-api}"
+CLIENT_PORTAL_DIR="$ROOT/services_streaming_lane/ib_client_portal_api"
+CLIENT_PORTAL_SRC_DIR="$CLIENT_PORTAL_DIR/source"
+CLIENT_PORTAL_IMG="client-portal:1.0.0"
+
+CLIENT_PORTAL_NS_FILE="$CLIENT_PORTAL_DIR/infra/00-namespace.yml"
+CLIENT_PORTAL_DEPLOY_FILE="$CLIENT_PORTAL_DIR/infra/30-client-portal-deployment.yml"
+CLIENT_PORTAL_SVC_FILE="$CLIENT_PORTAL_DIR/infra/40-client-portal-service.yml"
+
 # ========= JAR paths (ABSOLUTE, NO find/symlink) =========
 JAR_DEST="$ROOT/services_streaming_lane/app.jar"
-# You are on Spark 3.5.x -> Scala 2.12 line, keep 2.12 output path:
 SBT_ASSEMBLY_ABS="${SPARK_DIR}/source/target/scala-2.12/spark-processor-assembly-0.1.0-SNAPSHOT.jar"
 APP_JAR_PATH_IN_IMAGE="/opt/spark/app/app.jar"
 
 # ========= Helpers =========
 need() { command -v "$1" >/dev/null 2>&1 || { echo "Missing dependency: $1"; exit 1; }; }
 have() { [[ -f "$1" ]] || { echo "Required file not found: $1"; exit 1; }; }
-
 ns_exists() { kubectl get ns "$1" >/dev/null 2>&1; }
 
 # ========= Cluster creation (kind) =========
@@ -84,6 +92,22 @@ create_cluster_dev() {
   kubectl label nodes kind-worker2 "${LBL_KEY}=${LBL_VAL_SPARK}" --overwrite
   kubectl get nodes --show-labels
 }
+
+# ========= Misc =========
+status() {
+  echo "== Nodes =="; kubectl get nodes -o wide --show-labels || true
+  echo "== Kafka Pods =="; kubectl -n "$NAMESPACE_KAFKA" get pods -o wide || true
+  echo "== Services (kafka) =="; kubectl -n "$NAMESPACE_KAFKA" get svc || true
+  echo "== Topics =="; kubectl -n "$NAMESPACE_KAFKA" get kafkatopic || true
+  echo "== Spark Pods =="; kubectl -n "$NAMESPACE_SPARK" get pods -o wide || true
+  echo "== ClickHouse Pods =="; kubectl -n "$NAMESPACE_CLICKHOUSE" get pods -o wide || true
+  echo "== ClickHouse Svc =="; kubectl -n "$NAMESPACE_CLICKHOUSE" get svc clickhouse -o wide || true
+  echo "== ClientPortalAPI =="; kubectl -n "$CLIENT_PORTAL_NS" get pods -o wide || true
+  echo "== IbConnector =="; kubectl -n "$NAMESPACE_IB" get pods -o wide || true
+  echo "== IbConnectorLegacy =="; kubectl -n "$NAMESPACE_IB_LEGACY" get pods -o wide || true
+}
+
+down() { kind delete cluster --name "${CLUSTER_NAME}" || true; }
 
 # ========= Kafka / Strimzi =========
 install_strimzi() {
@@ -129,11 +153,9 @@ port_forward() {
 deploy_ib_connector_legacy() {
   need docker; need kind; need kubectl; need envsubst
   have "$IB_DIR_LEGACY/Dockerfile"; have "$IB_POD_FILE_LEGACY"; have "$IB_NS_FILE_LEGACY"
-  # ensure namespace exists (apply manifest)
   kubectl apply -f "$IB_NS_FILE_LEGACY"
   docker build -t ib-connector-legacy:dev "$IB_DIR_LEGACY"
   kind load docker-image ib-connector-legacy:dev --name "$CLUSTER_NAME"
-  # export both ns vars for envsubst (pod yaml may need both)
   export NAMESPACE_IB_LEGACY NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
   envsubst < "$IB_POD_FILE_LEGACY" | kubectl apply -f -
   kubectl -n "$NAMESPACE_IB_LEGACY" wait --for=condition=Ready pod/ib-connector-legacy --timeout=120s || true
@@ -157,7 +179,6 @@ build_base_spark_image() {
   kind load docker-image "spark:${SPARK_IMAGE_TAG}" --name "$CLUSTER_NAME"
 }
 
-# ========= Spark: build fat jar (copy to ABSOLUTE fixed path) =========
 build_fat_jar() {
   need docker
   local SRC_DIR="${SPARK_DIR%/}/source"
@@ -179,7 +200,6 @@ build_fat_jar() {
   echo "[spark] JAR -> ${JAR_DEST}"
 }
 
-# ========= Spark: overlay image that bakes app.jar under /opt/spark/app =========
 build_app_image() {
   need docker; need kind
   have "${JAR_DEST}"
@@ -191,7 +211,6 @@ DOCKERFILE
   kind load docker-image "spark:${APP_IMAGE_TAG}" --name "${CLUSTER_NAME}"
 }
 
-# ========= Spark: apply infra + build images + jar =========
 deploy_spark() {
   need kubectl
   have "$SPARK_NS_FILE"; have "$SPARK_RBAC_FILE"; have "$SPARK_DEFAULTS_FILE"
@@ -252,6 +271,51 @@ start_spark_sim2() {
   kubectl -n "${NAMESPACE_SPARK}" logs -f "$(kubectl -n "${NAMESPACE_SPARK}" get pods -l spark-role=driver -o name | tail -n1 | cut -d/ -f2)" || true
 }
 
+peek_spark() {
+  need kubectl
+  echo "== Spark driver pod =="
+  kubectl -n "${NAMESPACE_SPARK}" get pods -l spark-role=driver -o name | tail -n1 || true
+  DRIVER_POD="$(kubectl -n "${NAMESPACE_SPARK}" get pods -l spark-role=driver -o name | tail -n1 | cut -d/ -f2 || true)"
+  if [[ -n "${DRIVER_POD:-}" ]]; then
+    echo "---- Driver logs (following) ----"
+    kubectl -n "${NAMESPACE_SPARK}" logs -f "${DRIVER_POD}" || true
+  else
+    echo "[spark] No driver pod found."
+  fi
+}
+
+forward_client_portal_port() {
+  kubectl -n "${CLIENT_PORTAL_NS}" port-forward svc/client-portal 5000:5000
+}
+
+
+# ========= CLIENT PORTAL API (SUPER SIMPLE) =========
+deploy_client_portal() {
+  need docker; need kind; need kubectl
+
+  have "$CLIENT_PORTAL_SRC_DIR/Dockerfile"
+  have "$CLIENT_PORTAL_NS_FILE"
+  have "$CLIENT_PORTAL_DEPLOY_FILE"
+  have "$CLIENT_PORTAL_SVC_FILE"
+
+  echo "[client-portal] Building image ${CLIENT_PORTAL_IMG} ..."
+  docker build -t "${CLIENT_PORTAL_IMG}" "${CLIENT_PORTAL_SRC_DIR}"
+
+  echo "[client-portal] Loading image into kind cluster '${CLUSTER_NAME}' ..."
+  kind load docker-image "${CLIENT_PORTAL_IMG}" --name "${CLUSTER_NAME}"
+
+  echo "[client-portal] Applying namespace / manifests ..."
+  kubectl apply -f "${CLIENT_PORTAL_NS_FILE}"
+  kubectl -n "${CLIENT_PORTAL_NS}" apply -f "${CLIENT_PORTAL_DEPLOY_FILE}"
+  kubectl -n "${CLIENT_PORTAL_NS}" apply -f "${CLIENT_PORTAL_SVC_FILE}"
+
+  echo "[client-portal] Pods:"
+  kubectl -n "${CLIENT_PORTAL_NS}" get pods -o wide || true
+
+  echo "[client-portal] Logs (Ctrl-C to stop):"
+  kubectl -n "${CLIENT_PORTAL_NS}" logs -f deploy/client-portal || true
+}
+
 # ========= ClickHouse =========
 build_clickhouse_image() {
   need docker
@@ -273,7 +337,6 @@ deploy_clickhouse() {
   envsubst < "${CLICKHOUSE_POD_FILE}" | kubectl apply -f -
   envsubst < "${CLICKHOUSE_SVC_FILE}" | kubectl apply -f -
 
-  # Wait for readiness
   kubectl -n "${NAMESPACE_CLICKHOUSE}" wait --for=condition=Ready pod/clickhouse --timeout=240s || true
   kubectl -n "${NAMESPACE_CLICKHOUSE}" get pods -o wide
   kubectl -n "${NAMESPACE_CLICKHOUSE}" get svc clickhouse -o wide || true
@@ -296,32 +359,6 @@ peek_clickhouse_market_trades() {
   kubectl -n "${NAMESPACE_CLICKHOUSE}" exec -it clickhouse -- \
     clickhouse-client --user spark --password sparkpass --multiquery --query "$Q"
 }
-
-peek_spark() {
-  need kubectl
-  echo "== Spark driver pod =="
-  kubectl -n "${NAMESPACE_SPARK}" get pods -l spark-role=driver -o name | tail -n1 || true
-  DRIVER_POD="$(kubectl -n "${NAMESPACE_SPARK}" get pods -l spark-role=driver -o name | tail -n1 | cut -d/ -f2 || true)"
-  if [[ -n "${DRIVER_POD:-}" ]]; then
-    echo "---- Driver logs (following) ----"
-    kubectl -n "${NAMESPACE_SPARK}" logs -f "${DRIVER_POD}" || true
-  else
-    echo "[spark] No driver pod found."
-  fi
-}
-
-# ========= Misc =========
-status() {
-  echo "== Nodes =="; kubectl get nodes -o wide --show-labels || true
-  echo "== Kafka Pods =="; kubectl -n "$NAMESPACE_KAFKA" get pods -o wide || true
-  echo "== Services (kafka) =="; kubectl -n "$NAMESPACE_KAFKA" get svc || true
-  echo "== Topics =="; kubectl -n "$NAMESPACE_KAFKA" get kafkatopic || true
-  echo "== Spark Pods =="; kubectl -n "$NAMESPACE_SPARK" get pods -o wide || true
-  echo "== ClickHouse Pods =="; kubectl -n "$NAMESPACE_CLICKHOUSE" get pods -o wide || true
-  echo "== ClickHouse Svc =="; kubectl -n "$NAMESPACE_CLICKHOUSE" get svc clickhouse -o wide || true
-}
-
-down() { kind delete cluster --name "${CLUSTER_NAME}" || true; }
 
 usage() {
   cat <<EOF
@@ -351,6 +388,11 @@ Spark:
 ClickHouse:
   deploy_clickhouse     Build clickhouse:dev image, load to kind, deploy pod + service on spark node
   peek_clickhouse_market_trades  Show 10 latest rows from quant.market_trades
+
+Client Portal API:
+  deploy_client_portal  Build image, load to kind, apply manifests, and stream logs
+  forward_client_portal_port  Port-forward svc/client-portal :5000 -> localhost:5000
+
 EOF
 }
 
@@ -375,5 +417,7 @@ case "$cmd" in
   pf) port_forward ;;
   status) status ;;
   down) down ;;
+  deploy_client_portal) deploy_client_portal ;;
+  forward_client_portal_port) forward_client_portal_port ;;
   help|*) usage ;;
 esac
