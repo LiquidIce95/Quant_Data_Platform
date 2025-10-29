@@ -4,8 +4,8 @@ set -euo pipefail
 # ========= Settings (override via env if needed) =========
 CLUSTER_NAME="${CLUSTER_NAME:-kind}"
 
-# IB namespace (new)
-NAMESPACE_IB="${NAMESPACE_IB:-ib-connector}"
+# IB namespace (renamed to legacy)
+NAMESPACE_IB_LEGACY="${NAMESPACE_IB_LEGACY:-ib-connector-legacy}"
 
 # Kafka / Strimzi
 NAMESPACE_KAFKA="${NAMESPACE_KAFKA:-kafka}"
@@ -36,7 +36,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 KAFKA_DIR="$ROOT/services_streaming_lane/kafka_message_broker"
-IB_DIR="$ROOT/services_streaming_lane/ib_connector/source"
+IB_DIR_LEGACY="$ROOT/services_streaming_lane/ib_connector_legacy/source"
 SPARK_DIR="$ROOT/services_streaming_lane/spark_processor"
 SPARK_HOME="$ROOT/services_streaming_lane/spark-${SPARK_VERSION}-bin-hadoop3"
 
@@ -55,9 +55,9 @@ SPARK_DRIVER_POD_TMPL="$SPARK_DIR/infra/20-driver-pod-template.yml"
 SPARK_EXEC_POD_TMPL="$SPARK_DIR/infra/21-executor-pod-template.yml"
 SPARK_DEFAULTS_FILE="$SPARK_DIR/infra/30-spark-defaults.conf"
 
-# IB infra (added IB namespace file)
-IB_NS_FILE="$ROOT/services_streaming_lane/ib_connector/infra/00-namespace.yml"
-IB_POD_FILE="$ROOT/services_streaming_lane/ib_connector/infra/10-ib-connector-pod.yml"
+# IB infra (legacy paths)
+IB_NS_FILE_LEGACY="$ROOT/services_streaming_lane/ib_connector_legacy/infra/00-namespace.yml"
+IB_POD_FILE_LEGACY="$ROOT/services_streaming_lane/ib_connector_legacy/infra/10-ib-connector-pod.yml"
 
 # ClickHouse infra
 CLICKHOUSE_POD_FILE="$CLICKHOUSE_INFRA_DIR/10-clickhouse-pod.yml"
@@ -125,27 +125,27 @@ port_forward() {
   kubectl -n "$NAMESPACE_KAFKA" port-forward "svc/${KAFKA_NAME}-kafka-bootstrap" "${BOOTSTRAP_LOCAL_PORT}:9092"
 }
 
-# ========= IB Connector =========
-deploy_ib_connector() {
+# ========= IB Connector (LEGACY) =========
+deploy_ib_connector_legacy() {
   need docker; need kind; need kubectl; need envsubst
-  have "$IB_DIR/Dockerfile"; have "$IB_POD_FILE"; have "$IB_NS_FILE"
+  have "$IB_DIR_LEGACY/Dockerfile"; have "$IB_POD_FILE_LEGACY"; have "$IB_NS_FILE_LEGACY"
   # ensure namespace exists (apply manifest)
-  kubectl apply -f "$IB_NS_FILE"
-  docker build -t ib-connector:dev "$IB_DIR"
-  kind load docker-image ib-connector:dev --name "$CLUSTER_NAME"
+  kubectl apply -f "$IB_NS_FILE_LEGACY"
+  docker build -t ib-connector-legacy:dev "$IB_DIR_LEGACY"
+  kind load docker-image ib-connector-legacy:dev --name "$CLUSTER_NAME"
   # export both ns vars for envsubst (pod yaml may need both)
-  export NAMESPACE_IB NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
-  envsubst < "$IB_POD_FILE" | kubectl apply -f -
-  kubectl -n "$NAMESPACE_IB" wait --for=condition=Ready pod/ib-connector --timeout=120s || true
-  kubectl -n "$NAMESPACE_IB" get pods -o wide
+  export NAMESPACE_IB_LEGACY NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
+  envsubst < "$IB_POD_FILE_LEGACY" | kubectl apply -f -
+  kubectl -n "$NAMESPACE_IB_LEGACY" wait --for=condition=Ready pod/ib-connector-legacy --timeout=120s || true
+  kubectl -n "$NAMESPACE_IB_LEGACY" get pods -o wide
 }
 
-simulate_stream() {
+simulate_stream_legacy() {
   need kubectl
   local sim_id="${1:-1}"
   local interval_ms="${2:-250}"
   local max_ticks="${3:-1000}"
-  kubectl -n "${NAMESPACE_IB}" exec -it ib-connector -- \
+  kubectl -n "${NAMESPACE_IB_LEGACY}" exec -it ib-connector-legacy -- \
     bash -lc "cd /work && sbt -batch 'runMain src.main.scala.SimulateStreaming ${sim_id} ${interval_ms} ${max_ticks}'"
 }
 
@@ -338,9 +338,9 @@ Kafka:
   peek_topic_ticklast   Tail last 10 messages from 'ticklast'
   peek_topic_l2_data    Tail last 10 messages from 'l2-data'
 
-IB Connector:
-  deploy_ib_connector   Build image and deploy IB connector pod
-  simulate_stream [id] [intervalMs] [maxTicks]
+IB Connector (legacy):
+  deploy_ib_connector_legacy   Build image and deploy ib-connector-legacy pod
+  simulate_stream_legacy [id] [intervalMs] [maxTicks]
 
 Spark:
   deploy_spark          Apply spark infra, build base image, build app.jar, bake overlay image
@@ -362,8 +362,8 @@ cmd="${1:-help}"
 case "$cmd" in
   create_cluster_dev) create_cluster_dev ;;
   deploy_kafka) deploy_kafka ;;
-  deploy_ib_connector) deploy_ib_connector ;;
-  simulate_stream) shift; simulate_stream "$@";;
+  deploy_ib_connector_legacy) deploy_ib_connector_legacy ;;
+  simulate_stream_legacy) shift; simulate_stream_legacy "$@";;
   deploy_spark) deploy_spark ;;
   start_spark_sim) start_spark_sim ;;
   start_spark_sim2) start_spark_sim2 ;;
