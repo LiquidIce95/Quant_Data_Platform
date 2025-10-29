@@ -1,9 +1,9 @@
 {
-  "name": "scala-ib-connector-dev",
+  "name": "scala-ib-connector-legacy-dev",
   "build": { "dockerfile": "../Dockerfile", "context": "." },
 
   "workspaceMount": "source=${localWorkspaceFolder}/../../..,target=/work,type=bind,consistency=cached",
-  "workspaceFolder": "/work/services_streaming_lane/ib_connector/source",
+  "workspaceFolder": "/work/services_streaming_lane/ib_connector_legacy/source",
 
   "mounts": [
     "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached"
