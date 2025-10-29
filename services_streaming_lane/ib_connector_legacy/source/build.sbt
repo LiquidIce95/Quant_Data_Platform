@@ -10,7 +10,7 @@ Test / fork := true
 
 lazy val root = (project in file("."))
   .settings(
-    name := "ib-connector",
+    name := "ib-connector-legacy",
     unmanagedBase := baseDirectory.value / "lib",
     libraryDependencies ++= Seq(
       // --- Core runtime deps ---
