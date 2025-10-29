@@ -1,0 +1,36 @@
+{
+  "name": "scala-ib-connector-dev",
+  "build": { "dockerfile": "../Dockerfile", "context": "." },
+
+  "workspaceMount": "source=${localWorkspaceFolder}/../../..,target=/work,type=bind,consistency=cached",
+  "workspaceFolder": "/work/services_streaming_lane/ib_connector/source",
+
+  "mounts": [
+    "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached"
+  ],
+
+  "remoteUser": "root",
+  "updateRemoteUserUID": false,
+  "postCreateCommand": "sh -lc 'git config --global --add safe.directory /work'",
+
+  "runArgs": ["--network=host"],
+
+  "containerEnv": {
+    "IB_HOST": "127.0.0.1",
+    "IB_PORT": "4002",
+    "IB_CLIENT_ID": "1"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "scalameta.metals",
+        "scala-lang.scala"
+      ],
+      "settings": {
+        // Optionally pin the Metals *server* version used inside the container:
+        "metals.serverVersion": "1.6.2"
+      }
+    }
+  }
+}
