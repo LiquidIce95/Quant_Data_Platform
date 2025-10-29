@@ -1,0 +1,145 @@
+classDiagram
+direction LR
+
+class EClientSocket {
+  <<IB API>>
+  %% external class (attributes not exposed here)
+}
+
+class EReader {
+  <<IB API>>
+  %% external class (attributes not exposed here)
+}
+
+class EJavaSignal {
+  <<IB API>>
+  %% external class (attributes not exposed here)
+}
+
+class EwrapperImplementation {
+  -started: Boolean
+  -EXCHANGE: String = "NYMEX"
+  -CURRENCY: String = "USD"
+  -SYMBOL_CL: String = "CL"
+  -SYMBOL_NG: String = "NG"
+  -REQ_CD: Int = 1001
+  -REQ_BASE: Int = 5001
+  -cdsCL: ListBuffer[ContractDetails]
+  -cdsNG: ListBuffer[ContractDetails]
+  -detailsEnds: Int
+  -MAX_BOOK_DEPTH: Int = 12
+  -BookStatesMap: mutable.HashMap[String, BookState]
+  -producer: KafkaProducerApi
+  -topicTickLast: String = "ticklast"
+  -topicL2: String = "l2-data"
+  +tickByTickAllLast(...)
+  +updateMktDepthL2(...)
+  +marketDataType(...)
+  +tickPrice(...)
+  +tickSize(...)
+  +tickString(...)
+  +error(...)
+}
+
+class BookState {
+  -ROW_SIDE: Int = 0
+  -ROW_LEVEL: Int = 1
+  -ROW_PRICE: Int = 2
+  -ROW_SIZE: Int = 3
+  -ROW_UPDATED: Int = 4
+  -table: Array[Array[Double]]  %% 5 x (mxDepth*2)
+  +update(side: Int, position: Int, price: Double, size: Double, tsMillis: Long): List[(Int,Int,Double,Double,Long)]
+  +insert(side: Int, position: Int, price: Double, size: Double, tsMillis: Long): List[(Int,Int,Double,Double,Long)]
+  +delete(side: Int, position: Int, tsMillis: Long): List[(Int,Int,Double,Double,Long)]
+  -colIndex(side: Int, position: Int): Int
+  -copyCol(src: Int, dst: Int, side: Int, level: Int): Unit
+  -clearCol(col: Int, side: Int, level: Int): Unit
+  -setCol(col: Int, side: Int, level: Int, price: Double, size: Double, tsMillis: Long): Unit
+  -collectChangedFrom(side: Int, startLevel: Int): List[(Int,Int,Double,Double,Long)]
+  -requireMonotonic(side: Int): Unit
+  -requireNoHoles(side: Int): Unit
+}
+
+class ConnManager {
+  -c: EClientSocket
+  -io: ClientIo
+  -streamType: String  %% "realtime" | "delayed"
+  -shardingAlgorithm: (List[String], Map[String, List[(Int,String)]]) => Map[String, List[(Int,String)]]
+  -EXCHANGE: String = "NYMEX"
+  -CURRENCY: String = "USD"
+  -MAX_BOOK_DEPTH: Int = 12
+  -work: LinkedBlockingQueue[Runnable]
+  -running: Boolean
+  -thread: Thread
+  -currentSharding: Map[String, List[(Int,String)]]
+  -kubernetesClient: io.fabric8.kubernetes.client.KubernetesClient
+  +start(): Unit
+  +stop(): Unit
+  +startStreams(pollingInterval: Long): Unit
+  +dropAll(): Unit
+  -mkContract(code: String): Contract
+  -startFeedTbt(cc: EClientSocket, reqId: Int, code: String): Unit
+  -startFeedL2(cc: EClientSocket, reqId: Int, code: String): Unit
+  -cancelFeedTbt(cc: EClientSocket, reqId: Int): Unit
+  -cancelFeedL2(cc: EClientSocket, reqId: Int): Unit
+  -computeSymbolsShardThisPod(): List[(Int,String)]
+  +run(): Unit
+}
+
+class ClientIo {
+  -q: LinkedBlockingQueue[Runnable]
+  -io: java.util.concurrent.ExecutorService  %% single-thread
+  -sch: java.util.concurrent.ScheduledExecutorService
+  +submit(f: EClientSocket => Unit): Unit
+  +submitDelayed(ms: Long)(f: EClientSocket => Unit): Unit
+}
+
+class Connections {
+  <<singleton>>
+  -lookupMap: mutable.Map[Int,String]
+  -stateMap: mutable.Map[String,(ConnState,ConnState)]   %% (TBT,L2)
+  -statusMap: mutable.Map[String,(ConnStatus,ConnStatus)]%% (TBT,L2)
+  -ewRef: EwrapperImplementation
+  -cmRef: ConnManager
+  +reset(): Unit
+  +setActors(ew: EwrapperImplementation, cm: ConnManager): Unit
+  +putLookup(reqId: Int, code: String): Unit
+  +ensureEntry(code: String): Unit
+  +codes: Iterable[String]
+  +entriesSortedByReqId: Seq[(Int,String)]
+  +stateOf(code: String, isL2: Boolean): ConnState.State
+  +statusOf(code: String, isL2: Boolean): ConnStatus
+  +lookupFor(reqId: Int): String
+  +discoveryEmpty: Boolean
+  +setState(caller: AnyRef, code: String, isL2: Boolean, target: ConnState.State): Unit
+  +setStatus(caller: AnyRef, code: String, isL2: Boolean, target: ConnStatus): Unit
+  -requireKnown(code: String): Unit
+}
+
+class KafkaProducerApi {
+  -props: java.util.Properties
+  -producer: org.apache.kafka.clients.producer.KafkaProducer[String,String]
+  -bootstrapServers: String
+  -clientId: String
+  +send(topic: String, key: String, value: String): java.util.concurrent.Future[RecordMetadata]
+  +flush(): Unit
+  +close(): Unit
+}
+
+class Transforms {
+  -SourceSystem: String = "interactive_brokers_tws_api"
+  +tickLastJson(...): String
+  +l2Json(...): String
+}
+
+EClientSocket --> EwrapperImplementation : calls callbacks on
+EReader --> EwrapperImplementation : delivers socket events
+EReader --> EClientSocket : reads from
+EJavaSignal --> EReader : wakeups
+ConnManager --> EClientSocket : controls via ClientIo
+ConnManager --> ClientIo : serializes EClientSocket calls
+ConnManager --> Connections : reads/writes status+state
+EwrapperImplementation --> Connections : reads/writes state
+EwrapperImplementation --> BookState : maintains L2
+EwrapperImplementation --> KafkaProducerApi : publishes
+Transforms <-- EwrapperImplementation : JSON helpers

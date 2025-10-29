@@ -7,9 +7,33 @@ import scala.util.Random
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.math
 
+/**
+  * Synthetic data generator for local testing without a live IB connection.
+  *
+  * Provides two scenarios:
+  *   1) Tick-only simulation producing Tick-by-Tick "Last" events.
+  *   2) Tick + L2 simulation that emits a legal, repeating sequence of L2 ops.
+  *
+  * Both scenarios:
+  *   - Initialize the minimal [[Connections]] state and authorize a dummy [[ConnManager]]
+  *     so that [[EwrapperImplementation]] will emit.
+  *   - Publish JSON events via [[KafkaProducerApi]] to the configured topics.
+  *
+  * Assumptions:
+  *   - Kafka is reachable at the configured bootstrap servers.
+  *   - Only one synthetic symbol ("CL_SIM_FUT") is produced per scenario.
+  */
 object SimulateStreaming {
 
-	/** Tick-only simulation (unchanged logic; pass dummy ConnManager) */
+	/** 
+	  * Tick-only simulation (unchanged logic; pass dummy ConnManager).
+	  *
+	  * Emits Tick-by-Tick "Last" events at a fixed interval with Gaussian price noise.
+	  * Sets up a minimal environment so the wrapper processes and publishes the events.
+	  *
+	  * @param timeIntervalMs interval in milliseconds between synthetic ticks
+	  * @param maxTicks       maximum number of ticks to emit before shutting down
+	  */
 	def scenarioTickByTickLast(timeIntervalMs: Long = 300L, maxTicks: Double = math.pow(10, 6)): Unit = {
 		val reqId = 5001
 		val reqIdToCode = mutable.Map[Int, String](reqId -> "CL_SIM_FUT")
@@ -63,7 +87,21 @@ object SimulateStreaming {
 		exec.awaitTermination(Long.MaxValue, TimeUnit.DAYS)
 	}
 
-	/** Tick + L2 simulation with a fixed, legal, repeating sequence of L2 ops. */
+	/** 
+	  * Tick + L2 simulation with a fixed, legal, repeating sequence of L2 ops.
+	  *
+	  * Sets up a per-symbol [[BookState]] and applies a loop of INSERT/UPDATE/DELETE
+	  * operations that respect monotonicity and no-hole constraints. Also emits
+	  * Tick-by-Tick "Last" events at the same cadence.
+	  *
+	  * Implementation notes:
+	  *   - Pre-creates a BookState for the simulated symbol via reflection to ensure
+	  *     the first L2 op can be applied immediately.
+	  *   - Uses null `Decimal` to represent zero sizes in DELETE-like steps.
+	  *
+	  * @param timeIntervalMs interval in milliseconds between synthetic events
+	  * @param maxTicks       maximum number of event cycles before shutdown
+	  */
 	def scenarioTickByTickLastAndL2AllNoProblems(timeIntervalMs: Long = 300L, maxTicks: Double = math.pow(10, 6)): Unit = {
 		println("starting the tickbyticLast and L2 data no problems simulation")
 		val reqId = 6001
@@ -100,6 +138,14 @@ object SimulateStreaming {
 		val rand = new Random()
 		val basePrice = 80.0
 
+		/** 
+		  * Simple L2 operation descriptor used by the simulation loop.
+		  * @param op      0=INSERT, 1=UPDATE, 2=DELETE
+		  * @param side    0=ask, 1=bid
+		  * @param pos     level index
+		  * @param price   price value (for insert/update)
+		  * @param sizeStr size in string form; "0" is treated as null Decimal
+		  */
 		case class L2Op(op: Int, side: Int, pos: Int, price: Double, sizeStr: String)
 		val seq: Array[L2Op] = Array(
 			L2Op(0, 0, 0, 80.00, "1"),
@@ -123,6 +169,7 @@ object SimulateStreaming {
 			private var count = 0
 			override def run(): Unit = {
 				try {
+					// Emit tick
 					val tickType = if (rand.nextBoolean()) 0 else 1
 					val epochSeconds = System.currentTimeMillis() / 1000
 					val lastPrice = basePrice + rand.nextGaussian() * 0.1
@@ -132,6 +179,7 @@ object SimulateStreaming {
 					val special = ""
 					ew.tickByTickAllLast(reqId, tickType, epochSeconds, lastPrice, lastSize, attr, exchange, special)
 
+					// Apply next L2 op
 					val op = seq(count % seq.length)
 					val decSize: Decimal =
 						if (op.sizeStr == "0") null
@@ -165,6 +213,16 @@ object SimulateStreaming {
 		exec.awaitTermination(Long.MaxValue, TimeUnit.DAYS)
 	}
 
+	/**
+	  * Entrypoint for running a chosen simulation scenario from the command line.
+	  *
+	  * Usage: `SimulateStreaming <simId> <intervalMs> <maxTicks>`
+	  *   - simId: 1 = tick-only; 2 = tick+L2 (default 2)
+	  *   - intervalMs: emission interval in milliseconds (default 300)
+	  *   - maxTicks: maximum number of cycles before shutdown (default 1e6)
+	  *
+	  * @param args command-line arguments
+	  */
 	def main(args: Array[String]): Unit = {
 		require(args.length == 3, "Usage: SimulateStreaming <simId> <intervalMs> <maxTicks>")
 		val simId = scala.util.Try(args(0).toInt).getOrElse(2)

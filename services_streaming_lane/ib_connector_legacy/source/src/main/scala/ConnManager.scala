@@ -20,6 +20,17 @@ import io.fabric8.kubernetes.client.{KubernetesClient, KubernetesClientBuilder}
   *       * ON for in-shard, DROPPED for out-of-shard
   *       * transitions INVALID -> VALID (manager) and (re)starts only that leg
   *   - dropAll(): set status DROPPED (state left as-is)
+  *
+  * Responsibilities and assumptions:
+  *   - All EClientSocket invocations are funneled through the provided ClientIo to guarantee FIFO, single-threaded execution.
+  *   - Sharding is optional; when provided, this manager discovers peer pods and computes per-pod symbol assignments.
+  *   - This class never blocks the EWrapper callback thread; it operates via its own worker thread and queued tasks.
+  *
+  * @param c the IB client socket used for (un)subscribing market data; must be already constructed
+  * @param io single-threaded I/O helper that serializes all socket operations
+  * @param streamType stream mode selector: "realtime" uses tick-by-tick & L2; any other value uses delayed top-of-book only
+  * @param shardingAlgorithm optional function that takes (peerPodNames, previousSharding) and returns the next sharding map;
+  *                          when null, all discovered symbols are assigned to this pod
   */
 final class ConnManager(
 	c: EClientSocket,
@@ -38,6 +49,12 @@ final class ConnManager(
 	private var currentSharding : Map[String,List[(Int,String)]] = null
 	private val kubernetesClient = new KubernetesClientBuilder().build()
 
+	/**
+	  * Starts the manager's worker thread if not already running.
+	  *
+	  * Creates a daemon thread named "conn-manager" which drains the internal queue
+	  * and processes lifecycle tasks. Idempotent if already started.
+	  */
 	def start(): Unit = {
 		if (running) return
 		running = true
@@ -46,11 +63,23 @@ final class ConnManager(
 		thread.start()
 	}
 
+	/**
+	  * Stops the manager and interrupts its worker thread.
+	  *
+	  * Sets the running flag to false and interrupts the thread (if present).
+	  * Pending tasks in the internal queue are not drained after stop.
+	  */
 	def stop(): Unit = {
 		running = false
 		if (thread != null) thread.interrupt()
 	}
 
+	/**
+	  * Worker loop: processes Runnable tasks submitted to the internal queue.
+	  *
+	  * This method should only be executed by the manager's own thread.
+	  * It catches and suppresses any Throwable from task execution to keep the loop alive.
+	  */
 	override def run(): Unit = {
 		while (running) {
 			val r = work.take()
@@ -62,7 +91,12 @@ final class ConnManager(
 	// Helpers
 	// --------------------------------------------------------------------------
 
-	/** Build IB contract for a given local symbol code. */
+	/** 
+	  * Build an IB futures contract for a given local symbol code.
+	  *
+	  * @param code the localSymbol to subscribe for (e.g., "CLZ4")
+	  * @return a configured Contract with FUT secType, NYMEX exchange, USD currency
+	  */
 	private def mkContract(code: String): Contract = {
 		val con = new Contract
 		con.secType("FUT")
@@ -72,7 +106,16 @@ final class ConnManager(
 		con
 	}
 
-	/** Start only the TBT leg for (reqId, code). */
+	/** 
+	  * Start only the Tick-by-Tick (or delayed top-of-book) leg for (reqId, code).
+	  *
+	  * For "realtime" streamType, subscribes tick-by-tick "AllLast".
+	  * Otherwise requests delayed market data (top-of-book).
+	  *
+	  * @param cc active EClientSocket
+	  * @param reqId IB request id
+	  * @param code localSymbol to subscribe
+	  */
 	private def startFeedTbt(cc: EClientSocket, reqId: Int, code: String): Unit = {
 		val con = mkContract(code)
 		if (streamType == "realtime") {
@@ -82,7 +125,13 @@ final class ConnManager(
 		}
 	}
 
-	/** Start only the L2 leg for (reqId, code). No-op for non-realtime. */
+	/** 
+	  * Start only the L2 (market depth) leg for (reqId, code). No-op for non-"realtime".
+	  *
+	  * @param cc active EClientSocket
+	  * @param reqId IB request id
+	  * @param code localSymbol to subscribe
+	  */
 	private def startFeedL2(cc: EClientSocket, reqId: Int, code: String): Unit = {
 		if (streamType == "realtime") {
 			val con = mkContract(code)
@@ -90,27 +139,42 @@ final class ConnManager(
 		}
 	}
 
-	/** Cancel only the TBT leg (safe even if not active). */
+	/** 
+	  * Cancel only the Tick-by-Tick leg (safe even if not active).
+	  *
+	  * @param cc active EClientSocket
+	  * @param reqId IB request id to cancel
+	  */
 	private def cancelFeedTbt(cc: EClientSocket, reqId: Int): Unit = {
 		cc.cancelTickByTickData(reqId)
 	}
 
-	/** Cancel only the L2 leg (safe even if not active). */
+	/** 
+	  * Cancel only the L2 leg (safe even if not active).
+	  *
+	  * @param cc active EClientSocket
+	  * @param reqId IB request id to cancel
+	  */
 	private def cancelFeedL2(cc: EClientSocket, reqId: Int): Unit = {
 		cc.cancelMktDepth(reqId, false)
 	}
 
 	/**
-	  * Compute this pod's shard.
+	  * Compute this pod's shard of the symbol universe.
 	  *
-	  * - If shardingAlgorithm == null: return full symbol universe.
-	  * - Else:
-	  *     * Discover peer pod names from K8s namespace (default "ib-connector").
-	  *     * Determine this pod's name via system property "pod.name", then env "POD_NAME", else "this".
-	  *     * Call shardingAlgorithm(peers, currentSharding) -> next sharding map.
-	  *     * Update currentSharding and return this pod's slice (or Nil if absent).
+	  * Behavior:
+	  *   - If `shardingAlgorithm` is null: return the full symbol universe (no sharding).
+	  *   - Else:
+	  *       1) Discover peer pod names in the target namespace (default "ib-connector").
+	  *       2) Determine this pod's name via `-Dpod.name`, then `POD_NAME`, else "this".
+	  *       3) Call `shardingAlgorithm(peers, currentSharding)` to get the next assignment map.
+	  *       4) Persist `currentSharding` and return this pod's assigned (reqId, code) list.
 	  *
-	  * Any failure to discover peers is considered a hard problem and will throw.
+	  * Failure handling:
+	  *   - Any failure to discover peers or an empty assigned bucket results in an exception.
+	  *
+	  * @return a list of (reqId, code) pairs assigned to this pod
+	  * @throws IllegalStateException if K8s discovery fails or this pod has no assigned shard
 	  */
 	private def computeSymbolsShardThisPod(): List[(Int, String)] = {
 		// No sharding algo => whole universe
@@ -161,6 +225,14 @@ final class ConnManager(
 	  *  2) Recompute podSymbols (shard).
 	  *  3) If in shard: set both legs' status=ON; for each INVALID leg -> set VALID and start only that leg.
 	  *     If out of shard: set both legs' status=DROPPED (do not cancel valid legs now).
+	  *
+	  * Concurrency notes:
+	  *   - This method enqueues a long-running task into the internal queue; it does not block the caller thread.
+	  *   - All socket interactions within the loop are performed via `io.submit` to ensure single-threaded access.
+	  *
+	  * Error handling:
+	  *   - If discovery is not ready after a grace period, an IllegalStateException is thrown and the task exits.
+	  *   - Inner loop catches and suppresses exceptions to keep supervision running.
 	  *
 	  * @param pollingInterval milliseconds between iterations
 	  */
@@ -242,7 +314,13 @@ final class ConnManager(
 		})
 	}
 
-	/** Stop all streams; flip status to DROPPED (state left as-is). */
+	/** 
+	  * Stop all streams and flip Status to DROPPED (State left as-is).
+	  *
+	  * Enqueues cancel operations for both Tick-by-Tick and L2 legs across all known (reqId, code) pairs,
+	  * and sets their Status to DROPPED. This does not transition `VALID` → `INVALID`; the wrapper will
+	  * self-invalidate when appropriate per the state machine.
+	  */
 	def dropAll(): Unit = {
 		work.put(new Runnable {
 			def run(): Unit = {
