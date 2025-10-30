@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: ib-connector
-  namespace: ${NAMESPACE_IB}
+  name: ib-connector-legacy
+  namespace: ${NAMESPACE_IB_LEGACY}
 spec:
   containers:
-    - name: ib-connector
-      image: ib-connector:dev
+    - name: ib-connector-legacy
+      image: ib-connector-legacy:dev
       env:
         - name: KAFKA_BOOTSTRAP_SERVERS
           value: "${KAFKA_NAME}-kafka-bootstrap.${NAMESPACE_KAFKA}:9092"
