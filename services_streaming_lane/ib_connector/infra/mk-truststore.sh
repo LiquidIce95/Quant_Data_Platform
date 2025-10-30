@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Namespaces
+# Namespaces (override if needed)
 NS_CP="${NS_CP:-client-portal-api}"
 NS_IB="${NS_IB:-ib-connector}"
 
-# Working dir (inside repo)
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PEM="${HERE}/ibkr_client_portal.pem"
 JKS="${HERE}/ibkr_truststore.jks"
@@ -16,7 +15,6 @@ echo "[mk-truststore] port-forward svc/client-portal:5000 → 127.0.0.1:5000"
 kubectl -n "${NS_CP}" port-forward svc/client-portal 5000:5000 >/dev/null 2>&1 &
 PF_PID=$!
 trap 'kill ${PF_PID} >/dev/null 2>&1 || true' EXIT
-
 sleep 1
 
 echo "[mk-truststore] exporting server certificate …"
@@ -42,6 +40,7 @@ keytool -list -keystore "${JKS}" -storepass changeit -storetype JKS | sed -n '1,
 echo "[mk-truststore] (re)creating Secret ibkr-truststore in ns ${NS_IB} …"
 kubectl -n "${NS_IB}" delete secret ibkr-truststore >/dev/null 2>&1 || true
 kubectl -n "${NS_IB}" create secret generic ibkr-truststore \
-	--from-file=ibkr_truststore.jks="${JKS}"
+	--from-file=ibkr_truststore.jks="${JKS}" \
+	--from-file=ibkr_client_portal.pem="${PEM}"
 
 echo "[mk-truststore] done."

@@ -180,7 +180,6 @@ deploy_ib_connector_legacy() {
 	kubectl -n "$NAMESPACE_IB_LEGACY" get pods -o wide || true
 }
 
-
 simulate_stream_legacy() {
 	need kubectl
 	local sim_id="${1:-1}"
@@ -193,37 +192,41 @@ simulate_stream_legacy() {
 # ========= IB Connector (CURRENT) — stupid simple deploy =========
 deploy_ib_connector() {
 	need docker; need kind; need kubectl; need envsubst
-	# require files in ib_connector (NOT legacy)
+
 	have "$IB_NS_FILE"
 	have "$IB_POD_FILE"
 	have "$IB_SRC_DIR/Dockerfile"
 
+	# truststore must exist on the repo, used to build the Secret
+	if [[ ! -f "$IB_DIR/infra/ibkr_truststore.jks" ]]; then
+		echo "[ib-connector] Missing truststore: $IB_DIR/infra/ibkr_truststore.jks"
+		echo "[ib-connector] Create it first (ibkr_truststore.jks), then rerun."
+		exit 1
+	fi
+
 	echo "[ib-connector] Applying namespace …"
 	kubectl apply -f "$IB_NS_FILE"
 
-	echo "[ib-connector] Building image ${IB_IMG} from ${IB_SRC_DIR} …"
-	docker build -t "${IB_IMG}" "${IB_SRC_DIR}"
+	echo "[ib-connector] Building image ib-connector:dev from ${IB_SRC_DIR} …"
+	docker build -t ib-connector:dev "$IB_SRC_DIR"
 
 	echo "[ib-connector] Loading image into kind cluster '${CLUSTER_NAME}' …"
-	kind load docker-image "${IB_IMG}" --name "${CLUSTER_NAME}"
+	kind load docker-image ib-connector:dev --name "$CLUSTER_NAME"
 
-	# optional but recommended: create/update truststore Secret (self-signed TLS)
-	if [[ -f "${IB_TRUST_MAKER}" ]]; then
-		echo "[ib-connector] Creating truststore Secret in ns ${NAMESPACE_IB} …"
-		NS_CP="${CLIENT_PORTAL_NS}" NS_IB="${NAMESPACE_IB}" "${IB_TRUST_MAKER}"
-	else
-		echo "[ib-connector] NOTE: ${IB_TRUST_MAKER} not found; skipping truststore creation."
-	fi
+	echo "[ib-connector] Creating/Updating ibkr-truststore Secret …"
+	kubectl -n "$NAMESPACE_IB" create secret generic ibkr-truststore \
+		--from-file=truststore.jks="$IB_DIR/infra/ibkr_truststore.jks" \
+		--dry-run=client -o yaml | kubectl apply -f -
 
-	echo "[ib-connector] Applying Pod manifest (envsubst) …"
+	echo "[ib-connector] Applying pod manifest …"
 	export NAMESPACE_IB NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
-	envsubst < "${IB_POD_FILE}" | kubectl apply -f -
+	envsubst < "$IB_POD_FILE" | kubectl apply -f -
 
 	echo "[ib-connector] Waiting for pod/ib-connector Ready …"
-	kubectl -n "${NAMESPACE_IB}" wait --for=condition=Ready pod/ib-connector --timeout=180s || true
+	kubectl -n "$NAMESPACE_IB" wait --for=condition=Ready pod/ib-connector --timeout=180s || true
 
-	echo "[ib-connector] Pod status:"
-	kubectl -n "${NAMESPACE_IB}" get pod ib-connector -o wide || true
+	echo "[ib-connector] Pods:"
+	kubectl -n "$NAMESPACE_IB" get pods -o wide || true
 }
 
 # ========= Spark: base runtime image =========
@@ -369,12 +372,25 @@ deploy_client_portal() {
 	kubectl -n "${CLIENT_PORTAL_NS}" logs -f deploy/client-portal || true
 }
 
-# ========= IB Connector helpers =========
+# ===== IB Connector helpers =========
 ib_connector_play() {
 	need kubectl
-	echo "[ib-connector] Running 'play' inside the ib-connector pod …"
+	echo "[ib-connector] Running 'runMain src.main.scala.Boilerplate.play' inside the ib-connector pod …"
 	kubectl -n "${NAMESPACE_IB}" exec -it ib-connector -c ib-connector -- \
-		bash -lc "cd /work/services_streaming_lane/ib_connector/source && sbt -batch 'runMain play'"
+		bash -lc '
+			cd /work
+			echo "[prefetch] sbt compile WITHOUT custom truststore (to fetch plugins/deps)…"
+			env -u JAVA_TOOL_OPTIONS sbt -batch update compile
+
+			echo "[run] launching WITH IBKR truststore…"
+			export JAVA_TOOL_OPTIONS="\
+-Djavax.net.ssl.trustStore=/trust/truststore.jks \
+-Djavax.net.ssl.trustStorePassword=changeit \
+-Djavax.net.ssl.trustStoreType=JKS \
+-Djdk.internal.httpclient.disableHostnameVerification=true"
+			echo "JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
+			sbt -batch "runMain src.main.scala.Boilerplate.play"
+		'
 }
 
 # ========= ClickHouse =========
