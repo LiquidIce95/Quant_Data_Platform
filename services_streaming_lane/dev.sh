@@ -421,6 +421,37 @@ peek_clickhouse_market_trades() {
 		clickhouse-client --user spark --password sparkpass --multiquery --query "$Q"
 }
 
+build_auth_automater() {
+	need docker; need kind
+	local SRC_DIR="$ROOT/services_streaming_lane/ib_auth_automater/source"
+	have "$SRC_DIR/Dockerfile"
+	have "$SRC_DIR/app.py"
+
+	echo "[auth-automater] Building image ib-auth-automater:dev from ${SRC_DIR} …"
+	docker build -t ib-auth-automater:dev "$SRC_DIR"
+
+	echo "[auth-automater] Loading image into kind cluster '${CLUSTER_NAME}' …"
+	kind load docker-image ib-auth-automater:dev --name "$CLUSTER_NAME"
+}
+
+auth_ib() {
+	need kubectl
+	local user="${1:-}"; local pass="${2:-}"
+	if [[ -z "$user" || -z "$pass" ]]; then
+		echo "Usage: $0 auth_ib <USERNAME> <PASSWORD>"
+		return 2
+	fi
+
+	echo "[auth-automater] Launching one-shot pod (no secrets stored)…"
+	kubectl -n "${CLIENT_PORTAL_NS}" run ib-auth-automater \
+	  --image=ib-auth-automater:dev \
+	  --restart=Never --rm -it -- \
+	  --url "https://client-portal.client-portal-api:5000" \
+	  "$user" "$pass"
+}
+
+
+
 usage() {
 	cat <<EOF
 Usage: $0 <command>
@@ -486,5 +517,7 @@ case "$cmd" in
 	down) down ;;
 	deploy_client_portal) deploy_client_portal ;;
 	forward_client_portal_port) forward_client_portal_port ;;
+	build_auth_automater) build_auth_automater ;;
+	auth_ib) shift; auth_ib "$@";;
 	help|*) usage ;;
 esac

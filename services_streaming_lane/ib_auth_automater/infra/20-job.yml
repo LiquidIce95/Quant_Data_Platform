@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ib-auth-automater
+  namespace: client-portal-api
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: automater
+          image: ib-auth-automater:dev
+          # If you prefer CLI args instead of env, uncomment args below:
+          # args: ["--url", "https://client-portal.client-portal-api:5000"]
+          env:
+            - name: LOGIN_URL
+              value: "https://client-portal.client-portal-api:5000"
+            - name: USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: ibkr-login
+                  key: USERNAME
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ibkr-login
+                  key: PASSWORD
