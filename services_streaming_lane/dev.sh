@@ -75,7 +75,7 @@ IB_SRC_DIR="$IB_DIR/source"
 IB_NS_FILE="$IB_DIR/infra/00-namespace.yml"
 IB_POD_FILE="$IB_DIR/infra/10-ib-connector-pod.yml"
 IB_IMG="ib-connector:dev"
-IB_TRUST_MAKER="$IB_DIR/infra/mk-truststore.sh"
+
 
 # ========= JAR paths (ABSOLUTE, NO find/symlink) =========
 JAR_DEST="$ROOT/services_streaming_lane/app.jar"
