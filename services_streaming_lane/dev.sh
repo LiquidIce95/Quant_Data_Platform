@@ -454,6 +454,29 @@ auth_ib() {
 	  "$user" "$pass" "$pathflag"
 }
 
+client_portal_run() {
+	need kubectl
+	local ns="${CLIENT_PORTAL_NS:-client-portal-api}"
+
+	# find the first running client-portal pod
+	local POD
+	POD="$(kubectl -n "$ns" get pods -l app=client-portal -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)"
+
+	if [[ -z "$POD" ]]; then
+		echo "[client-portal] No pod found in namespace '$ns' with label app=client-portal"
+		echo "               Make sure you've deployed it (e.g., ./dev.sh deploy_client_portal)"
+		return 1
+	fi
+
+	echo "[client-portal] Exec into pod: ${POD}"
+	# Run from the directory that contains ./bin/run.sh and conf.yaml
+	# Adjust the path if your gateway directory name differs.
+	kubectl -n "$ns" exec -it "$POD" -- bash -lc '
+		set -euo pipefail
+		cd /home/clientportal.gw
+		./bin/run.sh root/conf.yaml
+	'
+}
 
 
 
@@ -524,5 +547,6 @@ case "$cmd" in
 	forward_client_portal_port) forward_client_portal_port ;;
 	build_auth_automater) build_auth_automater ;;
 	auth_ib) shift; auth_ib "$@";;
+	client_portal_run) client_portal_run ;;
 	help|*) usage ;;
 esac

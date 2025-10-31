@@ -13,9 +13,11 @@ from selenium.webdriver.common.by import By
 def main():
     # ==== CONFIG ====
     LOGIN_URL = "https://client-portal.client-portal-api:5000"
+    LOGIN_URL2 = "https://client-portal.client-portal-api.svc:5000"
     LOGIN_URL_DEV = "https://localhost:5000"
     STATUS_URL = "https://client-portal.client-portal-api:5000/v1/api/iserver/auth/status"
     STATUS_URL_DEV = "https://localhost:5000/v1/api/iserver/auth/status"
+    STATUS_URL_2 = "https://client-portal.client-portal-api.svc:5000/v1/api/iserver/auth/status"
 
     login_url_to_use = LOGIN_URL
     status_url_to_use = STATUS_URL
@@ -29,6 +31,10 @@ def main():
     if requestpath=="1" :
         login_url_to_use=LOGIN_URL_DEV
         status_url_to_use=STATUS_URL_DEV
+
+    elif requestpath=="2":
+        login_url_to_use=LOGIN_URL2
+        status_url_to_use=STATUS_URL_2
 
     print(f"[auth] Launching Chromium (headless) → {login_url_to_use}", flush=True)
     chrome_opts = Options()

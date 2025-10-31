@@ -12,9 +12,10 @@
 <body>
 	<div id="demo"></div>
 	<script>
-        window.GATEWAY_BASE_URL = "https://localhost:5000/v1/api";
-        document
-                .write('<script type="text/javascript" src="demo/gateway.demo.js?9343fc8b454b4"></'+'script>');
-    </script>
+                // Use the current origin (works on localhost and inside the cluster)
+                window.GATEWAY_BASE_URL = window.location.origin + "/v1/api";
+                document.write('<script type="text/javascript" src="demo/gateway.demo.js?9343fc8b454b4"></'+'script>');
+        </script>
+
 </body>
 </html>
