@@ -33,3 +33,16 @@ lazy val root = (project in file("."))
 			"io.fabric8" % "kubernetes-server-mock" % "7.4.0" % Test
 		)
 	)
+Compile / run / fork := true
+Runtime / fork := true
+
+val tlsFlags = Seq(
+  "-Djavax.net.ssl.trustStore=/trust/merged.jks",
+  "-Djavax.net.ssl.trustStorePassword=changeit",
+  "-Djavax.net.ssl.trustStoreType=JKS",
+  "-Djdk.internal.httpclient.disableHostnameVerification=true"
+)
+
+Compile / run / javaOptions ++= tlsFlags
+Runtime / javaOptions            ++= tlsFlags   // <- this is what Bloop/DAP “Run | Debug” uses
+Test    / javaOptions            ++= tlsFlags

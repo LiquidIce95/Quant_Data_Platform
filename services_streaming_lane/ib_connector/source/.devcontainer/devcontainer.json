@@ -1,36 +1,42 @@
 {
-  "name": "scala-ib-connector-dev",
-  "build": { "dockerfile": "../Dockerfile", "context": "." },
+	"name": "scala-ib-connector-dev",
+	"build": { "dockerfile": "../Dockerfile", "context": "." },
 
-  "workspaceMount": "source=${localWorkspaceFolder}/../../..,target=/work,type=bind,consistency=cached",
-  "workspaceFolder": "/work/services_streaming_lane/ib_connector/source",
+	"workspaceMount": "source=${localWorkspaceFolder}/../../..,target=/work,type=bind,consistency=cached",
+	"workspaceFolder": "/work/services_streaming_lane/ib_connector/source",
 
-  "mounts": [
-    "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached"
-  ],
+	"mounts": [
+		"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached",
+		"source=${localWorkspaceFolder}/../infra/ibkr_truststore.jks,target=/trust/truststore.jks,type=bind,consistency=cached",
+		"source=${localWorkspaceFolder}/../infra/ibkr_client_portal.pem,target=/trust/ibkr_client_portal.pem,type=bind,consistency=cached"
+	],
 
-  "remoteUser": "root",
-  "updateRemoteUserUID": false,
-  "postCreateCommand": "sh -lc 'git config --global --add safe.directory /work'",
+	"remoteUser": "root",
+	"updateRemoteUserUID": false,
 
-  "runArgs": ["--network=host"],
+	"postCreateCommand": "sh -lc 'git config --global --add safe.directory /work'",
 
-  "containerEnv": {
-    "IB_HOST": "127.0.0.1",
-    "IB_PORT": "4002",
-    "IB_CLIENT_ID": "1"
-  },
+	// IMPORTANT: do NOT export JAVA_TOOL_OPTIONS globally; Metals/sbt must resolve with system CAs
+	"runArgs": ["--network=host"],
 
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "scalameta.metals",
-        "scala-lang.scala"
-      ],
-      "settings": {
-        // Optionally pin the Metals *server* version used inside the container:
-        "metals.serverVersion": "1.6.2"
-      }
-    }
-  }
+	"containerEnv": {
+		"IB_HOST": "127.0.0.1",
+		"IB_PORT": "4002",
+		"IB_CLIENT_ID": "1"
+	},
+
+	// Build a merged truststore (system cacerts + IBKR cert) and a wrapper to run sbt with it
+	"postStartCommand": "bash -lc '\nset -euo pipefail\nTRUST_DIR=/trust\nSYS_CACERTS=${JAVA_HOME}/lib/security/cacerts\nMERGED=${TRUST_DIR}/merged.jks\n\ninstall -d ${TRUST_DIR}\n# 1) Start from system cacerts so public CAs work (Maven, Metals, etc.)\nif [ ! -f ${MERGED} ]; then\n  cp -f ${SYS_CACERTS} ${MERGED}\n  chmod 644 ${MERGED}\nfi\n# 2) Import IBKR PEM if provided and not already present\nif [ -f ${TRUST_DIR}/ibkr_client_portal.pem ]; then\n  keytool -list -keystore ${MERGED} -storepass changeit -alias ibkr-client-portal >/dev/null 2>&1 || \\\n    keytool -importcert -alias ibkr-client-portal -file ${TRUST_DIR}/ibkr_client_portal.pem -keystore ${MERGED} -storepass changeit -noprompt\nfi\n# 3) Provide a wrapper that passes truststore ONLY to your runs (not to Metals/sbt resolution)\ncat >/usr/local/bin/run-ib <<\"SH\"\n#!/usr/bin/env bash\nset -euo pipefail\nexec sbt \\\n  -J-Djavax.net.ssl.trustStore=/trust/merged.jks \\\n  -J-Djavax.net.ssl.trustStorePassword=changeit \\\n  -J-Djavax.net.ssl.trustStoreType=JKS \\\n  -J-Djdk.internal.httpclient.disableHostnameVerification=true \\\n  -batch \"$@\"\nSH\nchmod +x /usr/local/bin/run-ib\n'",
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"scalameta.metals",
+				"scala-lang.scala"
+			],
+			"settings": {
+				"metals.serverVersion": "1.6.2"
+			}
+		}
+	}
 }
