@@ -11,5 +11,5 @@ services_streaming_lane/spark-3.5.7-bin-hadoop3/
 # IB Client Portal testing trust material
 services_streaming_lane/ib_connector/source/ibkr_client_portal.pem
 services_streaming_lane/ib_connector/source/ibkr_truststore.jks
-services_streaming_lane/ib_connector/source/infra/ibkr_client_portal.pem
-services_streaming_lane/ib_connector/source/infra/ibkr_truststore.jks
+services_streaming_lane/ib_connector/infra/ibkr_client_portal.pem
+services_streaming_lane/ib_connector/infra/ibkr_truststore.jks

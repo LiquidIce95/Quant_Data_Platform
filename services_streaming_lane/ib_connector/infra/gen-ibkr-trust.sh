@@ -1,41 +1,41 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Usage:
-#   ./gen-ibkr-trust.sh [HOST:PORT]
-# Examples:
-#   ./gen-ibkr-trust.sh                 # defaults to localhost:5000
-#   ./gen-ibkr-trust.sh 127.0.0.1:5000
-#   ./gen-ibkr-trust.sh client-portal.client-portal-api:5000   # inside cluster
-
-TARGET="${1:-localhost:5000}"
+# Namespaces (override if needed)
+NS_CP="${NS_CP:-client-portal-api}"
+NS_IB="${NS_IB:-ib-connector}"
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PEM="${HERE}/ibkr_client_portal.pem"
 JKS="${HERE}/ibkr_truststore.jks"
 
-echo "[gen-ibkr-trust] fetching server certificate from ${TARGET} …"
-# NOTE: -servername enables SNI; -showcerts prints the chain
-openssl s_client -showcerts -servername "${TARGET%%:*}" -connect "${TARGET}" </dev/null 2>/dev/null \
-  | openssl x509 -outform PEM > "${PEM}"
+echo "[mk-truststore] client-portal ns=${NS_CP} ; ib-connector ns=${NS_IB}"
+
+echo "[mk-truststore] port-forward svc/client-portal:5000 → 127.0.0.1:5000"
+kubectl -n "${NS_CP}" port-forward svc/client-portal 5000:5000 >/dev/null 2>&1 &
+PF_PID=$!
+trap 'kill ${PF_PID} >/dev/null 2>&1 || true' EXIT
+sleep 1
+
+echo "[mk-truststore] exporting server certificate …"
+openssl s_client -showcerts -connect 127.0.0.1:5000 </dev/null 2>/dev/null \
+	| openssl x509 -outform PEM > "${PEM}"
 
 if [[ ! -s "${PEM}" ]]; then
-  echo "[gen-ibkr-trust] ERROR: could not export certificate to ${PEM}"
-  exit 1
+	echo "[mk-truststore] ERROR: couldn’t fetch certificate from client-portal"
+	exit 1
 fi
-echo "[gen-ibkr-trust] saved ${PEM}"
+echo "[mk-truststore] saved ${PEM}"
 
-echo "[gen-ibkr-trust] creating JKS truststore …"
+echo "[mk-truststore] creating JKS truststore …"
 rm -f "${JKS}"
-keytool -importcert \
-  -alias ibkr-client-portal \
-  -file  "${PEM}" \
-  -keystore "${JKS}" \
-  -storetype JKS \
-  -storepass changeit \
-  -noprompt
+keytool -importcert -alias ibkr-client-portal \
+	-keystore "${JKS}" -storepass changeit \
+	-storetype JKS \
+	-file "${PEM}" -noprompt
 
-echo "[gen-ibkr-trust] verifying truststore:"
+echo "[mk-truststore] verifying truststore …"
 keytool -list -keystore "${JKS}" -storepass changeit -storetype JKS | sed -n '1,120p'
 
-echo "[gen-ibkr-trust] done."
+
+echo "[mk-truststore] done."
