@@ -197,12 +197,9 @@ deploy_ib_connector() {
 	have "$IB_POD_FILE"
 	have "$IB_SRC_DIR/Dockerfile"
 
-	# truststore must exist on the repo, used to build the Secret
-	if [[ ! -f "$IB_DIR/infra/ibkr_truststore.jks" ]]; then
-		echo "[ib-connector] Missing truststore: $IB_DIR/infra/ibkr_truststore.jks"
-		echo "[ib-connector] Create it first (ibkr_truststore.jks), then rerun."
-		exit 1
-	fi
+	# Ensure cert artifacts exist so the image can bake them in
+	have "$IB_DIR/infra/ibkr_truststore.jks"
+	have "$IB_DIR/infra/ibkr_client_portal.pem"
 
 	echo "[ib-connector] Applying namespace …"
 	kubectl apply -f "$IB_NS_FILE"
@@ -212,11 +209,6 @@ deploy_ib_connector() {
 
 	echo "[ib-connector] Loading image into kind cluster '${CLUSTER_NAME}' …"
 	kind load docker-image ib-connector:dev --name "$CLUSTER_NAME"
-
-	echo "[ib-connector] Creating/Updating ibkr-truststore Secret …"
-	kubectl -n "$NAMESPACE_IB" create secret generic ibkr-truststore \
-		--from-file=truststore.jks="$IB_DIR/infra/ibkr_truststore.jks" \
-		--dry-run=client -o yaml | kubectl apply -f -
 
 	echo "[ib-connector] Applying pod manifest …"
 	export NAMESPACE_IB NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
@@ -228,6 +220,7 @@ deploy_ib_connector() {
 	echo "[ib-connector] Pods:"
 	kubectl -n "$NAMESPACE_IB" get pods -o wide || true
 }
+
 
 # ========= Spark: base runtime image =========
 build_base_spark_image() {
@@ -379,19 +372,10 @@ ib_connector_play() {
 	kubectl -n "${NAMESPACE_IB}" exec -it ib-connector -c ib-connector -- \
 		bash -lc '
 			cd /work
-			echo "[prefetch] sbt compile WITHOUT custom truststore (to fetch plugins/deps)…"
-			env -u JAVA_TOOL_OPTIONS sbt -batch update compile
-
-			echo "[run] launching WITH IBKR truststore…"
-			export JAVA_TOOL_OPTIONS="\
--Djavax.net.ssl.trustStore=/trust/truststore.jks \
--Djavax.net.ssl.trustStorePassword=changeit \
--Djavax.net.ssl.trustStoreType=JKS \
--Djdk.internal.httpclient.disableHostnameVerification=true"
-			echo "JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS"
 			sbt -batch "runMain src.main.scala.Boilerplate.play"
 		'
 }
+
 
 # ========= ClickHouse =========
 build_clickhouse_image() {

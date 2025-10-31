@@ -9,6 +9,8 @@ RUN apt-get update && apt-get install -y \
 	bash \
 	&& rm -rf /var/lib/apt/lists/*
 
+WORKDIR /work
+COPY ./ /work
 RUN mkdir -p /trust
 
 # ensure entrypoint is in the image (place this file next to devcontainer.json)
