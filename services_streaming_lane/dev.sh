@@ -436,19 +436,24 @@ build_auth_automater() {
 
 auth_ib() {
 	need kubectl
-	local user="${1:-}"; local pass="${2:-}"
+	local user="${1:-}"; local pass="${2:-}"; local pathflag="${3:-0}"  # 1=localhost, 0=cluster DNS
 	if [[ -z "$user" || -z "$pass" ]]; then
-		echo "Usage: $0 auth_ib <USERNAME> <PASSWORD>"
+		echo "Usage: $0 auth_ib <USERNAME> <PASSWORD> [PATH_FLAG (1=localhost, 0=cluster)]"
 		return 2
 	fi
 
 	echo "[auth-automater] Launching one-shot pod (no secrets stored)…"
+	# Ensure any previous pod is gone
+	kubectl -n "${CLIENT_PORTAL_NS}" delete pod ib-auth-automater --ignore-not-found >/dev/null 2>&1 || true
+
+	# ENTRYPOINT in the image is: python /app/app.py
+	# We just pass: <USERNAME> <PASSWORD> <PATH_FLAG>
 	kubectl -n "${CLIENT_PORTAL_NS}" run ib-auth-automater \
 	  --image=ib-auth-automater:dev \
 	  --restart=Never --rm -it -- \
-	  --url "https://client-portal.client-portal-api:5000" \
-	  "$user" "$pass"
+	  "$user" "$pass" "$pathflag"
 }
+
 
 
 
