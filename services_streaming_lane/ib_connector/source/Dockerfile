@@ -20,7 +20,6 @@ COPY ./entrypoint.sh /usr/local/bin/ibkr-entrypoint.sh
 RUN chmod +x /usr/local/bin/ibkr-entrypoint.sh
 
 # Default command; ENTRYPOINT will hand off to this
-CMD ["bash", "-l"]
-
+CMD ["bash","-lc","sleep infinity"]
 # Run our runtime init AFTER the container is created (post-start equivalent)
 ENTRYPOINT ["/usr/local/bin/ibkr-entrypoint.sh"]

@@ -7,34 +7,17 @@ spec:
   containers:
     - name: ib-connector
       image: ib-connector:dev
-      command: ["bash","-lc","trap : TERM INT; while :; do sleep 600; done"]
       env:
         - name: KAFKA_BOOTSTRAP_SERVERS
           value: "${KAFKA_NAME}-kafka-bootstrap.${NAMESPACE_KAFKA}:9092"
         - name: POD_NAME
           valueFrom:
-            fieldRef: { fieldPath: metadata.name }
+            fieldRef:
+              fieldPath: metadata.name
         - name: POD_NAMESPACE
           valueFrom:
-            fieldRef: { fieldPath: metadata.namespace }
-        # Use the mounted JKS truststore and accept the self-signed server cert.
-        - name: JAVA_TOOL_OPTIONS
-          value: >-
-            -Djavax.net.ssl.trustStore=/trust/truststore.jks
-            -Djavax.net.ssl.trustStorePassword=changeit
-            -Djavax.net.ssl.trustStoreType=JKS
-            -Djdk.internal.httpclient.disableHostnameVerification=true
-      volumeMounts:
-        - name: ibkr-truststore
-          mountPath: /trust
-          readOnly: true
-  volumes:
-    - name: ibkr-truststore
-      secret:
-        secretName: ibkr-truststore
-        items:
-          - key: truststore.jks
-            path: truststore.jks
+            fieldRef:
+              fieldPath: metadata.namespace
   nodeSelector:
     ${LBL_KEY}: ${LBL_VAL_KAFKA}
   restartPolicy: Always
