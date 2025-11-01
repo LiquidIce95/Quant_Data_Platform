@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
 import sys
 import time
-import json
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
 
-
-# ==== MAIN ====
 def main():
-    # ==== CONFIG ====
     LOGIN_URL = "https://client-portal.client-portal-api:5000"
     LOGIN_URL2 = "https://client-portal.client-portal-api.svc:5000"
     LOGIN_URL_DEV = "https://localhost:5000"
@@ -23,18 +19,17 @@ def main():
     status_url_to_use = STATUS_URL
 
     if len(sys.argv) != 4:
-        print("Usage: app.py <USERNAME> <PASSWORD>", flush=True)
+        print("Usage: app.py <USERNAME> <PASSWORD> <PATH_FLAG>", flush=True)
         sys.exit(1)
 
     username, password, requestpath = sys.argv[1], sys.argv[2], sys.argv[3]
 
-    if requestpath=="1" :
-        login_url_to_use=LOGIN_URL_DEV
-        status_url_to_use=STATUS_URL_DEV
-
-    elif requestpath=="2":
-        login_url_to_use=LOGIN_URL2
-        status_url_to_use=STATUS_URL_2
+    if requestpath == "1":
+        login_url_to_use = LOGIN_URL_DEV
+        status_url_to_use = STATUS_URL_DEV
+    elif requestpath == "2":
+        login_url_to_use = LOGIN_URL2
+        status_url_to_use = STATUS_URL_2
 
     print(f"[auth] Launching Chromium (headless) → {login_url_to_use}", flush=True)
     chrome_opts = Options()
@@ -62,8 +57,14 @@ def main():
 
         cookies = driver.get_cookies()
         sess = requests.Session()
+        # --- minimal surgical fix: preserve domain/path so cookies apply to service DNS ---
         for c in cookies:
-            sess.cookies.set(c["name"], c["value"])
+            sess.cookies.set(
+                c["name"], c["value"],
+                domain=c.get("domain", "client-portal.client-portal-api"),
+                path=c.get("path", "/")
+            )
+        # -------------------------------------------------------------------------------
 
         print(f"[auth] Checking {status_url_to_use} …", flush=True)
         resp = sess.get(status_url_to_use, verify=False)
