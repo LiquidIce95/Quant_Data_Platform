@@ -454,6 +454,16 @@ auth_ib() {
 	  "$user" "$pass" "$pathflag"
 }
 
+auth_ib_from_portal() {
+	kubectl -n client-portal-api exec -it client-portal-7d95d5c95f-9ng7q -- \
+		bash -lc 'if [ -d /opt/venv ]; then . /opt/venv/bin/activate; fi; python /app/app.py "<USERNAME>" "<PASSWORD>" "0"'
+
+}
+
+
+
+
+
 client_portal_run() {
 	need kubectl
 	local ns="${CLIENT_PORTAL_NS:-client-portal-api}"
@@ -548,5 +558,6 @@ case "$cmd" in
 	build_auth_automater) build_auth_automater ;;
 	auth_ib) shift; auth_ib "$@";;
 	client_portal_run) client_portal_run ;;
+	auth_ib_from_portal) auth_ib_from_portal;;
 	help|*) usage ;;
 esac

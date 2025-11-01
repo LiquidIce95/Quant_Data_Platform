@@ -58,7 +58,7 @@ def main():
         submit_btn.click()
 
         print("[auth] Credentials submitted. Approve 2FA on your phone…", flush=True)
-        time.sleep(25)
+        time.sleep(30)
 
         cookies = driver.get_cookies()
         sess = requests.Session()
