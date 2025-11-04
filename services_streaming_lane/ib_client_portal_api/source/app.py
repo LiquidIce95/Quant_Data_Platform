@@ -55,16 +55,8 @@ def main():
         print("[auth] Credentials submitted. Approve 2FA on your phone…", flush=True)
         time.sleep(30)
 
-        cookies = driver.get_cookies()
         sess = requests.Session()
-        # --- minimal surgical fix: preserve domain/path so cookies apply to service DNS ---
-        for c in cookies:
-            sess.cookies.set(
-                c["name"], c["value"],
-                domain=c.get("domain", "client-portal.client-portal-api"),
-                path=c.get("path", "/")
-            )
-        # -------------------------------------------------------------------------------
+        
 
         print(f"[auth] Checking {status_url_to_use} …", flush=True)
         resp = sess.get(status_url_to_use, verify=False)

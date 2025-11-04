@@ -6,7 +6,7 @@ metadata:
   labels:
     app: client-portal
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: client-portal
