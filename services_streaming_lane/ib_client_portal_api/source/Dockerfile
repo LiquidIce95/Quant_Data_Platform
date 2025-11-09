@@ -27,7 +27,6 @@ RUN pip install --no-cache-dir --upgrade pip \
  && pip install --no-cache-dir -r /tmp/requirements.txt
 
 WORKDIR /app
-COPY app.py /app/app.py
-
-EXPOSE 5000 5001
+COPY authenticator_2fa.py /app/authenticator_2fa.py
+COPY app2.py /authenticator_no_2fa/authenticator_no_2fa.py
 CMD ["bash","-lc","sleep infinity"]

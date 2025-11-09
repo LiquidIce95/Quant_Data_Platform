@@ -14,8 +14,6 @@
 
 	"postCreateCommand": "sh -lc 'git config --global --add safe.directory /work'",
 
-	"runArgs": ["--network=host"],
-
 	"containerEnv": {
 		"IB_HOST": "127.0.0.1",
 		"IB_PORT": "4002",
@@ -24,7 +22,7 @@
 
 	"customizations": {
 		"vscode": {
-			"extensions": [],
+			"extensions": ["ms-python.python","ms-python.debugpy","ms-python.vscode-pylance","ms-python.vscode-python-envs"],
 			"settings": {}
 		}
 	}
