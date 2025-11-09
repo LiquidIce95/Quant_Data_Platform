@@ -16,9 +16,6 @@
 	"postCreateCommand": "sh -lc 'git config --global --add safe.directory /work'",
 	"postStartCommand": "bash -lc '/usr/local/bin/ibkr-entrypoint.sh true'",
 
-	// IMPORTANT: do NOT export JAVA_TOOL_OPTIONS globally; Metals/sbt must resolve with system CAs
-	"runArgs": ["--network=host"],
-
 	"containerEnv": {
 		"IB_HOST": "127.0.0.1",
 		"IB_PORT": "4002",
@@ -30,7 +27,11 @@
 		"vscode": {
 			"extensions": [
 				"scalameta.metals",
-				"scala-lang.scala"
+				"scala-lang.scala",
+				"ms-python.debugpy",
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"ms-python.vscode-python-envs"
 			],
 			"settings": {
 				"metals.serverVersion": "1.6.2"
