@@ -1,4 +1,4 @@
-FROM sbtscala/scala-sbt:eclipse-temurin-21.0.8_9_1.11.6_2.13.16
+FROM debian:12.6-slim
 
 USER root
 
@@ -36,7 +36,17 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       python3 python3-venv python3-pip \
       chromium chromium-driver \
+	  libnss3 libasound2 libxshmfence1 fonts-liberation \
  && rm -rf /var/lib/apt/lists/*
+
+# install sbt and scala
+
+# Install sbt 1.11.6 explicitly
+RUN curl -L -o /tmp/sbt.tgz https://github.com/sbt/sbt/releases/download/v1.11.6/sbt-1.11.6.tgz \
+ && mkdir -p /usr/local/sbt \
+ && tar -xzf /tmp/sbt.tgz -C /usr/local/sbt --strip-components=1 \
+ && ln -s /usr/local/sbt/bin/sbt /usr/local/bin/sbt \
+ && rm /tmp/sbt.tgz
 
 ENV VENV_PATH=/opt/venv
 RUN python3 -m venv "${VENV_PATH}"

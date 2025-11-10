@@ -5,69 +5,107 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 
 
-def main():
-    LOGIN_URL = "https://client-portal.client-portal-api:5000"
-    LOGIN_URL2 = "https://client-portal.client-portal-api.svc:5000"
-    LOGIN_URL_DEV = "https://localhost:5000"
-    STATUS_URL = "https://client-portal.client-portal-api:5000/v1/api/iserver/auth/status"
-    STATUS_URL_DEV = "https://localhost:5000/v1/api/iserver/auth/status"
-    STATUS_URL_2 = "https://client-portal.client-portal-api.svc:5000/v1/api/iserver/auth/status"
+LOGIN_URL_DEV = "https://localhost:5000"
+STATUS_URL_DEV = "https://localhost:5000/v1/api/iserver/auth/status"
+KEYVAULT_NAME = "ibkr-secrets"
+KEYVAULT_URL = f"https://{KEYVAULT_NAME}.vault.azure.net"
 
-    login_url_to_use = LOGIN_URL
-    status_url_to_use = STATUS_URL
 
-    if len(sys.argv) != 4:
-        print("Usage: app.py <USERNAME> <PASSWORD> <PATH_FLAG>", flush=True)
-        sys.exit(1)
+def build_secret_client() -> SecretClient:
+	"""
+	Build a SecretClient using DefaultAzureCredential.
+	"""
+	credential = DefaultAzureCredential()
+	client = SecretClient(vault_url=KEYVAULT_URL, credential=credential)
+	return client
 
-    username, password, requestpath = sys.argv[1], sys.argv[2], sys.argv[3]
 
-    if requestpath == "1":
-        login_url_to_use = LOGIN_URL_DEV
-        status_url_to_use = STATUS_URL_DEV
-    elif requestpath == "2":
-        login_url_to_use = LOGIN_URL2
-        status_url_to_use = STATUS_URL_2
+def get_ibkr_credentials(user_id: int) -> tuple[str, str]:
+	"""
+	Fetch IBKR username and password for the given user_id from Key Vault.
 
-    print(f"[auth] Launching Chromium (headless) → {login_url_to_use}", flush=True)
-    chrome_opts = Options()
-    chrome_opts.add_argument("--headless=new")
-    chrome_opts.add_argument("--no-sandbox")
-    chrome_opts.add_argument("--disable-dev-shm-usage")
-    chrome_opts.add_argument("--ignore-certificate-errors")
+	Secrets:
+	  ibkr-username-{user_id}
+	  ibkr-password-{user_id}
+	"""
+	client = build_secret_client()
 
-    driver = webdriver.Chrome(options=chrome_opts)
+	username_secret_name = f"ibkr-username-{user_id}"
+	password_secret_name = f"ibkr-password-{user_id}"
 
-    try:
-        driver.get(login_url_to_use)
-        time.sleep(2)
+	username = client.get_secret(username_secret_name).value
+	password = client.get_secret(password_secret_name).value
 
-        user_field = driver.find_element(By.ID, "xyz-field-username")
-        pass_field = driver.find_element(By.ID, "xyz-field-password")
-        submit_btn = driver.find_element(By.CSS_SELECTOR, "button[type=submit]")
+	return username, password
 
-        user_field.send_keys(username)
-        pass_field.send_keys(password)
-        submit_btn.click()
 
-        print("[auth] Credentials submitted. Approve 2FA on your phone…", flush=True)
-        time.sleep(30)
+def authenticate(userId:int):
 
-        sess = requests.Session()
-        
+	login_url_to_use = LOGIN_URL_DEV
+	status_url_to_use = STATUS_URL_DEV
 
-        print(f"[auth] Checking {status_url_to_use} …", flush=True)
-        resp = sess.get(status_url_to_use, verify=False)
-        print(f"[auth] HTTP {resp.status_code}")
-        print(resp.text)
-    except Exception as e:
-        print(f"[auth] ERROR: {e}", flush=True)
-        sys.exit(2)
-    finally:
-        driver.quit()
+
+	username, password = get_ibkr_credentials(userId)
+
+
+	print(f"[auth] Launching Chromium (headless) → {login_url_to_use}", flush=True)
+	chrome_opts = Options()
+	chrome_opts.add_argument("--headless=new")
+	chrome_opts.add_argument("--window-size=1920,1080")
+	chrome_opts.add_argument("--force-device-scale-factor=1")
+	chrome_opts.add_argument("--high-dpi-support=1")
+	chrome_opts.add_argument("--no-sandbox")
+	chrome_opts.add_argument("--disable-dev-shm-usage")
+	chrome_opts.add_argument("--ignore-certificate-errors")
+
+	driver = webdriver.Chrome(options=chrome_opts)
+
+	# immediately after creating the driver
+	driver.set_window_rect(width=1920, height=1080)
+	driver.execute_cdp_cmd("Emulation.setDeviceMetricsOverride", {
+		"mobile": False, "width": 1920, "height": 1080, "deviceScaleFactor": 1
+	})
+	driver.execute_cdp_cmd("Emulation.setPageScaleFactor", {"pageScaleFactor": 1})
+
+	try:
+		driver.get(login_url_to_use)
+		time.sleep(1.5)
+
+		## your section, you can only add code here , toggle paper trading on 
+		toggle_label = driver.find_element(By.CSS_SELECTOR, 'label[for="toggle1"]')
+		toggle_label.click()
+		## your implementation for toggling on paper trading ends here
+		time.sleep(1.5)
+
+		user_field = driver.find_element(By.ID, "xyz-field-username")
+		pass_field = driver.find_element(By.ID, "xyz-field-password")
+		submit_btn = driver.find_element(By.CSS_SELECTOR, "button[type=submit]")
+
+		user_field.send_keys(username)
+		pass_field.send_keys(password)
+		submit_btn.click()
+
+		print("[auth] Credentials submitted. Approve 2FA on your phone…", flush=True)
+		time.sleep(10)
+
+		sess = requests.Session()
+		
+		print(f"[auth] Checking {status_url_to_use} …", flush=True)
+		resp = sess.get(status_url_to_use, verify=False)
+		print(f"[auth] HTTP {resp.status_code}")
+		print(resp.text)
+	except Exception as e:
+		print(f"[auth] ERROR: {e}", flush=True)
+		sys.exit(2)
+	finally:
+		driver.quit()
 
 
 if __name__ == "__main__":
-    main()
+	assert len(sys.argv)>=2
+	userId = sys.argv[1]
+	authenticate(1)

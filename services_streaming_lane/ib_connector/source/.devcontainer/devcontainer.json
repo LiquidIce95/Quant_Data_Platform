@@ -13,7 +13,7 @@
 	"remoteUser": "root",
 	"updateRemoteUserUID": false,
 
-	"postCreateCommand": "sh -lc 'git config --global --add safe.directory /work'",
+	"postCreateCommand": "bash -lc 'git config --global --add safe.directory /work && curl -sL https://aka.ms/InstallAzureCLIDeb | bash'",
 	"postStartCommand": "bash -lc '/usr/local/bin/ibkr-entrypoint.sh true'",
 
 	"containerEnv": {
