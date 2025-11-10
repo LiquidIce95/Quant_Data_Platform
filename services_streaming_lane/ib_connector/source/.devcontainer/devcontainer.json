@@ -7,7 +7,7 @@
 	"workspaceFolder": "/work/services_streaming_lane/ib_connector/source",
 
 	"mounts": [
-		"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached",
+		"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached"
 	],
 
 	"remoteUser": "root",

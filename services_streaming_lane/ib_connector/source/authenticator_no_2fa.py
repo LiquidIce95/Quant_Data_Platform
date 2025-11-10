@@ -108,4 +108,4 @@ def authenticate(userId:int):
 if __name__ == "__main__":
 	assert len(sys.argv)>=2
 	userId = sys.argv[1]
-	authenticate(1)
+	authenticate(userId)
