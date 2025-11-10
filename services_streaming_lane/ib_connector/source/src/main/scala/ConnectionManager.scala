@@ -6,13 +6,15 @@ import java.io.File
 
 trait ConnectionManager {
 
-    protected var symbolShard:List[String] = Nil
+    var symbolShards:Map[String,List[String]] = Map.empty
+
+    val symbolUniverse: List[String]=Nil
 
     // collects stdout/stderr from the portal process
-	protected val portalOutput: StringBuilder = new StringBuilder
+	val portalOutput: StringBuilder = new StringBuilder
 
 	// logger that appends all lines to portalOutput
-	protected val portalLogger: ProcessLogger = ProcessLogger(
+	val portalLogger: ProcessLogger = ProcessLogger(
 		(line: String) => {
 			portalOutput.append(line).append('\n')
 		},
@@ -88,6 +90,14 @@ trait ConnectionManager {
       */
     def computeShards():Map[String,List[String]]
 
+
+    /**
+      * for the current symbols that are managed by this pod, check L2 and tbt connection if they are healthy
+      * if not , restart the feed
+      */
+    def restartUnhealthyConnections():Unit={
+
+    }
 
     /**
       * starts the lifecycle management of the connections, checks if any connections silently died, discovers peers
