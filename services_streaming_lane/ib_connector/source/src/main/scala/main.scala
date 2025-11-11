@@ -4,13 +4,20 @@ import ujson._
 import sttp.client4.quick._
 import sttp.ws.WebSocketFrame
 import java.nio.charset.StandardCharsets
+import sttp.client4.ws.SyncWebSocket
+import upickle.core.LinkedHashMap
 
 object main {
   def main(args: Array[String]): Unit = {
 
     // trivial implementation for testing: computeShards returns empty map
     val cm = new ConnectionManager {
+	  def computeUser(): Int = 1
       def computeShards(): Map[String, List[String]] = Map.empty
+
+	  def manageConnections():Unit={}
+	  def onSmdFrame(message:LinkedHashMap[String,ujson.Value]):Unit={}
+	  def onSbdFrame(message:LinkedHashMap[String,ujson.Value]):Unit={}
     }
 
     val portalStarted: Boolean = cm.startIbPortal()
@@ -36,13 +43,11 @@ object main {
     }
 
     // establish websocket (tickle + cookie happens inside)
-    ApiHandler.establishWebSocket()
+    val ws : SyncWebSocket = ApiHandler.establishWebSocket().get
 	Thread.sleep(3000L)
     // subscribe to tick-by-tick / streaming market data for these 5 conIds
-    conIds.foreach(ApiHandler.subcribetbt)
+	conIds.foreach(cid => ApiHandler.subscribetbt(cid, Some(ws)))
 
-    // read and print incoming messages
-    val ws = ApiHandler.getWebSocket()
 
     println(ws.isOpen())
 
@@ -69,6 +74,8 @@ object main {
         case _ =>
           println("we got something else ")
       }
+		val msg = ws.receiveText()
+		println(f"###########message is ${msg}")
     }
   }
 }

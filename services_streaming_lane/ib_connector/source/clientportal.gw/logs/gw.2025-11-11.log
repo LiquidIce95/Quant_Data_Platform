@@ -3084,3 +3084,418 @@ webApps:
 17:51:07.248 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883466969}
 17:51:07.327 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883467323,"6119":"q0","7059":"1","31":"60.95","topic":"smd+256019341"}
 17:51:08.557 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883468324,"6119":"q0","7059":"2","topic":"smd+256019341"}
+17:55:58.878 INFO  main GatewayStart         : config ../root/conf.yaml !!ibgroup.web.core.clientportal.gw.Config
+authDelay: 3000
+ccp: false
+cors: {origin.allowed: '*', allowCredentials: false}
+ip2loc: US
+ips:
+  allow: [10.*, 192.*, 131.216.*, 127.0.0.1]
+  deny: [212.90.324.10]
+listenPort: 5000
+listenSsl: true
+portalBaseURL: ''
+proxyRemoteHost: https://api.ibkr.com
+proxyRemoteSsl: true
+sslCert: vertx.jks
+sslPwd: mywebapi
+ssoPing: 5
+svcEnvironment: v1
+tst: false
+twsBaseURL: /tws.proxy
+webApps:
+- {cache: true, index: index.html, listing: false, name: demo, proxy: ''}
+
+17:55:59.115 INFO  vert.x-eventloop-thread-0 GatewayHttpProxy     :  -> mount demo on /demo
+17:55:59.131 INFO  vert.x-eventloop-thread-0 GatewayVerticle      : version: a27ed42161ad96c53e715ca5c5e3e3fa4cff5262 Mon, 24 Apr 2023 15:41:53 -0400
+17:55:59.132 INFO  vert.x-eventloop-thread-0 GatewayVerticle      : Java Version: 17.0.17
+17:56:05.203 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Login?forwardTo=22&RL=1&ip2loc=US,200|494ms
+17:56:05.203 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, URL_PARAM="forwardTo=22&RL=1&ip2loc=US"; Version=1; Domain=.ibkr.com; Path=/;Secure, JSESSIONID=B6B67FDEAEA1B91ADF44BA36DA242E7A.ny5wwwdam3-internet; Path=/sso; HttpOnly;Secure;SameSite=None, x-sess-uuid=0.c52bf7c1.1762883764.266c6146; secure; HttpOnly]
+17:56:05.204 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, URL_PARAM="forwardTo=22&RL=1&ip2loc=US"; Version=1; Domain=.ibkr.com; Path=/;Secure, JSESSIONID=B6B67FDEAEA1B91ADF44BA36DA242E7A.ny5wwwdam3-internet; Path=/sso; HttpOnly;Secure;SameSite=None, x-sess-uuid=0.c52bf7c1.1762883764.266c6146; secure; HttpOnly] -> 
+17:56:05.304 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/bootstrap-5.2.2/bootstrap.min.css,200|73ms
+17:56:05.353 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/ibkr/theme-ibkr-portal.min.css,200|92ms
+17:56:05.407 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/bootstrap-switch-3.3.2/bootstrap-switch.min.css,200|152ms
+17:56:05.411 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /scripts/common/js/jquery-3.7.0/jquery.min.js,200|147ms
+17:56:05.424 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/fontawesome-6.4.2/all.min.css,200|173ms
+17:56:05.481 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/reg-am/login.min.css,200|223ms
+17:56:05.488 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /scripts/common/js/bootstrap-5.2.2/bootstrap.bundle.min.js,200|131ms
+17:56:05.501 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/lib/xyz.bundle.min.js,200|130ms
+17:56:05.501 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [x-sess-uuid=0.c62bf7c1.1762883765.21f5b391; secure; HttpOnly]
+17:56:05.502 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [x-sess-uuid=0.c62bf7c1.1762883765.21f5b391; secure; HttpOnly] -> 
+17:56:06.096 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /images/common/logos/ibkr/interactive-brokers.svg,200|71ms
+17:56:06.176 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/fontawesome-6.4.2/webfonts/fa-solid-900.woff2,200|129ms
+17:56:06.186 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/proxima-nova/Proxima-Nova-Regular.woff2,200|142ms
+17:56:06.256 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/proxima-nova/Proxima-Nova-Semibold.woff2,200|210ms
+17:56:06.264 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/fontawesome-6.4.2/webfonts/fa-brands-400.woff2,200|216ms
+17:56:06.337 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /portal.proxy/v1/gstat/bulletins,204|237ms
+17:56:06.340 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/report,200|267ms
+17:56:06.341 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [x-sess-uuid=0.c52bf7c1.1762883766.266c6320; secure; HttpOnly]
+17:56:06.342 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [x-sess-uuid=0.c52bf7c1.1762883766.266c6320; secure; HttpOnly] -> 
+17:56:06.429 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /images/web/favicons/home-screen-icon-128x128.png,200|130ms
+17:56:08.006 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /images/common/logos/ibkr/interactive-brokers-inverse.svg,200|34ms
+17:56:10.327 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Authenticator,200|594ms
+17:56:10.327 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [x-sess-uuid=0.c62bf7c1.1762883769.21f5b4ea; secure; HttpOnly]
+17:56:10.328 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [x-sess-uuid=0.c62bf7c1.1762883769.21f5b4ea; secure; HttpOnly] -> 
+17:56:11.156 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Authenticator,200|785ms
+17:56:11.156 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [web=311544119; Domain=.ibkr.com; Expires=Wed, 11 Nov 2026 17:56:10 GMT; Path=/; Secure;Secure;SameSite=None, x-sess-uuid=0.c52bf7c1.1762883770.266c637a; secure; HttpOnly]
+17:56:11.156 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [web=311544119; Domain=.ibkr.com; Expires=Wed, 11 Nov 2026 17:56:10 GMT; Path=/; Secure;Secure;SameSite=None, x-sess-uuid=0.c52bf7c1.1762883770.266c637a; secure; HttpOnly] -> 
+17:56:11.761 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Dispatcher,302|589ms
+17:56:11.761 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [USERID=49432819; Domain=.ibkr.com; Path=/;Secure;SameSite=None, x-sess-uuid=0.c52bf7c1.1762883771.266c637d; secure; HttpOnly]
+17:56:11.761 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [USERID=49432819; Domain=.ibkr.com; Path=/;Secure;SameSite=None, x-sess-uuid=0.c52bf7c1.1762883771.266c637d; secure; HttpOnly] -> 
+17:56:11.762 INFO  vert.x-eventloop-thread-0 GatewayHttpProxy     : Client login succeeds
+17:56:11.956 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/sso/validate?gw=1,200|193ms
+17:56:11.957 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : portal validate response: {"PAPER_USER_NAME":"dave17216","IS_PENDING_APPLICANT":false,"SF_ENABLED":false,"HARDWARE_INFO":"","UNIQUE_LOGIN_ID":"49432819-1762883770539","AUTH_TIME":1762883770579,"SF_CONFIG":"","USER_NAME":"dave17216","CREDENTIAL_TYPE":0,"IS_FREE_TRIAL":false,"LOGIN_TYPE":2,"LANDING_APP":"PORTAL","CREDENTIAL":"dave17216","ANOMALOUS_LOGIN":false,"RESULT":true,"IP":"193.5.232.5","USER_ID":49432819,"EXPIRES":1762883771923,"TOKEN":"33e09642c0f1c9351a2e9d6cb812981440d77c0d","took":121,"IS_MASTER":false,"features":{"env":"PROD","wlms":true,"realtime":true,"bond":true,"optionChains":true,"calendar":true,"newMf":true},"region":"EU"}
+17:56:12.044 INFO  vert.x-eventloop-thread-0 GatewayHttpProxy     : authenticated to cp
+17:56:12.044 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : cancel timer SsoService 0
+17:56:12.045 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : start timer 300000 SsoService
+17:56:12.047 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : forward event ON_SSO_VALIDATION, payload 49432819
+17:56:12.405 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/one/user,200|361ms
+17:56:12.405 INFO  vert.x-eventloop-thread-0 ClientPortalService  : get user reply {"username":"dave17216","features":{"env":"PROD","wlms":true,"realtime":true,"bond":true,"optionChains":true,"calendar":true,"newMf":true},"wbId":"","uar":{"portfolioAnalyst":true,"userInfo":true,"messageCenter":true,"accountDetails":true,"tradingRestrictions":true,"tws":true,"fyi":true,"voting":true,"forum":true,"recentTransactions":true},"props":{"isIBAMClient":false,"ReadOnlySession":null},"accts":{"DU2259313":{"isIBAMClient":false,"clearingStatus":"O","openDate":1589320800000,"isFAClient":false,"isFunded":true,"tradingPermissions":["CFD","CRYPTO","WGR","FUT","FUND","IOPT","WAR","STK","CMDTY","CASH","OPT","BILL","BOND","FOP","SSF"]}},"hasBrokerageAccessInd":true,"hfcipEligibleInd":false,"fa":false,"has2fa":false,"islite":false,"ispaper":true,"applicants":[{"id":5876833,"type":"INDIVIDUAL","businessType":"INDEPENDENT","nlcode":"de","legalCountry":{"name":"Switzerland","alpha3":"CHE"}}]}
+17:56:13.972 INFO  vert.x-eventloop-thread-0 SsoService           : sso init status=200, url=https://api.ibkr.com/v1/api/ssodh/init
+17:56:14.144 DEBUG vert.x-eventloop-thread-0 SsoService           : K ca2d62208a809a950844e80089ba6e68379e8889
+17:56:14.145 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : forward event ON_SSODH_COMPLETED, payload none
+17:56:14.145 DEBUG vert.x-eventloop-thread-0 GatewayHttpProxy     : delaying authentication for 3000
+17:56:14.150 INFO  vert.x-eventloop-thread-0 TstTokenUtils        : Current MAC address : 52-21-7C-D7-7A-C0
+17:56:14.153 DEBUG vert.x-eventloop-thread-0 SsoService           : tst token generated: 02491740bd451f76f149140abb4e8966e984dd94
+17:56:14.409 INFO  vert.x-eventloop-thread-0 SsoService           : publish tst token status=200, url=https://api.ibkr.com/sso/Authenticator?ACTION=PUBLISH_TST&RESP_TYPE=JSON&DEVICE_ID=12bc8dcd|52-21-7C-D7-7A-C0
+17:56:14.870 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|48ms
+17:56:17.292 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|142ms
+17:56:17.293 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : status {"authenticated":false,"competing":false,"connected":false,"MAC":"5C:BA:2C:60:27:50"}
+17:56:17.294 INFO  vert.x-eventloop-thread-0 ClientPortalService  : process auth status {"authenticated":false,"competing":false,"connected":false,"MAC":"5C:BA:2C:60:27:50"}
+17:56:17.334 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : auth brokerage, k=ca2d62208a809a950844e80089ba6e68379e8889, post={"username":"dave17216","machineId":"0dbd6db6","compete":true}
+17:56:19.443 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> POST https://api.ibkr.com/v1/api/iserver/auth/ssodh/init,200|2109ms
+17:56:19.444 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : iserver init : {"passed":true,"authenticated":true,"connected":true,"competing":false,"hardware_info":"21202708|5C:BA:2C:60:27:50"}
+17:56:19.444 INFO  vert.x-eventloop-thread-0 ClientPortalService  : process auth status {"passed":true,"authenticated":true,"connected":true,"competing":false,"hardware_info":"21202708|5C:BA:2C:60:27:50"}
+17:56:19.445 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : start timer 30000 ClientPortalService
+17:56:19.507 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/accounts,200|63ms
+17:56:19.508 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : iserver accounts {}
+17:56:32.651 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/trsrv/futures?symbols=CL,200|110ms
+17:56:32.957 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|201ms
+17:56:33.020 INFO  vert.x-eventloop-thread-0 GwWebsocketHandler   : starting ws: /v1/api/ws -> /v1/api/ws. id: 904638fc-9312-4535-bdc2-6b348c55d625
+17:56:33.020 INFO  vert.x-eventloop-thread-0 GwWebsocketHandler   :  ws headers: [Cookie: REGION=; XYZAB_AM.LOGIN=33e09642c0f1c9351a2e9d6cb812981440d77c0d; URL_PARAM="forwardTo=22&RL=1&ip2loc=US"; XYZAB=33e09642c0f1c9351a2e9d6cb812981440d77c0d; USERID=49432819; api=9b5de2a4992d923282da7eafbf8d3ec2; web=311544119, User-Agent: ClientPortalGW/1]
+17:56:33.199 DEBUG vert.x-eventloop-thread-0 ClientConnection     : WebSocket handshake complete
+17:56:33.200 INFO  vert.x-eventloop-thread-0 GwWebsocketHandler   : connected to server: /v1/api/ws
+17:56:33.210 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","success":"dave17216","isFT":false,"isPaper":true}
+17:56:33.221 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"act","args":{"accounts":["DU2259313"],"acctProps":{"DU2259313":{"hasChildAccounts":false,"supportsCashQty":true,"liteUnderPro":false,"noFXConv":false,"isProp":false,"supportsFractions":true,"allowCustomerTime":false,"autoFx":false}},"aliases":{"DU2259313":"DU2259313"},"allowFeatures":{"showGFIS":true,"showEUCostReport":false,"allowEventContract":true,"allowFXConv":true,"allowFinancialLens":false,"allowMTA":true,"allowTypeAhead":true,"allowEventTrading":true,"snapshotRefreshTimeout":30,"liteUser":false,"showWebNews":true,"research":true,"debugPnl":true,"showTaxOpt":true,"showImpactDashboard":true,"allowDynAccount":false,"allowCrypto":false,"allowFA":false,"allowLiteUnderPro":false,"allowedAssetTypes":"STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO","restrictTradeSubscription":false,"showUkUserLabels":true,"sideBySide":true},"chartPeriods":{"STK":["*"],"CFD":["*"],"OPT":["2h","1d","2d","1w","1m"],"FOP":["2h","1d","2d","1w","1m"],"WAR":["*"],"IOPT":["*"],"FUT":["*"],"CASH":["*"],"IND":["*"],"BOND":["*"],"FUND":["*"],"CMDTY":["*"],"PHYSS":["*"],"CRYPTO":["*"]},"groups":[],"profiles":[],"selectedAccount":"DU2259313","serverInfo":{"serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"sessionId":"6912c855.00000017","isFT":false,"isPaper":true}}
+17:56:33.223 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sts","args":{"connected":true,"authenticated":true,"competing":false,"message":"","fail":"","serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM","username":"dave17216"}}
+17:56:36.051 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+256019341+{"fields":["31","55","6008","6509","7059","7697"]}
+17:56:36.055 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+17:56:36.056 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037410+{"fields":["31","55","6008","6509","7059","7697"]}
+17:56:36.058 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037427+{"fields":["31","55","6008","6509","7059","7697"]}
+17:56:36.061 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037436+{"fields":["31","55","6008","6509","7059","7697"]}
+17:56:36.501 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"256019341","topic":"smd+256019341","conid":256019341,"_updated":1762883796418,"6119":"q0","server_id":"q0"}
+17:56:36.502 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883796418,"6119":"q0","55":"CL","topic":"smd+256019341"}
+17:56:36.503 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1762883796418,"6119":"q1","server_id":"q1"}
+17:56:36.504 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883796418,"6119":"q1","55":"CL","topic":"smd+304037393"}
+17:56:36.505 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037410","topic":"smd+304037410","conid":304037410,"_updated":1762883796418,"6119":"q2","server_id":"q2"}
+17:56:36.506 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q2","conidEx":"304037410","conid":304037410,"_updated":1762883796418,"6119":"q2","55":"CL","topic":"smd+304037410"}
+17:56:36.508 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037427","topic":"smd+304037427","conid":304037427,"_updated":1762883796418,"6119":"q3","server_id":"q3"}
+17:56:36.509 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q3","conidEx":"304037427","conid":304037427,"_updated":1762883796418,"6119":"q3","55":"CL","topic":"smd+304037427"}
+17:56:36.510 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037436","topic":"smd+304037436","conid":304037436,"_updated":1762883796418,"6119":"q4","server_id":"q4"}
+17:56:36.510 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q4","conidEx":"304037436","conid":304037436,"_updated":1762883796418,"6119":"q4","55":"CL","topic":"smd+304037436"}
+17:56:37.300 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883796917,"6119":"q1","7697":"286K","31":"60.94","6509":"RB","7059":"1","topic":"smd+304037393"}
+17:56:37.301 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q2","conidEx":"304037410","conid":304037410,"_updated":1762883796917,"6119":"q2","7697":"131K","31":"60.81","6509":"RB","7059":"4","topic":"smd+304037410"}
+17:56:37.302 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q3","conidEx":"304037427","conid":304037427,"_updated":1762883796917,"6119":"q3","7697":"165K","31":"60.74","6509":"RB","7059":"1","topic":"smd+304037427"}
+17:56:37.303 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q4","conidEx":"304037436","conid":304037436,"_updated":1762883796917,"6119":"q4","7697":"69.8K","31":"60.71","6509":"RB","7059":"1","topic":"smd+304037436"}
+17:56:37.304 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883796917,"6119":"q0","7697":"239K","31":"61.00","6509":"RB","7059":"2","topic":"smd+256019341"}
+17:56:37.306 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883796967}
+17:56:43.720 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883803443,"6119":"q0","7059":"1","topic":"smd+256019341"}
+17:56:45.247 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883804944,"6119":"q1","7059":"2","topic":"smd+304037393"}
+17:56:45.248 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883804944,"6119":"q0","31":"61.01","topic":"smd+256019341"}
+17:56:47.089 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883806944,"6119":"q1","31":"60.95","7059":"1","topic":"smd+304037393"}
+17:56:47.090 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883806968}
+17:56:47.705 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883807445,"6119":"q1","31":"60.93","topic":"smd+304037393"}
+17:56:47.706 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q2","conidEx":"304037410","conid":304037410,"_updated":1762883807445,"6119":"q2","7059":"1","topic":"smd+304037410"}
+17:56:47.707 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q3","conidEx":"304037427","conid":304037427,"_updated":1762883807445,"6119":"q3","7059":"2","topic":"smd+304037427"}
+17:56:47.707 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q4","conidEx":"304037436","conid":304037436,"_updated":1762883807445,"6119":"q4","31":"60.75","topic":"smd+304037436"}
+17:56:47.708 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883807445,"6119":"q0","7059":"12","topic":"smd+256019341"}
+17:56:48.361 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q2","conidEx":"304037410","conid":304037410,"_updated":1762883807945,"6119":"q2","31":"60.80","topic":"smd+304037410"}
+17:56:48.362 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883807945,"6119":"q0","31":"60.99","7059":"7","topic":"smd+256019341"}
+17:56:49.241 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q2","conidEx":"304037410","conid":304037410,"_updated":1762883808945,"6119":"q2","7059":"2","topic":"smd+304037410"}
+17:56:49.241 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883808945,"6119":"q0","7059":"10","topic":"smd+256019341"}
+17:56:49.856 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|410ms
+17:56:49.856 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"9b5de2a4992d923282da7eafbf8d3ec2","ssoExpires":562420,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"21202708|5C:BA:2C:60:27:50"}}}
+17:56:52.928 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883812730,"6119":"q0","7059":"2","topic":"smd+256019341"}
+17:56:57.229 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883816968}
+17:57:05.840 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883825828,"6119":"q1","31":"60.92","topic":"smd+304037393"}
+17:57:05.841 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883825828,"6119":"q0","31":"60.98","7059":"1","topic":"smd+256019341"}
+17:57:06.902 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883826828,"6119":"q0","7059":"2","topic":"smd+256019341"}
+17:57:06.981 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883826967}
+17:57:08.605 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883828329,"6119":"q1","31":"60.93","7059":"3","topic":"smd+304037393"}
+17:57:08.606 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883828329,"6119":"q0","31":"60.99","7059":"9","topic":"smd+256019341"}
+17:57:09.528 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883829328,"6119":"q1","7059":"4","topic":"smd+304037393"}
+17:57:09.529 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883829328,"6119":"q0","7059":"3","topic":"smd+256019341"}
+17:57:10.745 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883830329,"6119":"q0","7059":"1","topic":"smd+256019341"}
+17:57:11.360 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883831329,"6119":"q1","31":"60.92","7059":"1","topic":"smd+304037393"}
+17:57:12.602 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883832329,"6119":"q0","31":"60.98","topic":"smd+256019341"}
+17:57:16.986 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883836967}
+17:57:19.500 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|53ms
+17:57:19.501 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"9b5de2a4992d923282da7eafbf8d3ec2","ssoExpires":532433,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"21202708|5C:BA:2C:60:27:50"}}}
+17:57:27.027 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883846967}
+17:57:36.552 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883856265,"6119":"q1","31":"60.93","topic":"smd+304037393"}
+17:57:36.552 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q2","conidEx":"304037410","conid":304037410,"_updated":1762883856265,"6119":"q2","7059":"1","topic":"smd+304037410"}
+17:57:36.553 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883856265,"6119":"q0","31":"60.99","7059":"2","topic":"smd+256019341"}
+17:57:36.984 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883856967}
+17:57:37.817 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883857765,"6119":"q1","7059":"3","topic":"smd+304037393"}
+17:57:37.818 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q2","conidEx":"304037410","conid":304037410,"_updated":1762883857765,"6119":"q2","7059":"3","topic":"smd+304037410"}
+17:57:37.819 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883857765,"6119":"q0","7059":"1","topic":"smd+256019341"}
+17:57:39.323 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883859266,"6119":"q1","31":"60.94","7059":"1","topic":"smd+304037393"}
+17:57:39.323 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883859266,"6119":"q0","31":"61.00","topic":"smd+256019341"}
+17:57:40.794 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q2","conidEx":"304037410","conid":304037410,"_updated":1762883860766,"6119":"q2","7059":"1","topic":"smd+304037410"}
+17:57:41.284 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883861267,"6119":"q0","7059":"5","topic":"smd+256019341"}
+17:57:45.151 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883864850,"6119":"q0","7059":"1","topic":"smd+256019341"}
+17:57:47.045 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883866967}
+17:57:48.223 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883867851,"6119":"q1","31":"60.93","topic":"smd+304037393"}
+17:57:48.223 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883867851,"6119":"q0","31":"60.99","topic":"smd+256019341"}
+17:57:49.497 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|51ms
+17:57:49.497 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"9b5de2a4992d923282da7eafbf8d3ec2","ssoExpires":502439,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"21202708|5C:BA:2C:60:27:50"}}}
+17:57:54.676 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883874213,"6119":"q0","31":"61.00","7059":"5","topic":"smd+256019341"}
+17:57:55.905 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883875713,"6119":"q0","7059":"1","topic":"smd+256019341"}
+17:57:57.080 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883876968}
+17:58:07.470 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883886968}
+17:58:17.407 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883896967}
+17:58:19.553 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|107ms
+17:58:19.554 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"9b5de2a4992d923282da7eafbf8d3ec2","ssoExpires":472435,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"21202708|5C:BA:2C:60:27:50"}}}
+17:58:20.788 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883900722,"6119":"q1","7059":"8","topic":"smd+304037393"}
+17:58:20.789 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q2","conidEx":"304037410","conid":304037410,"_updated":1762883900722,"6119":"q2","31":"60.79","7059":"2","topic":"smd+304037410"}
+17:58:20.791 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q3","conidEx":"304037427","conid":304037427,"_updated":1762883900722,"6119":"q3","31":"60.73","7059":"1","topic":"smd+304037427"}
+17:58:21.289 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883901222,"6119":"q0","31":"60.98","7059":"8","topic":"smd+256019341"}
+17:58:21.739 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883901723,"6119":"q1","31":"60.92","7059":"1","topic":"smd+304037393"}
+17:58:21.740 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883901723,"6119":"q0","31":"60.99","7059":"1","topic":"smd+256019341"}
+17:58:22.325 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883902223,"6119":"q1","7059":"2","topic":"smd+304037393"}
+17:58:26.981 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883906967}
+17:58:27.238 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q2","conidEx":"304037410","conid":304037410,"_updated":1762883907223,"6119":"q2","31":"60.80","7059":"1","topic":"smd+304037410"}
+17:58:27.239 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883907223,"6119":"q0","31":"61.00","7059":"3","topic":"smd+256019341"}
+17:58:30.926 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883910724,"6119":"q0","7059":"1","topic":"smd+256019341"}
+17:58:34.753 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883914725,"6119":"q1","31":"60.94","7059":"1","topic":"smd+304037393"}
+17:58:34.754 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q3","conidEx":"304037427","conid":304037427,"_updated":1762883914725,"6119":"q3","31":"60.74","topic":"smd+304037427"}
+17:58:35.738 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883915726,"6119":"q1","7059":"3","topic":"smd+304037393"}
+17:58:37.007 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883916968}
+17:58:39.526 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883919386,"6119":"q0","7059":"2","topic":"smd+256019341"}
+17:58:41.065 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883920387,"6119":"q1","7059":"1","topic":"smd+304037393"}
+17:58:41.399 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883921388,"6119":"q1","7059":"3","topic":"smd+304037393"}
+17:58:42.944 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883922888,"6119":"q0","7059":"1","topic":"smd+256019341"}
+17:58:43.400 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883923389,"6119":"q1","31":"60.93","7059":"1","topic":"smd+304037393"}
+17:58:43.401 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q2","conidEx":"304037410","conid":304037410,"_updated":1762883923389,"6119":"q2","31":"60.79","topic":"smd+304037410"}
+17:58:44.130 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q3","conidEx":"304037427","conid":304037427,"_updated":1762883923889,"6119":"q3","31":"60.72","7059":"2","topic":"smd+304037427"}
+17:58:44.130 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883923889,"6119":"q0","31":"60.99","7059":"6","topic":"smd+256019341"}
+17:58:44.750 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883924389,"6119":"q1","31":"60.92","topic":"smd+304037393"}
+17:58:46.979 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883926968}
+17:58:49.522 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|76ms
+17:58:49.523 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"9b5de2a4992d923282da7eafbf8d3ec2","ssoExpires":442434,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"21202708|5C:BA:2C:60:27:50"}}}
+17:58:53.428 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q4","conidEx":"304037436","conid":304037436,"_updated":1762883933392,"6119":"q4","31":"60.74","topic":"smd+304037436"}
+17:58:53.428 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883933392,"6119":"q0","7059":"1","topic":"smd+256019341"}
+17:58:57.063 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883936967}
+17:59:01.514 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883941502,"6119":"q1","31":"60.93","topic":"smd+304037393"}
+17:59:03.179 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883943003,"6119":"q1","31":"60.92","topic":"smd+304037393"}
+17:59:07.046 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883946967}
+17:59:10.247 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q1","conidEx":"304037393","conid":304037393,"_updated":1762883950013,"6119":"q1","31":"60.93","topic":"smd+304037393"}
+17:59:11.167 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883951013,"6119":"q0","31":"61.00","topic":"smd+256019341"}
+17:59:12.088 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883952013,"6119":"q0","31":"60.99","topic":"smd+256019341"}
+17:59:17.074 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883956967}
+17:59:19.154 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883958933,"6119":"q0","31":"60.98","topic":"smd+256019341"}
+17:59:19.769 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|324ms
+17:59:19.769 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"9b5de2a4992d923282da7eafbf8d3ec2","ssoExpires":412334,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"21202708|5C:BA:2C:60:27:50"}}}
+17:59:21.612 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883961433,"6119":"q0","31":"60.99","topic":"smd+256019341"}
+17:59:22.226 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883961934,"6119":"q0","31":"60.98","topic":"smd+256019341"}
+17:59:24.377 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883963935,"6119":"q0","31":"60.99","7059":"2","topic":"smd+256019341"}
+17:59:25.307 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883964936,"6119":"q0","7059":"1","topic":"smd+256019341"}
+17:59:27.141 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762883966968}
+17:59:28.370 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883967854,"6119":"q0","31":"60.98","7059":"7","topic":"smd+256019341"}
+17:59:28.988 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883968855,"6119":"q0","31":"60.99","7059":"2","topic":"smd+256019341"}
+17:59:29.908 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"256019341","conid":256019341,"_updated":1762883969855,"6119":"q0","7059":"1","topic":"smd+256019341"}
+17:59:45.245 INFO  main GatewayStart         : config ../root/conf.yaml !!ibgroup.web.core.clientportal.gw.Config
+authDelay: 3000
+ccp: false
+cors: {origin.allowed: '*', allowCredentials: false}
+ip2loc: US
+ips:
+  allow: [10.*, 192.*, 131.216.*, 127.0.0.1]
+  deny: [212.90.324.10]
+listenPort: 5000
+listenSsl: true
+portalBaseURL: ''
+proxyRemoteHost: https://api.ibkr.com
+proxyRemoteSsl: true
+sslCert: vertx.jks
+sslPwd: mywebapi
+ssoPing: 5
+svcEnvironment: v1
+tst: false
+twsBaseURL: /tws.proxy
+webApps:
+- {cache: true, index: index.html, listing: false, name: demo, proxy: ''}
+
+17:59:45.396 INFO  vert.x-eventloop-thread-0 GatewayHttpProxy     :  -> mount demo on /demo
+17:59:45.412 INFO  vert.x-eventloop-thread-0 GatewayVerticle      : version: a27ed42161ad96c53e715ca5c5e3e3fa4cff5262 Mon, 24 Apr 2023 15:41:53 -0400
+17:59:45.413 INFO  vert.x-eventloop-thread-0 GatewayVerticle      : Java Version: 17.0.17
+17:59:51.409 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Login?forwardTo=22&RL=1&ip2loc=US,200|552ms
+17:59:51.410 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, URL_PARAM="forwardTo=22&RL=1&ip2loc=US"; Version=1; Domain=.ibkr.com; Path=/;Secure, JSESSIONID=8386B7FFC9392C4CA059182BE7F98461.ny5wwwdam2-internet; Path=/sso; HttpOnly;Secure;SameSite=None, x-sess-uuid=0.bd2bf7c1.1762883990.dc1c6c0; secure; HttpOnly]
+17:59:51.411 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, URL_PARAM="forwardTo=22&RL=1&ip2loc=US"; Version=1; Domain=.ibkr.com; Path=/;Secure, JSESSIONID=8386B7FFC9392C4CA059182BE7F98461.ny5wwwdam2-internet; Path=/sso; HttpOnly;Secure;SameSite=None, x-sess-uuid=0.bd2bf7c1.1762883990.dc1c6c0; secure; HttpOnly] -> 
+17:59:51.516 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/bootstrap-5.2.2/bootstrap.min.css,200|87ms
+17:59:51.601 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/bootstrap-switch-3.3.2/bootstrap-switch.min.css,200|144ms
+17:59:51.606 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/reg-am/login.min.css,200|146ms
+17:59:51.610 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/ibkr/theme-ibkr-portal.min.css,200|147ms
+17:59:51.644 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/fontawesome-6.4.2/all.min.css,200|189ms
+17:59:51.657 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /scripts/common/js/bootstrap-5.2.2/bootstrap.bundle.min.js,200|53ms
+17:59:51.683 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /scripts/common/js/jquery-3.7.0/jquery.min.js,200|217ms
+17:59:51.752 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/lib/xyz.bundle.min.js,200|146ms
+17:59:51.752 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [x-sess-uuid=0.c62bf7c1.1762883991.21f6de59; secure; HttpOnly]
+17:59:51.752 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [x-sess-uuid=0.c62bf7c1.1762883991.21f6de59; secure; HttpOnly] -> 
+17:59:51.921 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/proxima-nova/Proxima-Nova-Semibold.woff2,200|36ms
+17:59:51.925 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /images/common/logos/ibkr/interactive-brokers.svg,200|63ms
+17:59:51.953 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/fontawesome-6.4.2/webfonts/fa-brands-400.woff2,200|71ms
+17:59:51.963 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/proxima-nova/Proxima-Nova-Regular.woff2,200|83ms
+17:59:51.968 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/fontawesome-6.4.2/webfonts/fa-solid-900.woff2,200|84ms
+17:59:51.990 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /portal.proxy/v1/gstat/bulletins,204|65ms
+17:59:52.020 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /images/web/favicons/home-screen-icon-128x128.png,200|17ms
+17:59:52.148 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/report,200|239ms
+17:59:52.148 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [x-sess-uuid=0.c62bf7c1.1762883991.21f6deeb; secure; HttpOnly]
+17:59:52.148 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [x-sess-uuid=0.c62bf7c1.1762883991.21f6deeb; secure; HttpOnly] -> 
+17:59:53.659 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /images/common/logos/ibkr/interactive-brokers-inverse.svg,200|91ms
+17:59:55.437 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Authenticator,200|157ms
+17:59:55.437 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [x-sess-uuid=0.c62bf7c1.1762883995.21f6def0; secure; HttpOnly]
+17:59:55.437 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [x-sess-uuid=0.c62bf7c1.1762883995.21f6def0; secure; HttpOnly] -> 
+17:59:56.019 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Authenticator,200|569ms
+17:59:56.019 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [web=311544119; Domain=.ibkr.com; Expires=Wed, 11 Nov 2026 17:59:55 GMT; Path=/; Secure;Secure;SameSite=None, x-sess-uuid=0.c62bf7c1.1762883995.21f6df02; secure; HttpOnly]
+17:59:56.019 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [web=311544119; Domain=.ibkr.com; Expires=Wed, 11 Nov 2026 17:59:55 GMT; Path=/; Secure;Secure;SameSite=None, x-sess-uuid=0.c62bf7c1.1762883995.21f6df02; secure; HttpOnly] -> 
+17:59:56.634 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Dispatcher,302|600ms
+17:59:56.634 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [USERID=49432819; Domain=.ibkr.com; Path=/;Secure;SameSite=None, x-sess-uuid=0.bd2bf7c1.1762883996.dc1c8ba; secure; HttpOnly]
+17:59:56.634 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [USERID=49432819; Domain=.ibkr.com; Path=/;Secure;SameSite=None, x-sess-uuid=0.bd2bf7c1.1762883996.dc1c8ba; secure; HttpOnly] -> 
+17:59:56.634 INFO  vert.x-eventloop-thread-0 GatewayHttpProxy     : Client login succeeds
+17:59:56.965 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/sso/validate?gw=1,200|330ms
+17:59:56.967 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : portal validate response: {"PAPER_USER_NAME":"dave17216","IS_PENDING_APPLICANT":false,"SF_ENABLED":false,"HARDWARE_INFO":"","UNIQUE_LOGIN_ID":"49432819-1762883995576","AUTH_TIME":1762883995624,"SF_CONFIG":"","USER_NAME":"dave17216","CREDENTIAL_TYPE":0,"IS_FREE_TRIAL":false,"LOGIN_TYPE":2,"LANDING_APP":"PORTAL","CREDENTIAL":"dave17216","ANOMALOUS_LOGIN":false,"RESULT":true,"IP":"193.5.232.5","USER_ID":49432819,"EXPIRES":1762883996896,"TOKEN":"d451e9133a93cf69e0dab911c5a4aeb2a5dea5f7","took":122,"IS_MASTER":false,"features":{"env":"PROD","wlms":true,"realtime":true,"bond":true,"optionChains":true,"calendar":true,"newMf":true},"region":"EU"}
+17:59:57.048 INFO  vert.x-eventloop-thread-0 GatewayHttpProxy     : authenticated to cp
+17:59:57.048 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : cancel timer SsoService 0
+17:59:57.048 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : start timer 300000 SsoService
+17:59:57.050 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : forward event ON_SSO_VALIDATION, payload 49432819
+17:59:57.109 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/one/user,200|61ms
+17:59:57.110 INFO  vert.x-eventloop-thread-0 ClientPortalService  : get user reply {"username":"dave17216","features":{"env":"PROD","wlms":true,"realtime":true,"bond":true,"optionChains":true,"calendar":true,"newMf":true},"wbId":"","uar":{"portfolioAnalyst":true,"userInfo":true,"messageCenter":true,"accountDetails":true,"tradingRestrictions":true,"tws":true,"fyi":true,"voting":true,"forum":true,"recentTransactions":true},"props":{"isIBAMClient":false,"ReadOnlySession":null},"accts":{"DU2259313":{"isIBAMClient":false,"clearingStatus":"O","openDate":1589320800000,"isFAClient":false,"isFunded":true,"tradingPermissions":["CFD","CRYPTO","WGR","FUT","FUND","IOPT","WAR","STK","CMDTY","CASH","OPT","BILL","BOND","FOP","SSF"]}},"hasBrokerageAccessInd":true,"hfcipEligibleInd":false,"fa":false,"has2fa":false,"islite":false,"ispaper":true,"applicants":[{"id":5876833,"type":"INDIVIDUAL","businessType":"INDEPENDENT","nlcode":"de","legalCountry":{"name":"Switzerland","alpha3":"CHE"}}]}
+17:59:58.767 INFO  vert.x-eventloop-thread-0 SsoService           : sso init status=200, url=https://api.ibkr.com/v1/api/ssodh/init
+17:59:58.821 DEBUG vert.x-eventloop-thread-0 SsoService           : K de95ff557e865c486befd63bed023ed4970549a5
+17:59:58.821 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : forward event ON_SSODH_COMPLETED, payload none
+17:59:58.822 DEBUG vert.x-eventloop-thread-0 GatewayHttpProxy     : delaying authentication for 3000
+17:59:58.823 INFO  vert.x-eventloop-thread-0 TstTokenUtils        : Current MAC address : 52-21-7C-D7-7A-C0
+17:59:58.823 DEBUG vert.x-eventloop-thread-0 SsoService           : tst token generated: fdc0d07ade28a5ad9686283ed35b85881c814cd8
+17:59:58.981 INFO  vert.x-eventloop-thread-0 SsoService           : publish tst token status=200, url=https://api.ibkr.com/sso/Authenticator?ACTION=PUBLISH_TST&RESP_TYPE=JSON&DEVICE_ID=37d8a8bd|52-21-7C-D7-7A-C0
+18:00:00.548 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|230ms
+18:00:02.147 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|322ms
+18:00:02.147 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : status {"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"21202708|5C:BA:2C:60:27:50","fail":""}
+18:00:02.148 INFO  vert.x-eventloop-thread-0 ClientPortalService  : process auth status {"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"21202708|5C:BA:2C:60:27:50","fail":""}
+18:00:02.172 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : start timer 30000 ClientPortalService
+18:00:02.274 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/accounts,200|103ms
+18:00:02.275 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : iserver accounts {"accounts":["DU2259313"],"acctProps":{"DU2259313":{"hasChildAccounts":false,"supportsCashQty":true,"liteUnderPro":false,"noFXConv":false,"isProp":false,"supportsFractions":true,"allowCustomerTime":false,"autoFx":false}},"aliases":{"DU2259313":"DU2259313"},"allowFeatures":{"showGFIS":true,"showEUCostReport":false,"allowEventContract":true,"allowFXConv":true,"allowFinancialLens":false,"allowMTA":true,"allowTypeAhead":true,"allowEventTrading":true,"snapshotRefreshTimeout":30,"liteUser":false,"showWebNews":true,"research":true,"debugPnl":true,"showTaxOpt":true,"showImpactDashboard":true,"allowDynAccount":false,"allowCrypto":false,"allowFA":false,"allowLiteUnderPro":false,"allowedAssetTypes":"STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO","restrictTradeSubscription":false,"showUkUserLabels":true,"sideBySide":true},"chartPeriods":{"STK":["*"],"CFD":["*"],"OPT":["2h","1d","2d","1w","1m"],"FOP":["2h","1d","2d","1w","1m"],"WAR":["*"],"IOPT":["*"],"FUT":["*"],"CASH":["*"],"IND":["*"],"BOND":["*"],"FUND":["*"],"CMDTY":["*"],"PHYSS":["*"],"CRYPTO":["*"]},"groups":[],"profiles":[],"selectedAccount":"DU2259313","serverInfo":{"serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"sessionId":"6912c855.00000017","isFT":false,"isPaper":true}
+18:00:18.407 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/trsrv/futures?symbols=CL,200|243ms
+18:00:18.574 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|47ms
+18:00:18.603 INFO  vert.x-eventloop-thread-0 GwWebsocketHandler   : starting ws: /v1/api/ws -> /v1/api/ws. id: ec193318-54ec-493d-82a0-d952456f3e39
+18:00:18.603 INFO  vert.x-eventloop-thread-0 GwWebsocketHandler   :  ws headers: [Cookie: REGION=; XYZAB_AM.LOGIN=d451e9133a93cf69e0dab911c5a4aeb2a5dea5f7; URL_PARAM="forwardTo=22&RL=1&ip2loc=US"; XYZAB=d451e9133a93cf69e0dab911c5a4aeb2a5dea5f7; USERID=49432819; api=497070e75131058f2e00f63d22aac0a8; web=311544119, User-Agent: ClientPortalGW/1]
+18:00:18.840 DEBUG vert.x-eventloop-thread-0 ClientConnection     : WebSocket handshake complete
+18:00:18.840 INFO  vert.x-eventloop-thread-0 GwWebsocketHandler   : connected to server: /v1/api/ws
+18:00:18.847 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","success":"dave17216","isFT":false,"isPaper":true}
+18:00:18.850 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"act","args":{"accounts":["DU2259313"],"acctProps":{"DU2259313":{"hasChildAccounts":false,"supportsCashQty":true,"liteUnderPro":false,"noFXConv":false,"isProp":false,"supportsFractions":true,"allowCustomerTime":false,"autoFx":false}},"aliases":{"DU2259313":"DU2259313"},"allowFeatures":{"showGFIS":true,"showEUCostReport":false,"allowEventContract":true,"allowFXConv":true,"allowFinancialLens":false,"allowMTA":true,"allowTypeAhead":true,"allowEventTrading":true,"snapshotRefreshTimeout":30,"liteUser":false,"showWebNews":true,"research":true,"debugPnl":true,"showTaxOpt":true,"showImpactDashboard":true,"allowDynAccount":false,"allowCrypto":false,"allowFA":false,"allowLiteUnderPro":false,"allowedAssetTypes":"STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO","restrictTradeSubscription":false,"showUkUserLabels":true,"sideBySide":true},"chartPeriods":{"STK":["*"],"CFD":["*"],"OPT":["2h","1d","2d","1w","1m"],"FOP":["2h","1d","2d","1w","1m"],"WAR":["*"],"IOPT":["*"],"FUT":["*"],"CASH":["*"],"IND":["*"],"BOND":["*"],"FUND":["*"],"CMDTY":["*"],"PHYSS":["*"],"CRYPTO":["*"]},"groups":[],"profiles":[],"selectedAccount":"DU2259313","serverInfo":{"serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"sessionId":"6912c855.00000017","isFT":false,"isPaper":true}}
+18:00:18.850 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sts","args":{"connected":true,"authenticated":true,"competing":false,"message":"","fail":"","serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM","username":"dave17216"}}
+18:00:21.622 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+256019341+{"fields":["31","55","6008","6509","7059","7697"]}
+18:00:21.623 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+18:00:21.624 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037410+{"fields":["31","55","6008","6509","7059","7697"]}
+18:00:21.624 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037427+{"fields":["31","55","6008","6509","7059","7697"]}
+18:00:21.625 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037436+{"fields":["31","55","6008","6509","7059","7697"]}
+18:00:21.669 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1762884021655,"6119":"q6","server_id":"q6"}
+18:00:21.670 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884021655,"6119":"q6","55":"CL","topic":"smd+304037393"}
+18:00:21.670 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884021656,"6119":"q6","7697":"286K","topic":"smd+304037393"}
+18:00:21.670 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"256019341","7697":"239K","topic":"smd+256019341","conid":256019341,"_updated":1762884021656,"6119":"q5","server_id":"q5"}
+18:00:21.670 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884021656,"6119":"q5","7697":"239K","55":"CL","topic":"smd+256019341"}
+18:00:21.670 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037410","7697":"131K","topic":"smd+304037410","conid":304037410,"_updated":1762884021656,"6119":"q7","server_id":"q7"}
+18:00:21.671 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q7","conidEx":"304037410","conid":304037410,"_updated":1762884021656,"6119":"q7","7697":"131K","55":"CL","topic":"smd+304037410"}
+18:00:21.671 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037436","7697":"69.8K","topic":"smd+304037436","conid":304037436,"_updated":1762884021656,"6119":"q9","server_id":"q9"}
+18:00:21.671 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q9","conidEx":"304037436","conid":304037436,"_updated":1762884021656,"6119":"q9","7697":"69.8K","55":"CL","topic":"smd+304037436"}
+18:00:21.671 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037427","7697":"165K","topic":"smd+304037427","conid":304037427,"_updated":1762884021656,"6119":"q8","server_id":"q8"}
+18:00:21.671 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q8","conidEx":"304037427","conid":304037427,"_updated":1762884021656,"6119":"q8","7697":"165K","55":"CL","topic":"smd+304037427"}
+18:00:22.205 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884022155,"6119":"q5","31":"61.00","6509":"RB","7059":"1","topic":"smd+256019341"}
+18:00:22.206 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884022155,"6119":"q6","31":"60.94","6509":"RB","7059":"1","topic":"smd+304037393"}
+18:00:22.206 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q7","conidEx":"304037410","conid":304037410,"_updated":1762884022155,"6119":"q7","31":"60.80","6509":"RB","7059":"1","topic":"smd+304037410"}
+18:00:22.206 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q8","conidEx":"304037427","conid":304037427,"_updated":1762884022155,"6119":"q8","31":"60.74","6509":"RB","7059":"1","topic":"smd+304037427"}
+18:00:22.206 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q9","conidEx":"304037436","conid":304037436,"_updated":1762884022155,"6119":"q9","31":"60.75","6509":"RB","7059":"1","topic":"smd+304037436"}
+18:00:23.975 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884023656,"6119":"q5","31":"60.99","7059":"2","topic":"smd+256019341"}
+18:00:27.250 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762884026969}
+18:00:28.710 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884028705,"6119":"q5","31":"61.00","7059":"1","topic":"smd+256019341"}
+18:00:30.426 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884030205,"6119":"q5","7059":"2","topic":"smd+256019341"}
+18:00:30.427 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q7","conidEx":"304037410","conid":304037410,"_updated":1762884030205,"6119":"q7","31":"60.81","7059":"3","topic":"smd+304037410"}
+18:00:32.578 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|404ms
+18:00:32.579 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"497070e75131058f2e00f63d22aac0a8","ssoExpires":564673,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"21202708|5C:BA:2C:60:27:50"}}}
+18:00:35.957 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884035707,"6119":"q5","7059":"14","topic":"smd+256019341"}
+18:00:35.958 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884035707,"6119":"q6","7059":"4","topic":"smd+304037393"}
+18:00:36.874 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884036708,"6119":"q5","7059":"1","topic":"smd+256019341"}
+18:00:36.874 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884036708,"6119":"q6","7059":"2","topic":"smd+304037393"}
+18:00:37.189 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762884036968}
+18:00:45.478 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884045287,"6119":"q5","31":"61.01","7059":"5","topic":"smd+256019341"}
+18:00:45.480 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q7","conidEx":"304037410","conid":304037410,"_updated":1762884045287,"6119":"q7","7059":"5","topic":"smd+304037410"}
+18:00:47.015 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762884046969}
+18:00:51.008 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884050789,"6119":"q5","7059":"1","topic":"smd+256019341"}
+18:00:52.864 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q7","conidEx":"304037410","conid":304037410,"_updated":1762884052789,"6119":"q7","7059":"1","topic":"smd+304037410"}
+18:00:53.468 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884053290,"6119":"q5","7059":"5","topic":"smd+256019341"}
+18:00:54.390 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884054290,"6119":"q5","7059":"1","topic":"smd+256019341"}
+18:00:55.617 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884055290,"6119":"q6","31":"60.95","7059":"3","topic":"smd+304037393"}
+18:00:55.924 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884055790,"6119":"q5","31":"61.02","topic":"smd+256019341"}
+18:00:56.326 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884056291,"6119":"q6","7059":"1","topic":"smd+304037393"}
+18:00:56.977 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762884056969}
+18:01:00.535 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884060292,"6119":"q6","31":"60.96","topic":"smd+304037393"}
+18:01:03.008 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|834ms
+18:01:03.008 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"497070e75131058f2e00f63d22aac0a8","ssoExpires":534639,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"21202708|5C:BA:2C:60:27:50"}}}
+18:01:07.276 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762884066970}
+18:01:09.340 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884069295,"6119":"q5","31":"61.03","7059":"3","topic":"smd+256019341"}
+18:01:09.341 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884069295,"6119":"q6","7059":"4","topic":"smd+304037393"}
+18:01:10.670 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884070295,"6119":"q5","7059":"1","topic":"smd+256019341"}
+18:01:10.671 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884070295,"6119":"q6","31":"60.97","7059":"2","topic":"smd+304037393"}
+18:01:10.978 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884070795,"6119":"q5","31":"61.04","topic":"smd+256019341"}
+18:01:11.591 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884071296,"6119":"q6","7059":"1","topic":"smd+304037393"}
+18:01:15.588 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884075297,"6119":"q5","31":"61.03","7059":"6","topic":"smd+256019341"}
+18:01:15.896 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q7","conidEx":"304037410","conid":304037410,"_updated":1762884075797,"6119":"q7","31":"60.83","topic":"smd+304037410"}
+18:01:16.410 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884076298,"6119":"q5","7059":"2","topic":"smd+256019341"}
+18:01:17.122 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762884076968}
+18:01:17.432 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884077298,"6119":"q5","7059":"1","topic":"smd+256019341"}
+18:01:20.513 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884080300,"6119":"q5","31":"61.02","topic":"smd+256019341"}
+18:01:22.238 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884081801,"6119":"q5","31":"61.03","7059":"7","topic":"smd+256019341"}
+18:01:22.239 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884081801,"6119":"q6","7059":"5","topic":"smd+304037393"}
+18:01:22.650 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884082301,"6119":"q5","31":"61.04","7059":"1","topic":"smd+256019341"}
+18:01:25.723 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884085302,"6119":"q5","31":"61.03","7059":"2","topic":"smd+256019341"}
+18:01:25.724 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884085302,"6119":"q6","7059":"2","topic":"smd+304037393"}
+18:01:25.725 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q8","conidEx":"304037427","conid":304037427,"_updated":1762884085302,"6119":"q8","31":"60.76","topic":"smd+304037427"}
+18:01:26.337 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884086302,"6119":"q5","7059":"1","topic":"smd+256019341"}
+18:01:26.338 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884086302,"6119":"q6","7059":"3","topic":"smd+304037393"}
+18:01:26.949 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884086803,"6119":"q6","31":"60.96","7059":"8","topic":"smd+304037393"}
+18:01:26.975 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762884086968}
+18:01:27.873 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884087803,"6119":"q6","7059":"1","topic":"smd+304037393"}
+18:01:28.773 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884088303,"6119":"q5","7059":"2","topic":"smd+256019341"}
+18:01:29.716 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884089303,"6119":"q5","7059":"1","topic":"smd+256019341"}
+18:01:30.899 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884090804,"6119":"q6","31":"60.97","topic":"smd+304037393"}
+18:01:32.480 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|306ms
+18:01:32.481 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"497070e75131058f2e00f63d22aac0a8","ssoExpires":504621,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"21202708|5C:BA:2C:60:27:50"}}}
+18:01:34.631 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884094305,"6119":"q6","31":"60.96","topic":"smd+304037393"}
+18:01:35.864 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884095806,"6119":"q5","31":"61.04","topic":"smd+256019341"}
+18:01:37.090 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884096806,"6119":"q5","7059":"4","topic":"smd+256019341"}
+18:01:37.091 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762884096969}
+18:01:37.356 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884097306,"6119":"q5","7059":"2","topic":"smd+256019341"}
+18:01:37.356 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884097307,"6119":"q6","31":"60.98","7059":"3","topic":"smd+304037393"}
+18:01:38.404 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884098307,"6119":"q5","7059":"5","topic":"smd+256019341"}
+18:01:38.405 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884098307,"6119":"q6","7059":"1","topic":"smd+304037393"}
+18:01:39.549 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884099307,"6119":"q5","7059":"2","topic":"smd+256019341"}
+18:01:40.169 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884099807,"6119":"q6","7059":"3","topic":"smd+304037393"}
+18:01:41.081 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884100808,"6119":"q5","7059":"1","topic":"smd+256019341"}
+18:01:45.747 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884105674,"6119":"q5","31":"61.03","7059":"2","topic":"smd+256019341"}
+18:01:47.225 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762884106970}
+18:01:47.845 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884107675,"6119":"q5","31":"61.05","7059":"4","topic":"smd+256019341"}
+18:01:48.455 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884108175,"6119":"q5","7059":"1","topic":"smd+256019341"}
+18:01:50.298 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884110176,"6119":"q5","31":"61.04","topic":"smd+256019341"}
+18:01:50.299 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884110176,"6119":"q6","31":"60.97","7059":"1","topic":"smd+304037393"}
+18:01:51.219 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884111176,"6119":"q5","31":"61.03","topic":"smd+256019341"}
+18:01:56.445 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884116335,"6119":"q5","31":"61.04","topic":"smd+256019341"}
+18:01:57.057 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762884116968}
+18:02:00.440 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884120337,"6119":"q5","31":"61.03","7059":"10","topic":"smd+256019341"}
+18:02:00.441 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884120337,"6119":"q6","7059":"2","topic":"smd+304037393"}
+18:02:01.668 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884121338,"6119":"q5","31":"61.04","7059":"1","topic":"smd+256019341"}
+18:02:01.669 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q6","conidEx":"304037393","conid":304037393,"_updated":1762884121338,"6119":"q6","31":"60.96","7059":"1","topic":"smd+304037393"}
+18:02:01.981 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884121838,"6119":"q5","31":"61.02","7059":"2","topic":"smd+256019341"}
+18:02:02.587 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|415ms
+18:02:02.588 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"497070e75131058f2e00f63d22aac0a8","ssoExpires":474668,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ20014","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"21202708|5C:BA:2C:60:27:50"}}}
+18:02:02.896 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q5","conidEx":"256019341","conid":256019341,"_updated":1762884122838,"6119":"q5","7059":"1","topic":"smd+256019341"}
+18:02:07.272 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1762884126969}
