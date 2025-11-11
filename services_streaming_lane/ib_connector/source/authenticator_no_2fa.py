@@ -90,7 +90,7 @@ def authenticate(userId:int):
 		submit_btn.click()
 
 		print("[auth] Credentials submitted. Approve 2FA on your phone…", flush=True)
-		time.sleep(10)
+		time.sleep(5)
 
 		sess = requests.Session()
 		

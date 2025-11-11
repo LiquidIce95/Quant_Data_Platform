@@ -461,3 +461,9 @@
 -> GET /v1/api/tickle,200|321ms
 -> request: /v1/api/tickle
 -> GET /v1/api/tickle,200|403ms
+-> request: /v1/api/tickle
+-> GET /v1/api/tickle,200|197ms
+-> request: /v1/api/tickle
+-> GET /v1/api/tickle,200|309ms
+-> request: /v1/api/tickle
+-> GET /v1/api/tickle,200|408ms
