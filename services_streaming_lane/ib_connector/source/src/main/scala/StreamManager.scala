@@ -15,7 +15,7 @@ import sttp.client4.quick._
 
 
 
-trait ConnectionManager {
+trait StreamManager {
 
 	var symbolShards: Map[String, List[String]] = Map.empty
 

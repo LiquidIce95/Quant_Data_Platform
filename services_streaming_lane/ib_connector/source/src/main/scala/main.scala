@@ -11,7 +11,7 @@ object main {
   def main(args: Array[String]): Unit = {
 
     // trivial implementation for testing: computeShards returns empty map
-    val cm = new ConnectionManager {
+    val cm = new StreamManager {
 	  def computeUser(): Int = 1
       def computeShards(): Map[String, List[String]] = Map.empty
 
