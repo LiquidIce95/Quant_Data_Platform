@@ -129,7 +129,8 @@ trait StreamManager {
 
 
 	/**
-	  * subscribes or unsubscribes based on symbol universe and pod symbol shard
+	  * subscribes or unsubscribes based on symbol universe and pod symbol shard 
+	  * or requests in a concurrent set from the reader 
 	  */
 	def manageConnections():Unit
 
@@ -337,6 +338,9 @@ trait StreamManager {
 		webSocketOpt = ApiHandler.establishWebSocket()
 
 		Thread.sleep(3000L)
+
+		// call this to subscribe 
+		manageConnections()
 
 		// start the reader in its own Future in async, we want to continue from the code 
 		var readerFuture : Future[Unit] = Future {
