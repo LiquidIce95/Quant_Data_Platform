@@ -55,9 +55,10 @@ object ApiHandler {
 	  */
 	def unsubscribetbt(conId: String, webSocketOpt: Option[SyncWebSocket]): Unit = {
 		assert(webSocketOpt != None)
+		assert(conId!="")
 		val ws = webSocketOpt.get
 		val msg = s"umd+$conId+{}"
-		ws.sendText(msg)
+		ws.send(WebSocketFrame.text(msg))
 	}
 
 	/**
@@ -65,8 +66,13 @@ object ApiHandler {
 	  *
 	  * @param conId the contract for whihc to subscribe
 	  */
-	def subscribeL2(conId: String): Unit = {
-
+	def subscribeL2(accId:String,conId: String,webSocketOpt : Option[SyncWebSocket]): Unit = {
+		assert(webSocketOpt!=None)
+		assert(conId!="")
+		assert(accId!="")
+		val ws = webSocketOpt.get 
+		val msg = s"sbd+$accId+$conId"
+		ws.send(WebSocketFrame.text(msg))
 	}
 
 	/**
@@ -74,7 +80,13 @@ object ApiHandler {
 	  *
 	  * @param conId the contract for which to subscribe
 	  */
-	def unsubscribeL2(conId: String): Unit = {
+	def unsubscribeL2(accId:String,conId: String,webSocketOpt:Option[SyncWebSocket]): Unit = {
+		assert(webSocketOpt!=None)
+		assert(accId!="")
+		assert(conId!="")
+		val ws = webSocketOpt.get 
+		val msg = s"ubd+$accId+$conId"
+		ws.send(WebSocketFrame.text(msg))
 
 	}
 
