@@ -80,43 +80,7 @@ trait ConnectionManager {
       */
     def apply(ws:SyncWebSocket):Unit={
         if (symbolUniverse==Nil){
-            // CL
-            val clReq   = ApiHandler.endpointsMap(EndPoints.FuturesContractCL)
-            val clResp  = clReq.send()
-            val clBody  = clResp.body
-            val clJson  = ujson.read(clBody)
-            val clArray = clJson("CL").arr
-
-            val clFront5: List[(Long, String)] =
-                clArray
-                    .sortBy(c => c("expirationDate").num.toLong)
-                    .take(5)
-                    .map { c =>
-                        val conId = c("conid").num.toLong
-                        val exp   = c("expirationDate").num.toLong.toString
-                        (conId, exp)
-                    }
-                    .toList
-
-            // NG
-            val ngReq   = ApiHandler.endpointsMap(EndPoints.FuturesContractNG)
-            val ngResp  = ngReq.send()
-            val ngBody  = ngResp.body
-            val ngJson  = ujson.read(ngBody)
-            val ngArray = ngJson("NG").arr
-
-            val ngFront5: List[(Long, String)] =
-                ngArray
-                    .sortBy(c => c("expirationDate").num.toLong)
-                    .take(5)
-                    .map { c =>
-                        val conId = c("conid").num.toLong
-                        val exp   = c("expirationDate").num.toLong.toString
-                        (conId, exp)
-                    }
-                    .toList
-
-            symbolUniverse = clFront5 ++ ngFront5
+            symbolUniverse=ApiHandler.computeSymbolUniverse()
         }
 
         symbolShards = computeShards()
