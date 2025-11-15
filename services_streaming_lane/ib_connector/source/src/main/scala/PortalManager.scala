@@ -9,21 +9,31 @@ import sttp.client4.quick._
 trait PortalManager {
 
     val portalOutput: StringBuilder = new StringBuilder
+
+
+	protected val outputLock : AnyRef = new AnyRef
     // logger that appends all lines to portalOutput
 	val portalLogger: ProcessLogger = ProcessLogger(
 		(line: String) => {
+			outputLock.synchronized {
 			portalOutput.append(line).append('\n')
+			}
 		},
 		(err: String) => {
+			outputLock.synchronized {
 			portalOutput.append(err).append('\n')
+			}
 		}
 	)
+
 
 	@volatile var portalProcFuture: Future[Unit] = Future.successful(())
 
     private def hasFatalErrorInLogs: Boolean = {
-		val s = portalOutput.toString
-		s.contains("Server listen failed") || s.contains("ERROR") || s.contains("Exception")
+		outputLock.synchronized{
+			val s = portalOutput.toString
+			s.contains("Server listen failed") || s.contains("ERROR") || s.contains("Exception")
+		}
 	}
 
 
@@ -59,18 +69,24 @@ trait PortalManager {
 			"-lc",
 			"./bin/run.sh root/conf.yaml"
 		)
+		outputLock.synchronized{
+			portalOutput.clear()
+        	portalProcFuture = Future {
+            	Process(cmd,workDir).!(portalLogger)
+            	()
+        	}
 
-        portalProcFuture = Future {
-            Process(cmd,workDir).!(portalLogger)
-            ()
-        }
+		}
 		// start portal asynchronously; do not wait for termination
 
 		// give the gateway a bit of time to print its startup banner
 		Thread.sleep(3000L)
 
-		portalOutput.toString.contains("Open https://localhost:5000 to login") &&
-			!portalOutput.toString.contains("Server listen failed Address already in use")
+		outputLock.synchronized{
+			portalOutput.toString.contains("Open https://localhost:5000 to login") &&
+				!portalOutput.toString.contains("Server listen failed Address already in use")
+		}
+
 	}
 
 	/**
@@ -101,7 +117,7 @@ trait PortalManager {
 		)
 
 		Process(cmd, workDir).!(logger)
-		Thread.sleep(17000L)
+		Thread.sleep(10000L)
 		output.toString.contains("\"authenticated\":true")
 	}
 
@@ -119,6 +135,7 @@ trait PortalManager {
         val statusReq = ApiHandler.endpointsMap(EndPoints.AuthStatus)
 
         var portalRunning: Boolean = !portalProcFuture.isCompleted && !hasFatalErrorInLogs
+		
 
 
         val isAuthOk: Boolean =
@@ -156,11 +173,12 @@ trait PortalManager {
             val userId: Int             = computeUser()
             val authed: Boolean         = authenticate(userId)
         	portalRunning = !portalProcFuture.isCompleted && !hasFatalErrorInLogs
+			
 
             if (portalStarted && authed && portalRunning) {
                 ()
             } else {
-                throw new Exception("we have a problem with the clinet portal, need to restart pod")
+                throw new Exception(s"we have a problem with the clinet portal, need to restart pod portalStarted: $portalStarted, authed:$authed, portalRunning:$portalRunning")
             }
         }
     }
