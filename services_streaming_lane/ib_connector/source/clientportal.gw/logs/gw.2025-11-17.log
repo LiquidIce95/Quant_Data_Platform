@@ -751,3 +751,415 @@ webApps:
 13:25:55.168 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":0,"price":"60.25","ask":"5"},{"row":11,"focus":1,"price":"10 @ 60.24","bid":"3"}]}
 13:25:55.361 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385955287,"6119":"q0","7059":"1","topic":"smd+304037393"}
 13:25:55.362 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":6,"focus":0,"price":"60.29","ask":"21"},{"row":7,"focus":0,"price":"60.28","ask":"19"},{"row":8,"focus":0,"price":"60.27","ask":"12"},{"row":9,"focus":0,"price":"60.26","ask":"40"},{"row":11,"focus":1,"price":"1 @ 60.24","bid":"3"},{"row":12,"focus":0,"price":"60.23","bid":"37"},{"row":13,"focus":0,"price":"60.22","bid":"62"},{"row":14,"focus":0,"price":"60.21","bid":"28"},{"row":15,"focus":0,"price":"60.20","bid":"26"},{"row":16,"focus":0,"price":"60.19","bid":"25"},{"row":17,"focus":0,"price":"60.18","bid":"16"}]}
+15:50:14.959 INFO  main GatewayStart         : config ../root/conf.yaml !!ibgroup.web.core.clientportal.gw.Config
+authDelay: 3000
+ccp: false
+cors: {origin.allowed: '*', allowCredentials: false}
+ip2loc: US
+ips:
+  allow: [10.*, 192.*, 131.216.*, 127.0.0.1]
+  deny: [212.90.324.10]
+listenPort: 5000
+listenSsl: true
+portalBaseURL: ''
+proxyRemoteHost: https://api.ibkr.com
+proxyRemoteSsl: true
+sslCert: vertx.jks
+sslPwd: mywebapi
+ssoPing: 5
+svcEnvironment: v1
+tst: false
+twsBaseURL: /tws.proxy
+webApps:
+- {cache: true, index: index.html, listing: false, name: demo, proxy: ''}
+
+15:50:15.083 INFO  vert.x-eventloop-thread-0 GatewayHttpProxy     :  -> mount demo on /demo
+15:50:15.094 INFO  vert.x-eventloop-thread-0 GatewayVerticle      : version: a27ed42161ad96c53e715ca5c5e3e3fa4cff5262 Mon, 24 Apr 2023 15:41:53 -0400
+15:50:15.094 INFO  vert.x-eventloop-thread-0 GatewayVerticle      : Java Version: 17.0.17
+15:50:22.868 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Login?forwardTo=22&RL=1&ip2loc=US,200|675ms
+15:50:22.869 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, URL_PARAM="forwardTo=22&RL=1&ip2loc=US"; Version=1; Domain=.ibkr.com; Path=/;Secure, JSESSIONID=67C54B2B0A8A82D05D96383BA77B600A.ny5wwwdam2-internet; Path=/sso; HttpOnly;Secure;SameSite=None, x-sess-uuid=0.9c30f6c1.1763394622.326c064; secure; HttpOnly]
+15:50:22.872 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, URL_PARAM="forwardTo=22&RL=1&ip2loc=US"; Version=1; Domain=.ibkr.com; Path=/;Secure, JSESSIONID=67C54B2B0A8A82D05D96383BA77B600A.ny5wwwdam2-internet; Path=/sso; HttpOnly;Secure;SameSite=None, x-sess-uuid=0.9c30f6c1.1763394622.326c064; secure; HttpOnly] -> 
+15:50:23.118 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/bootstrap-5.2.2/bootstrap.min.css,200|140ms
+15:50:23.178 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/reg-am/login.min.css,200|174ms
+15:50:23.182 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /scripts/common/js/jquery-3.7.0/jquery.min.js,200|172ms
+15:50:23.185 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/fontawesome-6.4.2/all.min.css,200|186ms
+15:50:23.220 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/ibkr/theme-ibkr-portal.min.css,200|213ms
+15:50:23.443 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/bootstrap-switch-3.3.2/bootstrap-switch.min.css,200|431ms
+15:50:23.446 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /scripts/common/js/bootstrap-5.2.2/bootstrap.bundle.min.js,200|108ms
+15:50:23.458 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/lib/xyz.bundle.min.js,200|119ms
+15:50:23.458 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [x-sess-uuid=0.9c30f6c1.1763394623.326c16e; secure; HttpOnly]
+15:50:23.458 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [x-sess-uuid=0.9c30f6c1.1763394623.326c16e; secure; HttpOnly] -> 
+15:50:23.757 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /images/common/logos/ibkr/interactive-brokers.svg,200|25ms
+15:50:23.829 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/proxima-nova/Proxima-Nova-Semibold.woff2,200|78ms
+15:50:23.831 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/fontawesome-6.4.2/webfonts/fa-brands-400.woff2,200|81ms
+15:50:23.836 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/proxima-nova/Proxima-Nova-Regular.woff2,200|88ms
+15:50:23.839 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/fontawesome-6.4.2/webfonts/fa-solid-900.woff2,200|87ms
+15:50:23.929 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /portal.proxy/v1/gstat/bulletins,204|145ms
+15:50:24.056 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/report,200|275ms
+15:50:24.056 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [x-sess-uuid=0.8c30f6c1.1763394623.3f6ed0b; secure; HttpOnly]
+15:50:24.057 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [x-sess-uuid=0.8c30f6c1.1763394623.3f6ed0b; secure; HttpOnly] -> 
+15:50:24.136 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /images/web/favicons/home-screen-icon-128x128.png,200|154ms
+15:50:25.618 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /images/common/logos/ibkr/interactive-brokers-inverse.svg,200|29ms
+15:50:28.388 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Authenticator,200|1015ms
+15:50:28.389 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [x-sess-uuid=0.9c30f6c1.1763394627.326c2d7; secure; HttpOnly]
+15:50:28.390 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [x-sess-uuid=0.9c30f6c1.1763394627.326c2d7; secure; HttpOnly] -> 
+15:50:28.999 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Authenticator,200|558ms
+15:50:29.000 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [web=311544119; Domain=.ibkr.com; Expires=Tue, 17 Nov 2026 15:50:28 GMT; Path=/; Secure;Secure;SameSite=None, x-sess-uuid=0.9c30f6c1.1763394628.326c30a; secure; HttpOnly]
+15:50:29.000 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [web=311544119; Domain=.ibkr.com; Expires=Tue, 17 Nov 2026 15:50:28 GMT; Path=/; Secure;Secure;SameSite=None, x-sess-uuid=0.9c30f6c1.1763394628.326c30a; secure; HttpOnly] -> 
+15:50:29.416 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Dispatcher,302|368ms
+15:50:29.417 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [USERID=49432819; Domain=.ibkr.com; Path=/;Secure;SameSite=None, x-sess-uuid=0.8c30f6c1.1763394629.3f6ee70; secure; HttpOnly]
+15:50:29.418 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [USERID=49432819; Domain=.ibkr.com; Path=/;Secure;SameSite=None, x-sess-uuid=0.8c30f6c1.1763394629.3f6ee70; secure; HttpOnly] -> 
+15:50:29.420 INFO  vert.x-eventloop-thread-0 GatewayHttpProxy     : Client login succeeds
+15:50:29.644 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/sso/validate?gw=1,200|222ms
+15:50:29.651 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : portal validate response: {"PAPER_USER_NAME":"dave17216","IS_PENDING_APPLICANT":false,"SF_ENABLED":false,"HARDWARE_INFO":"","UNIQUE_LOGIN_ID":"49432819-1763394628620","AUTH_TIME":1763394628657,"SF_CONFIG":"","USER_NAME":"dave17216","CREDENTIAL_TYPE":0,"IS_FREE_TRIAL":false,"LOGIN_TYPE":2,"LANDING_APP":"PORTAL","CREDENTIAL":"dave17216","ANOMALOUS_LOGIN":false,"RESULT":true,"IP":"193.5.232.5","USER_ID":49432819,"EXPIRES":1763394629585,"TOKEN":"8446300ee300a4c6c8c99c5dd5ca521ad839bc09","took":109,"IS_MASTER":false,"features":{"env":"PROD","wlms":true,"realtime":true,"bond":true,"optionChains":true,"calendar":true,"newMf":true},"region":"EU"}
+15:50:29.760 INFO  vert.x-eventloop-thread-0 GatewayHttpProxy     : authenticated to cp
+15:50:29.761 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : cancel timer SsoService 0
+15:50:29.761 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : start timer 300000 SsoService
+15:50:29.763 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : forward event ON_SSO_VALIDATION, payload 49432819
+15:50:30.526 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/one/user,200|765ms
+15:50:30.527 INFO  vert.x-eventloop-thread-0 ClientPortalService  : get user reply {"username":"dave17216","features":{"env":"PROD","wlms":true,"realtime":true,"bond":true,"optionChains":true,"calendar":true,"newMf":true},"wbId":"","uar":{"portfolioAnalyst":true,"userInfo":true,"messageCenter":true,"accountDetails":true,"tradingRestrictions":true,"tws":true,"fyi":true,"voting":true,"forum":true,"recentTransactions":true},"props":{"isIBAMClient":false,"ReadOnlySession":null},"accts":{"DU2259313":{"isIBAMClient":false,"clearingStatus":"O","openDate":1589320800000,"isFAClient":false,"isFunded":true,"tradingPermissions":["CFD","CRYPTO","WGR","FUT","FUND","IOPT","WAR","STK","CMDTY","CASH","OPT","BILL","BOND","FOP","SSF"]}},"hasBrokerageAccessInd":true,"hfcipEligibleInd":false,"fa":false,"has2fa":false,"islite":false,"ispaper":true,"applicants":[{"id":5876833,"type":"INDIVIDUAL","businessType":"INDEPENDENT","nlcode":"de","legalCountry":{"name":"Switzerland","alpha3":"CHE"}}]}
+15:50:31.884 INFO  vert.x-eventloop-thread-0 SsoService           : sso init status=200, url=https://api.ibkr.com/v1/api/ssodh/init
+15:50:31.936 DEBUG vert.x-eventloop-thread-0 SsoService           : K 53890886c4a18ad49db9d0222f0f14f36266ea7b
+15:50:31.936 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : forward event ON_SSODH_COMPLETED, payload none
+15:50:31.936 DEBUG vert.x-eventloop-thread-0 GatewayHttpProxy     : delaying authentication for 3000
+15:50:31.937 INFO  vert.x-eventloop-thread-0 TstTokenUtils        : Current MAC address : 72-6E-73-EE-0C-BE
+15:50:31.938 DEBUG vert.x-eventloop-thread-0 SsoService           : tst token generated: e743dceb9a45bef4f1754465222811d47a7a4a67
+15:50:32.451 INFO  vert.x-eventloop-thread-0 SsoService           : publish tst token status=200, url=https://api.ibkr.com/sso/Authenticator?ACTION=PUBLISH_TST&RESP_TYPE=JSON&DEVICE_ID=1aee4a04|72-6E-73-EE-0C-BE
+15:50:32.511 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|57ms
+15:50:35.151 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|214ms
+15:50:35.153 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : status {"authenticated":false,"competing":false,"connected":false,"MAC":"5C:BA:2C:60:27:50"}
+15:50:35.154 INFO  vert.x-eventloop-thread-0 ClientPortalService  : process auth status {"authenticated":false,"competing":false,"connected":false,"MAC":"5C:BA:2C:60:27:50"}
+15:50:35.197 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : auth brokerage, k=53890886c4a18ad49db9d0222f0f14f36266ea7b, post={"username":"dave17216","machineId":"29d35bb5","compete":true}
+15:50:37.197 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> POST https://api.ibkr.com/v1/api/iserver/auth/ssodh/init,200|1999ms
+15:50:37.200 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : iserver init : {"passed":true,"authenticated":true,"connected":true,"competing":false,"hardware_info":"3991ed32|5C:BA:2C:60:27:50"}
+15:50:37.201 INFO  vert.x-eventloop-thread-0 ClientPortalService  : process auth status {"passed":true,"authenticated":true,"connected":true,"competing":false,"hardware_info":"3991ed32|5C:BA:2C:60:27:50"}
+15:50:37.203 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : start timer 30000 ClientPortalService
+15:50:37.271 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/accounts,200|69ms
+15:50:37.271 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : iserver accounts {}
+15:50:48.350 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|288ms
+15:50:48.658 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|248ms
+15:50:48.717 INFO  vert.x-eventloop-thread-0 GwWebsocketHandler   : starting ws: /v1/api/ws -> /v1/api/ws. id: b4ba71ef-fc30-4989-96ff-c812b660957d
+15:50:48.717 INFO  vert.x-eventloop-thread-0 GwWebsocketHandler   :  ws headers: [Cookie: REGION=; XYZAB_AM.LOGIN=8446300ee300a4c6c8c99c5dd5ca521ad839bc09; URL_PARAM="forwardTo=22&RL=1&ip2loc=US"; XYZAB=8446300ee300a4c6c8c99c5dd5ca521ad839bc09; USERID=49432819; api=b82bf10f597c77ac35e1467c88661d65; web=311544119, User-Agent: ClientPortalGW/1]
+15:50:48.805 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/trsrv/futures?symbols=CL,200|69ms
+15:50:48.845 DEBUG vert.x-eventloop-thread-0 ClientConnection     : WebSocket handshake complete
+15:50:48.845 INFO  vert.x-eventloop-thread-0 GwWebsocketHandler   : connected to server: /v1/api/ws
+15:50:48.847 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","success":"dave17216","isFT":false,"isPaper":true}
+15:50:48.850 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"act","args":{"accounts":["DU2259313"],"acctProps":{"DU2259313":{"hasChildAccounts":false,"supportsCashQty":true,"liteUnderPro":false,"noFXConv":false,"isProp":false,"supportsFractions":true,"allowCustomerTime":false,"autoFx":false}},"aliases":{"DU2259313":"DU2259313"},"allowFeatures":{"showGFIS":true,"showEUCostReport":false,"allowEventContract":true,"allowFXConv":true,"allowFinancialLens":false,"allowMTA":true,"allowTypeAhead":true,"allowEventTrading":true,"snapshotRefreshTimeout":30,"liteUser":false,"showWebNews":true,"research":true,"debugPnl":true,"showTaxOpt":true,"showImpactDashboard":true,"allowDynAccount":false,"allowCrypto":false,"allowFA":false,"allowLiteUnderPro":false,"allowedAssetTypes":"STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO","restrictTradeSubscription":false,"showUkUserLabels":true,"sideBySide":true},"chartPeriods":{"STK":["*"],"CFD":["*"],"OPT":["2h","1d","2d","1w","1m"],"FOP":["2h","1d","2d","1w","1m"],"WAR":["*"],"IOPT":["*"],"FUT":["*"],"CASH":["*"],"IND":["*"],"BOND":["*"],"FUND":["*"],"CMDTY":["*"],"PHYSS":["*"],"CRYPTO":["*"]},"groups":[],"profiles":[],"selectedAccount":"DU2259313","serverInfo":{"serverName":"JifZ12079","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"sessionId":"691ab112.0000000f","isFT":false,"isPaper":true}}
+15:50:48.850 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sts","args":{"connected":true,"authenticated":true,"competing":false,"message":"","fail":"","serverName":"JifZ12079","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM","username":"dave17216"}}
+15:50:48.896 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/trsrv/futures?symbols=NG,200|55ms
+15:50:50.022 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:50:50.022 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:50:50.023 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:50:50.023 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:50:50.023 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:50:50.023 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:50:50.024 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:50:50.024 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:50:50.024 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:50:50.024 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:50:50.351 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1763394650323,"6119":"q0","server_id":"q0"}
+15:50:50.351 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394650323,"6119":"q0","55":"CL","topic":"smd+304037393"}
+15:50:55.269 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|237ms
+15:50:55.279 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:50:55.281 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:50:55.283 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:50:55.285 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:50:55.286 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:50:55.288 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:50:55.290 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:50:55.291 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:50:55.292 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:50:55.294 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:50:55.335 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1763394650323,"6119":"q0","server_id":"q0"}
+15:50:57.535 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763394657264}
+15:51:00.425 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|128ms
+15:51:00.436 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:51:00.438 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:51:00.439 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:51:00.441 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:51:00.442 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:51:00.444 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:51:00.446 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:51:00.447 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:51:00.449 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:51:00.450 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:51:00.528 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1763394650323,"6119":"q0","server_id":"q0"}
+15:51:05.519 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|67ms
+15:51:05.522 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:51:05.523 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:51:05.523 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:51:05.524 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:51:05.524 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:51:05.524 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:51:05.524 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:51:05.525 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:51:05.525 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:51:05.525 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:51:05.602 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1763394650323,"6119":"q0","server_id":"q0"}
+15:51:07.395 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|189ms
+15:51:07.396 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"b82bf10f597c77ac35e1467c88661d65","ssoExpires":562338,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ12079","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"3991ed32|5C:BA:2C:60:27:50"}}}
+15:51:07.397 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763394667263}
+15:51:10.592 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|61ms
+15:51:10.602 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:51:10.604 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:51:10.606 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:51:10.607 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:51:10.609 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:51:10.610 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:51:10.611 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:51:10.612 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:51:10.613 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:51:10.614 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:51:10.640 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1763394650323,"6119":"q0","server_id":"q0"}
+15:51:16.922 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|1304ms
+15:51:16.932 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:51:16.934 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:51:16.936 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:51:16.938 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:51:16.939 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:51:16.940 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:51:16.942 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:51:16.943 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:51:16.945 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:51:16.946 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:51:16.972 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1763394650323,"6119":"q0","server_id":"q0"}
+15:51:18.152 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763394677263}
+15:51:22.143 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|194ms
+15:51:22.151 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:51:22.152 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:51:22.153 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:51:22.154 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:51:22.155 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:51:22.156 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:51:22.158 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:51:22.159 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:51:22.161 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:51:22.162 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:51:22.181 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1763394650323,"6119":"q0","server_id":"q0"}
+15:51:27.216 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|51ms
+15:51:27.226 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:51:27.228 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:51:27.230 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:51:27.233 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:51:27.234 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:51:27.235 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:51:27.236 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:51:27.237 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:51:27.237 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:51:27.238 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:51:27.282 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763394687263}
+15:51:27.295 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1763394650323,"6119":"q0","server_id":"q0"}
+15:51:32.351 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|110ms
+15:51:32.360 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:51:32.362 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:51:32.363 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:51:32.365 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:51:32.366 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:51:32.367 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:51:32.369 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:51:32.370 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:51:32.371 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:51:32.372 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:51:32.398 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1763394650323,"6119":"q0","server_id":"q0"}
+15:51:37.403 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|195ms
+15:51:37.404 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"b82bf10f597c77ac35e1467c88661d65","ssoExpires":532344,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ12079","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"3991ed32|5C:BA:2C:60:27:50"}}}
+15:51:37.405 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763394697264}
+15:51:37.477 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|104ms
+15:51:37.486 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:51:37.487 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:51:37.488 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:51:37.489 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:51:37.490 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:51:37.491 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:51:37.492 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:51:37.493 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:51:37.494 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:51:37.496 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:51:37.550 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1763394650323,"6119":"q0","server_id":"q0"}
+15:51:39.658 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394699344,"6119":"q0","6509":"RB","topic":"smd+304037393"}
+15:51:39.963 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394699845,"6119":"q0","31":"59.81","7059":"3","7697":"360K","topic":"smd+304037393"}
+15:51:42.725 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|226ms
+15:51:42.734 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:51:42.735 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:51:42.736 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:51:42.737 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:51:42.738 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:51:42.739 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:51:42.741 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:51:42.742 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:51:42.743 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:51:42.745 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:51:42.765 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7059":"3","7697":"360K","topic":"smd+304037393","conid":304037393,"_updated":1763394699845,"6119":"q0","server_id":"q0","31":"59.81"}
+15:51:47.339 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394706888,"6119":"q0","31":"59.82","7059":"1","topic":"smd+304037393"}
+15:51:47.339 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763394707264}
+15:51:47.951 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|201ms
+15:51:47.959 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:51:47.961 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:51:47.962 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:51:47.963 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:51:47.965 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:51:47.966 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:51:47.967 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:51:47.968 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:51:47.969 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:51:47.970 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:51:48.000 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7059":"1","7697":"360K","topic":"smd+304037393","conid":304037393,"_updated":1763394706888,"6119":"q0","server_id":"q0","31":"59.82"}
+15:51:53.023 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|50ms
+15:51:53.033 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:51:53.035 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:51:53.036 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:51:53.037 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:51:53.039 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:51:53.040 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:51:53.041 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:51:53.043 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:51:53.044 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:51:53.045 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:51:53.068 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7059":"1","7697":"360K","topic":"smd+304037393","conid":304037393,"_updated":1763394706888,"6119":"q0","server_id":"q0","31":"59.82"}
+15:51:53.236 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394713227,"6119":"q0","31":"59.81","7059":"3","topic":"smd+304037393"}
+15:51:57.495 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763394717263}
+15:51:58.157 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|109ms
+15:51:58.165 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:51:58.166 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:51:58.167 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:51:58.168 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:51:58.169 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:51:58.170 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:51:58.171 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:51:58.173 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:51:58.174 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:51:58.176 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:51:58.194 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7059":"3","7697":"360K","topic":"smd+304037393","conid":304037393,"_updated":1763394713227,"6119":"q0","server_id":"q0","31":"59.81"}
+15:52:02.688 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394722583,"6119":"q0","31":"59.80","7059":"1","topic":"smd+304037393"}
+15:52:03.310 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|133ms
+15:52:03.319 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:52:03.320 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:52:03.321 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:52:03.322 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:52:03.323 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:52:03.325 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:52:03.326 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:52:03.327 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:52:03.328 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:52:03.329 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:52:03.348 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7059":"1","7697":"360K","topic":"smd+304037393","conid":304037393,"_updated":1763394722583,"6119":"q0","server_id":"q0","31":"59.80"}
+15:52:04.536 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394724341,"6119":"q0","7059":"4","topic":"smd+304037393"}
+15:52:05.452 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394725341,"6119":"q0","31":"59.79","7059":"1","topic":"smd+304037393"}
+15:52:07.608 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|405ms
+15:52:07.609 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"b82bf10f597c77ac35e1467c88661d65","ssoExpires":502332,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ12079","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"3991ed32|5C:BA:2C:60:27:50"}}}
+15:52:07.610 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763394727263}
+15:52:08.453 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|121ms
+15:52:08.462 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:52:08.463 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:52:08.464 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:52:08.465 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:52:08.466 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:52:08.467 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:52:08.468 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:52:08.469 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:52:08.470 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:52:08.471 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:52:08.499 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7059":"1","7697":"360K","topic":"smd+304037393","conid":304037393,"_updated":1763394725341,"6119":"q0","server_id":"q0","31":"59.79"}
+15:52:13.532 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|56ms
+15:52:13.541 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:52:13.543 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:52:13.544 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:52:13.546 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:52:13.547 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:52:13.548 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:52:13.549 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:52:13.549 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:52:13.550 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:52:13.551 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:52:13.581 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7059":"1","7697":"360K","topic":"smd+304037393","conid":304037393,"_updated":1763394725341,"6119":"q0","server_id":"q0","31":"59.79"}
+15:52:13.659 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394733651,"6119":"q0","7059":"2","topic":"smd+304037393"}
+15:52:16.521 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394735651,"6119":"q0","31":"59.80","7059":"4","topic":"smd+304037393"}
+15:52:17.444 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394736652,"6119":"q0","7059":"1","topic":"smd+304037393"}
+15:52:17.445 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763394737263}
+15:52:18.621 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|67ms
+15:52:18.624 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:52:18.625 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:52:18.625 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:52:18.625 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:52:18.626 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:52:18.626 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:52:18.626 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:52:18.626 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:52:18.627 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:52:18.627 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:52:18.644 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7059":"1","7697":"360K","topic":"smd+304037393","conid":304037393,"_updated":1763394736652,"6119":"q0","server_id":"q0","31":"59.80"}
+15:52:18.674 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394738652,"6119":"q0","7059":"2","topic":"smd+304037393"}
+15:52:19.660 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394739652,"6119":"q0","7059":"1","topic":"smd+304037393"}
+15:52:24.096 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|453ms
+15:52:24.102 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:52:24.104 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:52:24.105 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:52:24.106 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:52:24.107 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:52:24.108 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:52:24.109 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:52:24.110 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:52:24.111 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:52:24.112 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:52:24.135 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7059":"1","7697":"360K","topic":"smd+304037393","conid":304037393,"_updated":1763394739652,"6119":"q0","server_id":"q0","31":"59.80"}
+15:52:27.270 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394747239,"6119":"q0","7059":"4","topic":"smd+304037393"}
+15:52:27.286 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763394747263}
+15:52:29.175 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|59ms
+15:52:29.183 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:52:29.184 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:52:29.185 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:52:29.186 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:52:29.187 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:52:29.187 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:52:29.188 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:52:29.189 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:52:29.190 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:52:29.191 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:52:29.231 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7059":"4","7697":"360K","topic":"smd+304037393","conid":304037393,"_updated":1763394747239,"6119":"q0","server_id":"q0","31":"59.80"}
+15:52:31.881 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394751555,"6119":"q0","7059":"1","topic":"smd+304037393"}
+15:52:34.291 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|96ms
+15:52:34.300 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:52:34.302 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:52:34.302 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:52:34.303 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:52:34.304 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:52:34.304 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:52:34.305 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:52:34.306 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:52:34.307 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:52:34.308 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:52:34.379 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7059":"1","7697":"360K","topic":"smd+304037393","conid":304037393,"_updated":1763394751555,"6119":"q0","server_id":"q0","31":"59.80"}
+15:52:37.269 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394757109,"6119":"q0","31":"59.81","7059":"9","topic":"smd+304037393"}
+15:52:37.270 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763394757263}
+15:52:37.294 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|90ms
+15:52:37.295 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"b82bf10f597c77ac35e1467c88661d65","ssoExpires":472309,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ12079","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"3991ed32|5C:BA:2C:60:27:50"}}}
+15:52:38.959 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394758610,"6119":"q0","7059":"1","topic":"smd+304037393"}
+15:52:39.561 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|249ms
+15:52:39.568 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:52:39.569 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:52:39.570 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:52:39.571 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:52:39.571 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:52:39.572 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:52:39.573 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:52:39.574 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:52:39.575 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:52:39.576 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:52:39.682 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7059":"1","7697":"360K","topic":"smd+304037393","conid":304037393,"_updated":1763394758610,"6119":"q0","server_id":"q0","31":"59.81"}
+15:52:40.791 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394760610,"6119":"q0","31":"59.80","topic":"smd+304037393"}
+15:52:42.169 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394762111,"6119":"q0","31":"59.79","topic":"smd+304037393"}
+15:52:43.269 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394763111,"6119":"q0","31":"59.80","topic":"smd+304037393"}
+15:52:44.640 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|62ms
+15:52:44.647 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+15:52:44.648 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+15:52:44.649 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+15:52:44.650 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+15:52:44.651 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+15:52:44.652 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+15:52:44.653 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+15:52:44.654 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+15:52:44.655 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+15:52:44.656 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+15:52:44.695 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7059":"1","7697":"360K","topic":"smd+304037393","conid":304037393,"_updated":1763394763111,"6119":"q0","server_id":"q0","31":"59.80"}
+15:52:47.548 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763394767263}
+15:52:48.160 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763394768011,"6119":"q0","31":"59.79","topic":"smd+304037393"}

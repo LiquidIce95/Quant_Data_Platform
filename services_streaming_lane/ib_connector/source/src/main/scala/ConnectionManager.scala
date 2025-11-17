@@ -57,8 +57,7 @@ trait ConnectionManager {
     def getAccountId():String
 
     /**
-      * First we need to read all requests from the requestSet without popping / deleting them. Then we 
-      * send unsubscribe and subscribe messages over the ApiHandler to the socket, wait a little bit for the reader to receive the 
+      * we send unsubscribe and subscribe messages over the ApiHandler to the socket, wait a little bit for the reader to receive the 
       * initailizing frame that will bring the connection states to a valid state, only then we pop the fullfilled requests
       */
     def apply(ws:SyncWebSocket):Unit={

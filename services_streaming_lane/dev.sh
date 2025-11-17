@@ -221,6 +221,25 @@ deploy_ib_connector() {
 	kubectl -n "$NAMESPACE_IB" get pods -o wide || true
 }
 
+ib_connector_play() {
+	need kubectl
+	echo "[ib-connector] Running 'runMain src.main.scala.Boilerplate.play' inside the ib-connector pod …"
+	kubectl -n "${NAMESPACE_IB}" exec -it ib-connector -c ib-connector -- \
+		bash -lc '
+			cd /work
+			sbt -batch "runMain src.main.scala.Boilerplate.play"
+		'
+}
+
+ib_connector_integration_test_light() {
+	need kubectl
+	echo "[ib-connector] Running 'runMain src.main.scala.IntegrationTestLight' inside the ib-connector pod …"
+	kubectl -n "${NAMESPACE_IB}" exec -it ib-connector -c ib-connector -- \
+		bash -lc '
+			cd /work
+			sbt -batch "runMain src.main.scala.IntegrationTestLight"
+		'
+}
 
 # ========= Spark: base runtime image =========
 build_base_spark_image() {
@@ -335,46 +354,6 @@ peek_spark() {
 	fi
 }
 
-forward_client_portal_port() {
-	kubectl -n "${CLIENT_PORTAL_NS}" port-forward svc/client-portal 5000:5000
-}
-
-# ========= CLIENT PORTAL API =========
-deploy_client_portal() {
-	need docker; need kind; need kubectl
-	have "$CLIENT_PORTAL_SRC_DIR/Dockerfile"
-	have "$CLIENT_PORTAL_NS_FILE"
-	have "$CLIENT_PORTAL_DEPLOY_FILE"
-	have "$CLIENT_PORTAL_SVC_FILE"
-
-	echo "[client-portal] Building image ${CLIENT_PORTAL_IMG} ..."
-	docker build -t "${CLIENT_PORTAL_IMG}" "${CLIENT_PORTAL_SRC_DIR}"
-
-	echo "[client-portal] Loading image into kind cluster '${CLUSTER_NAME}' ..."
-	kind load docker-image "${CLIENT_PORTAL_IMG}" --name "${CLUSTER_NAME}"
-
-	echo "[client-portal] Applying namespace / manifests ..."
-	kubectl apply -f "${CLIENT_PORTAL_NS_FILE}"
-	kubectl -n "${CLIENT_PORTAL_NS}" apply -f "${CLIENT_PORTAL_DEPLOY_FILE}"
-	kubectl -n "${CLIENT_PORTAL_NS}" apply -f "${CLIENT_PORTAL_SVC_FILE}"
-
-	echo "[client-portal] Pods:"
-	kubectl -n "${CLIENT_PORTAL_NS}" get pods -o wide || true
-
-	echo "[client-portal] Logs (Ctrl-C to stop):"
-	kubectl -n "${CLIENT_PORTAL_NS}" logs -f deploy/client-portal || true
-}
-
-# ===== IB Connector helpers =========
-ib_connector_play() {
-	need kubectl
-	echo "[ib-connector] Running 'runMain src.main.scala.Boilerplate.play' inside the ib-connector pod …"
-	kubectl -n "${NAMESPACE_IB}" exec -it ib-connector -c ib-connector -- \
-		bash -lc '
-			cd /work
-			sbt -batch "runMain src.main.scala.Boilerplate.play"
-		'
-}
 
 
 # ========= ClickHouse =========
@@ -421,98 +400,34 @@ peek_clickhouse_market_trades() {
 		clickhouse-client --user spark --password sparkpass --multiquery --query "$Q"
 }
 
-build_auth_automater() {
-	need docker; need kind
-	local SRC_DIR="$ROOT/services_streaming_lane/ib_auth_automater/source"
-	have "$SRC_DIR/Dockerfile"
-	have "$SRC_DIR/app.py"
 
-	echo "[auth-automater] Building image ib-auth-automater:dev from ${SRC_DIR} …"
-	docker build -t ib-auth-automater:dev "$SRC_DIR"
-
-	echo "[auth-automater] Loading image into kind cluster '${CLUSTER_NAME}' …"
-	kind load docker-image ib-auth-automater:dev --name "$CLUSTER_NAME"
-}
-
-auth_ib() {
+azure_authenticate_first() {
 	need kubectl
-	local user="${1:-}"; local pass="${2:-}"; local pathflag="${3:-0}"  # 1=localhost, 0=cluster DNS
-	if [[ -z "$user" || -z "$pass" ]]; then
-		echo "Usage: $0 auth_ib <USERNAME> <PASSWORD> [PATH_FLAG (1=localhost, 0=cluster)]"
-		return 2
-	fi
 
-	echo "[auth-automater] Launching one-shot pod (no secrets stored)…"
-	# Ensure any previous pod is gone
-	kubectl -n "${CLIENT_PORTAL_NS}" delete pod ib-auth-automater --ignore-not-found >/dev/null 2>&1 || true
-
-	# ENTRYPOINT in the image is: python /app/app.py
-	# We just pass: <USERNAME> <PASSWORD> <PATH_FLAG>
-	kubectl -n "${CLIENT_PORTAL_NS}" run ib-auth-automater \
-	  --image=ib-auth-automater:dev \
-	  --restart=Never --rm -it -- \
-	  "$user" "$pass" "$pathflag"
-}
-
-auth_ib_from_portal() {
-	kubectl -n client-portal-api exec -it client-portal-7d95d5c95f-kmsg7 -- \
-		bash -lc 'if [ -d /opt/venv ]; then . /opt/venv/bin/activate; fi; python /app/app.py "<USERNAME>" "<PASSWORD>" "0"'
-
-}
-
-
-
-
-
-client_portal_run_one() {
-	need kubectl
-	local ns="${CLIENT_PORTAL_NS:-client-portal-api}"
-
-	# find the first running client-portal pod
+	# pick the first ib-connector pod in the namespace
 	local POD
-	POD="$(kubectl -n "$ns" get pods -l app=client-portal -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)"
+	POD="$(kubectl -n "${NAMESPACE_IB}" get pods -o jsonpath='{.items[0].metadata.name}')"
 
-	if [[ -z "$POD" ]]; then
-		echo "[client-portal] No pod found in namespace '$ns' with label app=client-portal"
-		echo "               Make sure you've deployed it (e.g., ./dev.sh deploy_client_portal)"
-		return 1
+	if [[ -z "${POD:-}" ]]; then
+		echo "[azure_authenticate] No ib-connector pod found in namespace ${NAMESPACE_IB}" >&2
+		exit 1
 	fi
 
-	echo "[client-portal] Exec into pod: ${POD}"
-	# Run from the directory that contains ./bin/run.sh and conf.yaml
-	# Adjust the path if your gateway directory name differs.
-	kubectl -n "$ns" exec -it "$POD" -- bash -lc '
+	echo "[azure_authenticate] Using pod ${POD} in namespace ${NAMESPACE_IB}"
+	echo "[azure_authenticate] Running 'az login --use-device-code' inside the pod."
+	echo "[azure_authenticate] Follow the URL and enter the device code in your host browser."
+
+	kubectl -n "${NAMESPACE_IB}" exec -it "${POD}" -- bash -lc '
 		set -euo pipefail
-		cd /home/clientportal.gw
-		./bin/run.sh root/conf.yaml
+		if ! command -v az >/dev/null 2>&1; then
+			echo "[azure] Azure CLI not found, installing …"
+			curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+		fi
+		az login --use-device-code
 	'
 }
 
 
-
-client_portal_run_two() {
-	need kubectl
-	local ns="${CLIENT_PORTAL_NS:-client-portal-api}"
-
-	# find the first running client-portal pod
-	local POD
-	POD="$(kubectl -n "$ns" get pods -l app=client-portal -o jsonpath='{.items[1].metadata.name}' 2>/dev/null || true)"
-
-	if [[ -z "$POD" ]]; then
-		echo "[client-portal] No pod found in namespace '$ns' with label app=client-portal"
-		echo "               Make sure you've deployed it (e.g., ./dev.sh deploy_client_portal)"
-		return 1
-	fi
-
-	echo "[client-portal] Exec into pod: ${POD}"
-	# Run from the directory that contains ./bin/run.sh and conf.yaml
-	# Adjust the path if your gateway directory name differs.
-	kubectl -n "$ns" exec -it "$POD" -- bash -lc '
-		set -euo pipefail
-		cd /home/clientportal.gw
-		./bin/run.sh root/conf.yaml
-	'
-}
 
 usage() {
 	cat <<EOF
@@ -536,6 +451,7 @@ IB Connector (legacy):
 IB Connector (current):
   deploy_ib_connector         Build image, load to kind, (re)create truststore Secret, apply pod
   ib_connector_play           Exec into pod and run 'runMain play'
+  ib_connector_integration_test_light run the light integration test without sharding and kubernetes api
 
 Spark:
   deploy_spark                Apply spark infra, build base image, build app.jar, bake overlay image
@@ -566,6 +482,7 @@ case "$cmd" in
 	simulate_stream_legacy) shift; simulate_stream_legacy "$@";;
 	deploy_ib_connector) deploy_ib_connector ;;
 	ib_connector_play) ib_connector_play ;;
+	ib_connector_integration_test_light) ib_connector_integration_test_light;;
 	deploy_spark) deploy_spark ;;
 	start_spark_sim) start_spark_sim ;;
 	start_spark_sim2) start_spark_sim2 ;;
@@ -574,15 +491,8 @@ case "$cmd" in
 	peek_topic_ticklast) peek_topic_ticklast ;;
 	peek_topic_l2_data) peek_topic_l2_data ;;
 	peek_spark) peek_spark ;;
-	pf) port_forward ;;
 	status) status ;;
 	down) down ;;
-	deploy_client_portal) deploy_client_portal ;;
-	forward_client_portal_port) forward_client_portal_port ;;
-	build_auth_automater) build_auth_automater ;;
-	auth_ib) shift; auth_ib "$@";;
-	client_portal_run_one) client_portal_run_one ;;
-	client_portal_run_two) client_portal_run_two;;
-	auth_ib_from_portal) auth_ib_from_portal;;
+	azure_authenticate_first) azure_authenticate_first;;
 	help|*) usage ;;
 esac

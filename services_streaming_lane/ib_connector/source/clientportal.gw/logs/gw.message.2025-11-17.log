@@ -174,3 +174,124 @@
 -> GET /v1/api/tickle,200|68ms
 -> GET /v1/api/iserver/auth/status
 <- 200 GET /v1/api/iserver/auth/status
+-> GET /sso/Login?forwardTo=22&RL=1&ip2loc=US
+<- 200 GET /sso/Login?forwardTo=22&RL=1&ip2loc=US
+-> GET /css/bootstrap-5.2.2/bootstrap.min.css
+-> GET /css/fontawesome-6.4.2/all.min.css
+-> GET /css/reg-am/login.min.css
+-> GET /css/ibkr/theme-ibkr-portal.min.css
+-> GET /scripts/common/js/jquery-3.7.0/jquery.min.js
+-> GET /css/bootstrap-switch-3.3.2/bootstrap-switch.min.css
+<- 200 GET /css/bootstrap-5.2.2/bootstrap.min.css
+<- 200 GET /css/reg-am/login.min.css
+<- 200 GET /scripts/common/js/jquery-3.7.0/jquery.min.js
+<- 200 GET /css/fontawesome-6.4.2/all.min.css
+<- 200 GET /css/ibkr/theme-ibkr-portal.min.css
+-> GET /scripts/common/js/bootstrap-5.2.2/bootstrap.bundle.min.js
+-> GET /sso/lib/xyz.bundle.min.js
+<- 200 GET /css/bootstrap-switch-3.3.2/bootstrap-switch.min.css
+<- 200 GET /scripts/common/js/bootstrap-5.2.2/bootstrap.bundle.min.js
+<- 200 GET /sso/lib/xyz.bundle.min.js
+-> GET /images/common/logos/ibkr/interactive-brokers.svg
+-> GET /fonts/proxima-nova/Proxima-Nova-Regular.woff2
+-> GET /fonts/fontawesome-6.4.2/webfonts/fa-brands-400.woff2
+-> GET /fonts/proxima-nova/Proxima-Nova-Semibold.woff2
+-> GET /fonts/fontawesome-6.4.2/webfonts/fa-solid-900.woff2
+<- 200 GET /images/common/logos/ibkr/interactive-brokers.svg
+-> POST /sso/report
+-> POST /portal.proxy/v1/gstat/bulletins
+<- 200 GET /fonts/proxima-nova/Proxima-Nova-Semibold.woff2
+<- 200 GET /fonts/fontawesome-6.4.2/webfonts/fa-brands-400.woff2
+<- 200 GET /fonts/proxima-nova/Proxima-Nova-Regular.woff2
+<- 200 GET /fonts/fontawesome-6.4.2/webfonts/fa-solid-900.woff2
+<- 204 POST /portal.proxy/v1/gstat/bulletins
+-> GET /images/web/favicons/home-screen-icon-128x128.png
+<- 200 POST /sso/report
+<- 200 GET /images/web/favicons/home-screen-icon-128x128.png
+-> GET /images/common/logos/ibkr/interactive-brokers-inverse.svg
+<- 200 GET /images/common/logos/ibkr/interactive-brokers-inverse.svg
+-> POST /sso/Authenticator
+<- 200 POST /sso/Authenticator
+-> POST /sso/Authenticator
+<- 200 POST /sso/Authenticator
+-> POST /sso/Dispatcher
+<- 302 POST /sso/Dispatcher
+-> request: /v1/api/sso/validate?gw=1
+-> GET /v1/api/sso/validate?gw=1,200|222ms
+-> request: /v1/api/one/user
+-> request: /v1/api/ssodh/init
+-> sso GET https://api.ibkr.com/v1/api/ssodh/init
+-> GET /v1/api/one/user,200|765ms
+-> request: /v1/api/ssodh/st
+-> sso GET https://api.ibkr.com/v1/api/ssodh/st
+-> request: /sso/Authenticator?ACTION=PUBLISH_TST&RESP_TYPE=JSON&DEVICE_ID=1aee4a04|72-6E-73-EE-0C-BE
+-> sso GET https://api.ibkr.com/sso/Authenticator?ACTION=PUBLISH_TST&RESP_TYPE=JSON&DEVICE_ID=1aee4a04|72-6E-73-EE-0C-BE
+<- 200 GET https://api.ibkr.com/sso/Authenticator?ACTION=PUBLISH_TST&RESP_TYPE=JSON&DEVICE_ID=1aee4a04|72-6E-73-EE-0C-BE 0
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> request: /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status,200|214ms
+-> request: /v1/api/iserver/auth/ssodh/init
+-> POST https://api.ibkr.com/v1/api/iserver/auth/ssodh/init,200|1999ms
+-> request: /v1/api/iserver/accounts
+-> GET /v1/api/iserver/accounts,200|69ms
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/tickle
+<- 200 GET /v1/api/tickle
+-> GET /v1/api/trsrv/futures?symbols=CL
+<- 200 GET /v1/api/trsrv/futures?symbols=CL
+-> GET /v1/api/trsrv/futures?symbols=NG
+<- 200 GET /v1/api/trsrv/futures?symbols=NG
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> request: /v1/api/tickle
+-> GET /v1/api/tickle,200|189ms
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> request: /v1/api/tickle
+-> GET /v1/api/iserver/auth/status
+-> GET /v1/api/tickle,200|195ms
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> request: /v1/api/tickle
+-> GET /v1/api/tickle,200|405ms
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> request: /v1/api/tickle
+-> GET /v1/api/tickle,200|90ms
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 200 GET /v1/api/iserver/auth/status
