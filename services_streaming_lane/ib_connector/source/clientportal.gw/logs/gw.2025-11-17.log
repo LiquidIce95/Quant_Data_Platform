@@ -1,0 +1,753 @@
+13:16:02.661 INFO  main GatewayStart         : config ../root/conf.yaml !!ibgroup.web.core.clientportal.gw.Config
+authDelay: 3000
+ccp: false
+cors: {origin.allowed: '*', allowCredentials: false}
+ip2loc: US
+ips:
+  allow: [10.*, 192.*, 131.216.*, 127.0.0.1]
+  deny: [212.90.324.10]
+listenPort: 5000
+listenSsl: true
+portalBaseURL: ''
+proxyRemoteHost: https://api.ibkr.com
+proxyRemoteSsl: true
+sslCert: vertx.jks
+sslPwd: mywebapi
+ssoPing: 5
+svcEnvironment: v1
+tst: false
+twsBaseURL: /tws.proxy
+webApps:
+- {cache: true, index: index.html, listing: false, name: demo, proxy: ''}
+
+13:16:02.803 INFO  vert.x-eventloop-thread-0 GatewayHttpProxy     :  -> mount demo on /demo
+13:16:02.820 INFO  vert.x-eventloop-thread-0 GatewayVerticle      : version: a27ed42161ad96c53e715ca5c5e3e3fa4cff5262 Mon, 24 Apr 2023 15:41:53 -0400
+13:16:02.820 INFO  vert.x-eventloop-thread-0 GatewayVerticle      : Java Version: 17.0.17
+13:16:11.036 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Login?forwardTo=22&RL=1&ip2loc=US,200|422ms
+13:16:11.038 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, URL_PARAM="forwardTo=22&RL=1&ip2loc=US"; Version=1; Domain=.ibkr.com; Path=/;Secure, JSESSIONID=38E7E5B633AFA7F4AFF4B45A1B699537.ny5wwwdam1-internet; Path=/sso; HttpOnly;Secure;SameSite=None, x-sess-uuid=0.9c30f6c1.1763385370.2d334e7; secure; HttpOnly]
+13:16:11.044 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, URL_PARAM="forwardTo=22&RL=1&ip2loc=US"; Version=1; Domain=.ibkr.com; Path=/;Secure, JSESSIONID=38E7E5B633AFA7F4AFF4B45A1B699537.ny5wwwdam1-internet; Path=/sso; HttpOnly;Secure;SameSite=None, x-sess-uuid=0.9c30f6c1.1763385370.2d334e7; secure; HttpOnly] -> 
+13:16:11.275 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/bootstrap-5.2.2/bootstrap.min.css,200|130ms
+13:16:11.300 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/fontawesome-6.4.2/all.min.css,200|139ms
+13:16:11.344 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/reg-am/login.min.css,200|169ms
+13:16:11.353 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/bootstrap-switch-3.3.2/bootstrap-switch.min.css,200|180ms
+13:16:11.357 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/ibkr/theme-ibkr-portal.min.css,200|179ms
+13:16:11.401 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /scripts/common/js/jquery-3.7.0/jquery.min.js,200|220ms
+13:16:11.430 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /scripts/common/js/bootstrap-5.2.2/bootstrap.bundle.min.js,200|121ms
+13:16:11.432 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/lib/xyz.bundle.min.js,200|72ms
+13:16:11.433 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [x-sess-uuid=0.9c30f6c1.1763385371.2d33648; secure; HttpOnly]
+13:16:11.433 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [x-sess-uuid=0.9c30f6c1.1763385371.2d33648; secure; HttpOnly] -> 
+13:16:11.775 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /images/common/logos/ibkr/interactive-brokers.svg,200|142ms
+13:16:11.794 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/fontawesome-6.4.2/webfonts/fa-solid-900.woff2,200|141ms
+13:16:11.853 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/proxima-nova/Proxima-Nova-Regular.woff2,200|202ms
+13:16:11.939 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/proxima-nova/Proxima-Nova-Semibold.woff2,200|284ms
+13:16:11.944 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/fontawesome-6.4.2/webfonts/fa-brands-400.woff2,200|290ms
+13:16:11.964 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/report,200|283ms
+13:16:11.965 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [x-sess-uuid=0.8c30f6c1.1763385371.38511f4; secure; HttpOnly]
+13:16:11.965 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [x-sess-uuid=0.8c30f6c1.1763385371.38511f4; secure; HttpOnly] -> 
+13:16:11.990 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /portal.proxy/v1/gstat/bulletins,204|206ms
+13:16:12.046 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /images/web/favicons/home-screen-icon-128x128.png,200|27ms
+13:16:13.935 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /images/common/logos/ibkr/interactive-brokers-inverse.svg,200|330ms
+13:16:15.505 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Authenticator,200|151ms
+13:16:15.506 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [x-sess-uuid=0.8c30f6c1.1763385375.38512dd; secure; HttpOnly]
+13:16:15.506 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [x-sess-uuid=0.8c30f6c1.1763385375.38512dd; secure; HttpOnly] -> 
+13:16:15.980 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Authenticator,200|457ms
+13:16:15.980 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [web=311544119; Domain=.ibkr.com; Expires=Tue, 17 Nov 2026 13:16:15 GMT; Path=/; Secure;Secure;SameSite=None, x-sess-uuid=0.8c30f6c1.1763385375.3851279; secure; HttpOnly]
+13:16:15.981 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [web=311544119; Domain=.ibkr.com; Expires=Tue, 17 Nov 2026 13:16:15 GMT; Path=/; Secure;Secure;SameSite=None, x-sess-uuid=0.8c30f6c1.1763385375.3851279; secure; HttpOnly] -> 
+13:16:17.400 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Dispatcher,302|1366ms
+13:16:17.400 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [USERID=49432819; Domain=.ibkr.com; Path=/;Secure;SameSite=None, x-sess-uuid=0.8c30f6c1.1763385376.3851328; secure; HttpOnly]
+13:16:17.400 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [USERID=49432819; Domain=.ibkr.com; Path=/;Secure;SameSite=None, x-sess-uuid=0.8c30f6c1.1763385376.3851328; secure; HttpOnly] -> 
+13:16:17.400 INFO  vert.x-eventloop-thread-0 GatewayHttpProxy     : Client login succeeds
+13:16:17.571 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/sso/validate?gw=1,200|170ms
+13:16:17.573 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : portal validate response: {"PAPER_USER_NAME":"dave17216","IS_PENDING_APPLICANT":false,"SF_ENABLED":false,"HARDWARE_INFO":"","UNIQUE_LOGIN_ID":"49432819-1763385375613","AUTH_TIME":1763385375651,"SF_CONFIG":"","USER_NAME":"dave17216","CREDENTIAL_TYPE":0,"IS_FREE_TRIAL":false,"LOGIN_TYPE":2,"LANDING_APP":"PORTAL","CREDENTIAL":"dave17216","ANOMALOUS_LOGIN":false,"RESULT":true,"IP":"193.5.232.5","USER_ID":49432819,"EXPIRES":1763385377554,"TOKEN":"448ccdfd30dc4cd881aea2650d8a380145622250","took":112,"IS_MASTER":false,"features":{"env":"PROD","wlms":true,"realtime":true,"bond":true,"optionChains":true,"calendar":true,"newMf":true},"region":"EU"}
+13:16:17.681 INFO  vert.x-eventloop-thread-0 GatewayHttpProxy     : authenticated to cp
+13:16:17.681 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : cancel timer SsoService 0
+13:16:17.681 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : start timer 300000 SsoService
+13:16:17.685 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : forward event ON_SSO_VALIDATION, payload 49432819
+13:16:18.105 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/one/user,200|424ms
+13:16:18.106 INFO  vert.x-eventloop-thread-0 ClientPortalService  : get user reply {"username":"dave17216","features":{"env":"PROD","wlms":true,"realtime":true,"bond":true,"optionChains":true,"calendar":true,"newMf":true},"wbId":"","uar":{"portfolioAnalyst":true,"userInfo":true,"messageCenter":true,"accountDetails":true,"tradingRestrictions":true,"tws":true,"fyi":true,"voting":true,"forum":true,"recentTransactions":true},"props":{"isIBAMClient":false,"ReadOnlySession":null},"accts":{"DU2259313":{"isIBAMClient":false,"clearingStatus":"O","openDate":1589320800000,"isFAClient":false,"isFunded":true,"tradingPermissions":["CFD","CRYPTO","WGR","FUT","FUND","IOPT","WAR","STK","CMDTY","CASH","OPT","BILL","BOND","FOP","SSF"]}},"hasBrokerageAccessInd":true,"hfcipEligibleInd":false,"fa":false,"has2fa":false,"islite":false,"ispaper":true,"applicants":[{"id":5876833,"type":"INDIVIDUAL","businessType":"INDEPENDENT","nlcode":"de","legalCountry":{"name":"Switzerland","alpha3":"CHE"}}]}
+13:16:19.770 INFO  vert.x-eventloop-thread-0 SsoService           : sso init status=200, url=https://api.ibkr.com/v1/api/ssodh/init
+13:16:19.833 DEBUG vert.x-eventloop-thread-0 SsoService           : K 925d080f6da4a7dfc6723639a0610f2e8c42f0c
+13:16:19.834 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : forward event ON_SSODH_COMPLETED, payload none
+13:16:19.835 DEBUG vert.x-eventloop-thread-0 GatewayHttpProxy     : delaying authentication for 3000
+13:16:19.840 INFO  vert.x-eventloop-thread-0 TstTokenUtils        : Current MAC address : 72-6E-73-EE-0C-BE
+13:16:19.842 DEBUG vert.x-eventloop-thread-0 SsoService           : tst token generated: b4ac76181f58079acf5468fbce5858afcd1de000
+13:16:19.983 INFO  vert.x-eventloop-thread-0 SsoService           : publish tst token status=200, url=https://api.ibkr.com/sso/Authenticator?ACTION=PUBLISH_TST&RESP_TYPE=JSON&DEVICE_ID=1db08957|72-6E-73-EE-0C-BE
+13:16:20.485 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|65ms
+13:16:22.900 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|63ms
+13:16:22.900 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : status {"authenticated":false,"competing":false,"connected":false,"MAC":"5C:BA:2C:60:27:50"}
+13:16:22.901 INFO  vert.x-eventloop-thread-0 ClientPortalService  : process auth status {"authenticated":false,"competing":false,"connected":false,"MAC":"5C:BA:2C:60:27:50"}
+13:16:22.929 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : auth brokerage, k=925d080f6da4a7dfc6723639a0610f2e8c42f0c, post={"username":"dave17216","machineId":"217d36f1","compete":true}
+13:16:25.000 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> POST https://api.ibkr.com/v1/api/iserver/auth/ssodh/init,200|2071ms
+13:16:25.004 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : iserver init : {"passed":true,"authenticated":true,"connected":true,"competing":false,"hardware_info":"32930411|5C:BA:2C:60:27:50"}
+13:16:25.005 INFO  vert.x-eventloop-thread-0 ClientPortalService  : process auth status {"passed":true,"authenticated":true,"connected":true,"competing":false,"hardware_info":"32930411|5C:BA:2C:60:27:50"}
+13:16:25.007 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : start timer 30000 ClientPortalService
+13:16:25.163 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/accounts,200|156ms
+13:16:25.164 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : iserver accounts {}
+13:16:36.374 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|362ms
+13:16:36.735 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|274ms
+13:16:36.805 INFO  vert.x-eventloop-thread-0 GwWebsocketHandler   : starting ws: /v1/api/ws -> /v1/api/ws. id: 2f92ded4-c1c3-4c48-bff0-7d6291e2d960
+13:16:36.806 INFO  vert.x-eventloop-thread-0 GwWebsocketHandler   :  ws headers: [Cookie: REGION=; XYZAB_AM.LOGIN=448ccdfd30dc4cd881aea2650d8a380145622250; URL_PARAM="forwardTo=22&RL=1&ip2loc=US"; XYZAB=448ccdfd30dc4cd881aea2650d8a380145622250; USERID=49432819; api=6db888206d54162abbd938ea5a0dae2f; web=311544119, User-Agent: ClientPortalGW/1]
+13:16:36.965 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/trsrv/futures?symbols=CL,200|139ms
+13:16:37.031 DEBUG vert.x-eventloop-thread-0 ClientConnection     : WebSocket handshake complete
+13:16:37.031 INFO  vert.x-eventloop-thread-0 GwWebsocketHandler   : connected to server: /v1/api/ws
+13:16:37.050 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","success":"dave17216","isFT":false,"isPaper":true}
+13:16:37.063 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"act","args":{"accounts":["DU2259313"],"acctProps":{"DU2259313":{"hasChildAccounts":false,"supportsCashQty":true,"liteUnderPro":false,"noFXConv":false,"isProp":false,"supportsFractions":true,"allowCustomerTime":false,"autoFx":false}},"aliases":{"DU2259313":"DU2259313"},"allowFeatures":{"showGFIS":true,"showEUCostReport":false,"allowEventContract":true,"allowFXConv":true,"allowFinancialLens":false,"allowMTA":true,"allowTypeAhead":true,"allowEventTrading":true,"snapshotRefreshTimeout":30,"liteUser":false,"showWebNews":true,"research":true,"debugPnl":true,"showTaxOpt":true,"showImpactDashboard":true,"allowDynAccount":false,"allowCrypto":false,"allowFA":false,"allowLiteUnderPro":false,"allowedAssetTypes":"STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO","restrictTradeSubscription":false,"showUkUserLabels":true,"sideBySide":true},"chartPeriods":{"STK":["*"],"CFD":["*"],"OPT":["2h","1d","2d","1w","1m"],"FOP":["2h","1d","2d","1w","1m"],"WAR":["*"],"IOPT":["*"],"FUT":["*"],"CASH":["*"],"IND":["*"],"BOND":["*"],"FUND":["*"],"CMDTY":["*"],"PHYSS":["*"],"CRYPTO":["*"]},"groups":[],"profiles":[],"selectedAccount":"DU2259313","serverInfo":{"serverName":"JifZ25050","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"sessionId":"691ab112.00000008","isFT":false,"isPaper":true}}
+13:16:37.064 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sts","args":{"connected":true,"authenticated":true,"competing":false,"message":"","fail":"","serverName":"JifZ25050","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM","username":"dave17216"}}
+13:16:37.065 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/trsrv/futures?symbols=NG,200|79ms
+13:16:37.285 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763385397263}
+13:16:38.042 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:16:38.043 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:16:38.043 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:16:38.043 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:16:38.044 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:16:38.044 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:16:38.044 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:16:38.044 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:16:38.045 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:16:38.045 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:16:38.045 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:16:38.045 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:16:38.046 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:16:38.046 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:16:38.046 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:16:38.046 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:16:38.047 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:16:38.047 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:16:38.047 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:16:38.048 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:16:38.533 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1763385398488,"6119":"q0","server_id":"q0"}
+13:16:38.535 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385398488,"6119":"q0","55":"CL","topic":"smd+304037393"}
+13:16:39.125 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"0.10"},{"row":1,"focus":0,"price":"0.09"},{"row":2,"focus":0,"price":"0.08"},{"row":3,"focus":0,"price":"0.07"},{"row":4,"focus":0,"price":"0.06"},{"row":5,"focus":0,"price":"0.05"},{"row":6,"focus":0,"price":"0.04"},{"row":7,"focus":0,"price":"0.03"},{"row":8,"focus":0,"price":"0.02"},{"row":9,"focus":0,"price":"0.01"},{"row":10,"focus":0,"price":"0.00"}]}
+13:16:43.181 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|124ms
+13:16:43.191 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:16:43.193 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:16:43.195 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:16:43.196 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:16:43.198 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:16:43.199 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:16:43.201 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:16:43.202 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:16:43.203 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:16:43.204 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:16:43.204 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:16:43.205 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:16:43.206 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:16:43.207 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:16:43.207 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:16:43.208 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:16:43.209 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:16:43.209 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:16:43.209 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:16:43.210 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:16:43.736 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1763385398488,"6119":"q0","server_id":"q0"}
+13:16:43.738 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"0.10"},{"row":1,"focus":0,"price":"0.09"},{"row":2,"focus":0,"price":"0.08"},{"row":3,"focus":0,"price":"0.07"},{"row":4,"focus":0,"price":"0.06"},{"row":5,"focus":0,"price":"0.05"},{"row":6,"focus":0,"price":"0.04"},{"row":7,"focus":0,"price":"0.03"},{"row":8,"focus":0,"price":"0.02"},{"row":9,"focus":0,"price":"0.01"},{"row":10,"focus":0,"price":"0.00"}]}
+13:16:47.731 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763385407263}
+13:16:48.339 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|125ms
+13:16:48.351 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:16:48.353 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:16:48.355 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:16:48.357 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:16:48.359 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:16:48.360 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:16:48.361 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:16:48.363 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:16:48.364 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:16:48.365 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:16:48.367 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:16:48.368 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:16:48.369 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:16:48.370 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:16:48.370 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:16:48.371 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:16:48.372 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:16:48.373 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:16:48.373 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:16:48.374 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:16:48.402 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1763385398488,"6119":"q0","server_id":"q0"}
+13:16:48.905 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"0.10"},{"row":1,"focus":0,"price":"0.09"},{"row":2,"focus":0,"price":"0.08"},{"row":3,"focus":0,"price":"0.07"},{"row":4,"focus":0,"price":"0.06"},{"row":5,"focus":0,"price":"0.05"},{"row":6,"focus":0,"price":"0.04"},{"row":7,"focus":0,"price":"0.03"},{"row":8,"focus":0,"price":"0.02"},{"row":9,"focus":0,"price":"0.01"},{"row":10,"focus":0,"price":"0.00"}]}
+13:16:53.437 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|60ms
+13:16:53.442 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:16:53.443 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:16:53.443 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:16:53.444 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:16:53.445 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:16:53.445 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:16:53.446 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:16:53.447 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:16:53.448 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:16:53.448 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:16:53.449 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:16:53.451 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:16:53.451 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:16:53.452 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:16:53.453 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:16:53.453 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:16:53.453 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:16:53.454 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:16:53.454 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:16:53.455 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:16:53.591 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1763385398488,"6119":"q0","server_id":"q0"}
+13:16:53.794 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"0.10"},{"row":1,"focus":0,"price":"0.09"},{"row":2,"focus":0,"price":"0.08"},{"row":3,"focus":0,"price":"0.07"},{"row":4,"focus":0,"price":"0.06"},{"row":5,"focus":0,"price":"0.05"},{"row":6,"focus":0,"price":"0.04"},{"row":7,"focus":0,"price":"0.03"},{"row":8,"focus":0,"price":"0.02"},{"row":9,"focus":0,"price":"0.01"},{"row":10,"focus":0,"price":"0.00"}]}
+13:16:55.065 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|57ms
+13:16:55.065 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"6db888206d54162abbd938ea5a0dae2f","ssoExpires":562507,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ25050","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"32930411|5C:BA:2C:60:27:50"}}}
+13:16:55.632 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385415569,"6119":"q0","6509":"RB","topic":"smd+304037393"}
+13:16:56.023 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.30"},{"row":1,"focus":0,"price":"60.29"},{"row":2,"focus":0,"price":"60.28"},{"row":3,"focus":0,"price":"60.27"},{"row":4,"focus":0,"price":"60.26"},{"row":5,"focus":0,"price":"60.25"},{"row":6,"focus":0,"price":"60.24"},{"row":7,"focus":0,"price":"60.23"},{"row":8,"focus":0,"price":"60.22"},{"row":9,"focus":0,"price":"60.21","ask":"22"},{"row":10,"focus":1,"price":"2 @ 60.20","bid":"6"},{"row":11,"focus":0,"price":"60.19"},{"row":12,"focus":0,"price":"60.18"},{"row":13,"focus":0,"price":"60.17"},{"row":14,"focus":0,"price":"60.16"},{"row":15,"focus":0,"price":"60.15"},{"row":16,"focus":0,"price":"60.14"},{"row":17,"focus":0,"price":"60.13"},{"row":18,"focus":0,"price":"60.12"},{"row":19,"focus":0,"price":"60.11"},{"row":20,"focus":0,"price":"60.10"}]}
+13:16:56.634 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385416068,"6119":"q0","7697":"360K","7059":"2","31":"60.20","topic":"smd+304037393"}
+13:16:56.635 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":1,"price":"2 @ 60.21","ask":"22"},{"row":10,"focus":0,"price":"60.20","bid":"6"}]}
+13:16:56.635 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385416568,"6119":"q0","31":"60.21","topic":"smd+304037393"}
+13:16:56.943 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":1,"price":"2 @ 60.21","ask":"29"},{"row":10,"focus":0,"price":"60.20"},{"row":11,"focus":0,"price":"60.19","bid":"24"}]}
+13:16:57.250 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.30","ask":"24"},{"row":1,"focus":0,"price":"60.29","ask":"8"},{"row":2,"focus":0,"price":"60.28","ask":"16"},{"row":3,"focus":0,"price":"60.27","ask":"10"},{"row":4,"focus":0,"price":"60.26","ask":"12"},{"row":5,"focus":0,"price":"60.25","ask":"17"},{"row":6,"focus":0,"price":"60.24","ask":"10"},{"row":7,"focus":0,"price":"60.23","ask":"10"},{"row":8,"focus":0,"price":"60.22","ask":"137"},{"row":9,"focus":0,"price":"60.21","ask":"29"},{"row":10,"focus":1,"price":"2 @ 60.20"},{"row":12,"focus":0,"price":"60.18","bid":"61"},{"row":13,"focus":0,"price":"60.17","bid":"35"},{"row":14,"focus":0,"price":"60.16","bid":"26"},{"row":15,"focus":0,"price":"60.15","bid":"21"},{"row":16,"focus":0,"price":"60.14","bid":"18"},{"row":17,"focus":0,"price":"60.13","bid":"17"},{"row":18,"focus":0,"price":"60.12","bid":"15"},{"row":19,"focus":0,"price":"60.11","bid":"9"}]}
+13:16:57.251 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385417068,"6119":"q0","31":"60.20","topic":"smd+304037393"}
+13:16:57.281 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763385417263}
+13:16:57.384 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":8,"focus":0,"price":"60.22","ask":"134"},{"row":9,"focus":0,"price":"60.21","ask":"26"},{"row":10,"focus":1,"price":"2 @ 60.20","bid":"1"},{"row":11,"focus":0,"price":"60.19"},{"row":13,"focus":0,"price":"60.17","bid":"30"},{"row":14,"focus":0,"price":"60.16","bid":"22"}]}
+13:16:58.169 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":1,"price":"1 @ 60.20","bid":"1"}]}
+13:16:58.171 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385418069,"6119":"q0","7059":"1","topic":"smd+304037393"}
+13:16:58.285 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.21","ask":"18"},{"row":10,"focus":1,"price":"1 @ 60.20","bid":"8"}]}
+13:16:58.509 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|52ms
+13:16:58.519 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:16:58.521 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:16:58.522 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:16:58.524 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:16:58.525 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:16:58.527 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:16:58.528 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:16:58.529 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:16:58.530 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:16:58.532 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:16:58.533 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:16:58.534 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:16:58.535 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:16:58.536 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:16:58.537 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:16:58.538 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:16:58.538 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:16:58.539 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:16:58.539 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:16:58.540 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:16:58.571 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7697":"360K","7059":"1","topic":"smd+304037393","conid":304037393,"_updated":1763385418069,"6119":"q0","server_id":"q0","31":"60.20"}
+13:16:59.097 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.30"},{"row":1,"focus":0,"price":"60.29"},{"row":2,"focus":0,"price":"60.28"},{"row":3,"focus":0,"price":"60.27"},{"row":4,"focus":0,"price":"60.26"},{"row":5,"focus":0,"price":"60.25"},{"row":6,"focus":0,"price":"60.24"},{"row":7,"focus":0,"price":"60.23"},{"row":8,"focus":0,"price":"60.22"},{"row":9,"focus":0,"price":"60.21","ask":"18"},{"row":10,"focus":1,"price":"1 @ 60.20","bid":"8"},{"row":11,"focus":0,"price":"60.19"},{"row":12,"focus":0,"price":"60.18"},{"row":13,"focus":0,"price":"60.17"},{"row":14,"focus":0,"price":"60.16"},{"row":15,"focus":0,"price":"60.15"},{"row":16,"focus":0,"price":"60.14"},{"row":17,"focus":0,"price":"60.13"},{"row":18,"focus":0,"price":"60.12"},{"row":19,"focus":0,"price":"60.11"},{"row":20,"focus":0,"price":"60.10"}]}
+13:16:59.097 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.21","ask":"19"},{"row":10,"focus":1,"price":"1 @ 60.20","bid":"6"}]}
+13:16:59.707 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.21","ask":"21"},{"row":10,"focus":1,"price":"1 @ 60.20","bid":"7"}]}
+13:17:00.319 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":1,"price":"5 @ 60.20","bid":"7"}]}
+13:17:00.320 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385420070,"6119":"q0","7059":"5","topic":"smd+304037393"}
+13:17:00.629 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.21","ask":"24"},{"row":10,"focus":1,"price":"5 @ 60.20","bid":"1"}]}
+13:17:01.190 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":1,"price":"1 @ 60.20","bid":"1"}]}
+13:17:01.191 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385421070,"6119":"q0","7059":"1","topic":"smd+304037393"}
+13:17:01.192 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.21","ask":"11"},{"row":10,"focus":1,"price":"1 @ 60.20","bid":"6"}]}
+13:17:02.090 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.30","ask":"24"},{"row":1,"focus":0,"price":"60.29","ask":"8"},{"row":2,"focus":0,"price":"60.28","ask":"16"},{"row":3,"focus":0,"price":"60.27","ask":"10"},{"row":4,"focus":0,"price":"60.26","ask":"12"},{"row":5,"focus":0,"price":"60.25","ask":"18"},{"row":6,"focus":0,"price":"60.24","ask":"9"},{"row":7,"focus":0,"price":"60.23","ask":"10"},{"row":8,"focus":0,"price":"60.22","ask":"136"},{"row":9,"focus":0,"price":"60.21","ask":"14"},{"row":10,"focus":1,"price":"1 @ 60.20","bid":"8"},{"row":11,"focus":0,"price":"60.19","bid":"36"},{"row":12,"focus":0,"price":"60.18","bid":"66"},{"row":13,"focus":0,"price":"60.17","bid":"31"},{"row":14,"focus":0,"price":"60.16","bid":"22"},{"row":15,"focus":0,"price":"60.15","bid":"22"},{"row":16,"focus":0,"price":"60.14","bid":"18"},{"row":17,"focus":0,"price":"60.13","bid":"17"},{"row":18,"focus":0,"price":"60.12","bid":"15"},{"row":19,"focus":0,"price":"60.11","bid":"9"}]}
+13:17:02.786 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385422571,"6119":"q0","31":"60.21","topic":"smd+304037393"}
+13:17:02.787 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":7,"focus":0,"price":"60.23","ask":"41"},{"row":8,"focus":0,"price":"60.22","ask":"135"},{"row":9,"focus":1,"price":"1 @ 60.21","ask":"4"},{"row":10,"focus":0,"price":"60.20","bid":"9"},{"row":11,"focus":0,"price":"60.19","bid":"41"},{"row":14,"focus":0,"price":"60.16","bid":"21"}]}
+13:17:03.570 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":1,"price":"3 @ 60.21","ask":"4"}]}
+13:17:03.590 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385423571,"6119":"q0","7059":"3","topic":"smd+304037393"}
+13:17:03.604 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|65ms
+13:17:03.607 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:17:03.607 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:17:03.608 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:17:03.608 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:17:03.608 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:17:03.608 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:17:03.608 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:17:03.609 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:17:03.609 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:17:03.609 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:17:03.609 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:17:03.609 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:17:03.610 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:17:03.610 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:17:03.610 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:17:03.610 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:17:03.610 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:17:03.610 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:17:03.611 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:17:03.611 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:17:03.980 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7697":"360K","7059":"3","topic":"smd+304037393","conid":304037393,"_updated":1763385423571,"6119":"q0","server_id":"q0","31":"60.21"}
+13:17:04.320 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.31"},{"row":1,"focus":0,"price":"60.30"},{"row":2,"focus":0,"price":"60.29"},{"row":3,"focus":0,"price":"60.28"},{"row":4,"focus":0,"price":"60.27"},{"row":5,"focus":0,"price":"60.26"},{"row":6,"focus":0,"price":"60.25"},{"row":7,"focus":0,"price":"60.24"},{"row":8,"focus":0,"price":"60.23"},{"row":9,"focus":0,"price":"60.22"},{"row":10,"focus":1,"price":"3 @ 60.21","ask":"2"},{"row":11,"focus":0,"price":"60.20","bid":"12"},{"row":12,"focus":0,"price":"60.19"},{"row":13,"focus":0,"price":"60.18"},{"row":14,"focus":0,"price":"60.17"},{"row":15,"focus":0,"price":"60.16"},{"row":16,"focus":0,"price":"60.15"},{"row":17,"focus":0,"price":"60.14"},{"row":18,"focus":0,"price":"60.13"},{"row":19,"focus":0,"price":"60.12"},{"row":20,"focus":0,"price":"60.11"}]}
+13:17:04.930 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.22","ask":"112"},{"row":10,"focus":1,"price":"1 @ 60.21","bid":"3"},{"row":11,"focus":0,"price":"60.20"}]}
+13:17:04.931 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385424572,"6119":"q0","7059":"1","topic":"smd+304037393"}
+13:17:05.551 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.22","ask":"108"},{"row":10,"focus":1,"price":"1 @ 60.21","bid":"6"}]}
+13:17:06.464 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.22","ask":"107"}]}
+13:17:07.198 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":1,"price":"11 @ 60.21","bid":"11"}]}
+13:17:07.399 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":1,"focus":0,"price":"60.30","ask":"24"},{"row":2,"focus":0,"price":"60.29","ask":"8"},{"row":3,"focus":0,"price":"60.28","ask":"16"},{"row":4,"focus":0,"price":"60.27","ask":"10"},{"row":5,"focus":0,"price":"60.26","ask":"13"},{"row":6,"focus":0,"price":"60.25","ask":"18"},{"row":7,"focus":0,"price":"60.24","ask":"10"},{"row":8,"focus":0,"price":"60.23","ask":"10"},{"row":11,"focus":0,"price":"60.20","bid":"10"},{"row":12,"focus":0,"price":"60.19","bid":"49"},{"row":13,"focus":0,"price":"60.18","bid":"24"},{"row":14,"focus":0,"price":"60.17","bid":"30"},{"row":15,"focus":0,"price":"60.16","bid":"20"},{"row":16,"focus":0,"price":"60.15","bid":"22"},{"row":17,"focus":0,"price":"60.14","bid":"18"},{"row":18,"focus":0,"price":"60.13","bid":"17"},{"row":19,"focus":0,"price":"60.12","bid":"15"},{"row":20,"focus":0,"price":"60.11","bid":"9"}]}
+13:17:07.399 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385427152,"6119":"q0","7059":"11","topic":"smd+304037393"}
+13:17:07.399 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763385427263}
+13:17:07.695 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.22"},{"row":10,"focus":1,"price":"11 @ 60.21","ask":"16"},{"row":11,"focus":0,"price":"60.20","bid":"10"}]}
+13:17:08.155 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":7,"focus":0,"price":"60.24","ask":"7"},{"row":9,"focus":0,"price":"60.22","ask":"207"},{"row":10,"focus":1,"price":"11 @ 60.21","ask":"19"},{"row":11,"focus":0,"price":"60.20","bid":"7"},{"row":12,"focus":0,"price":"60.19","bid":"38"},{"row":13,"focus":0,"price":"60.18","bid":"62"},{"row":15,"focus":0,"price":"60.16","bid":"23"}]}
+13:17:08.720 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|104ms
+13:17:08.722 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:17:08.722 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:17:08.723 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:17:08.723 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:17:08.723 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:17:08.723 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:17:08.723 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:17:08.724 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:17:08.724 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:17:08.724 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:17:08.724 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:17:08.724 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:17:08.724 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:17:08.725 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:17:08.725 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:17:08.725 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:17:08.725 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:17:08.725 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:17:08.725 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:17:08.726 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:17:08.941 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7697":"360K","7059":"11","topic":"smd+304037393","conid":304037393,"_updated":1763385427152,"6119":"q0","server_id":"q0","31":"60.21"}
+13:17:09.080 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.31"},{"row":1,"focus":0,"price":"60.30"},{"row":2,"focus":0,"price":"60.29"},{"row":3,"focus":0,"price":"60.28"},{"row":4,"focus":0,"price":"60.27"},{"row":5,"focus":0,"price":"60.26"},{"row":6,"focus":0,"price":"60.25"},{"row":7,"focus":0,"price":"60.24"},{"row":8,"focus":0,"price":"60.23"},{"row":9,"focus":0,"price":"60.22"},{"row":10,"focus":1,"price":"11 @ 60.21","ask":"14"},{"row":11,"focus":0,"price":"60.20","bid":"9"},{"row":12,"focus":0,"price":"60.19"},{"row":13,"focus":0,"price":"60.18"},{"row":14,"focus":0,"price":"60.17"},{"row":15,"focus":0,"price":"60.16"},{"row":16,"focus":0,"price":"60.15"},{"row":17,"focus":0,"price":"60.14"},{"row":18,"focus":0,"price":"60.13"},{"row":19,"focus":0,"price":"60.12"},{"row":20,"focus":0,"price":"60.11"}]}
+13:17:10.167 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":11,"focus":0,"price":"60.20","bid":"7"}]}
+13:17:10.765 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.22"},{"row":10,"focus":1,"price":"1 @ 60.21","ask":"7"},{"row":11,"focus":0,"price":"60.20","bid":"12"}]}
+13:17:11.381 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385431032,"6119":"q0","7059":"1","topic":"smd+304037393"}
+13:17:11.455 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":1,"price":"2 @ 60.21","ask":"5"}]}
+13:17:11.552 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385431532,"6119":"q0","7059":"2","topic":"smd+304037393"}
+13:17:12.612 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":1,"focus":0,"price":"60.30","ask":"24"},{"row":2,"focus":0,"price":"60.29","ask":"8"},{"row":3,"focus":0,"price":"60.28","ask":"16"},{"row":4,"focus":0,"price":"60.27","ask":"10"},{"row":5,"focus":0,"price":"60.26","ask":"12"},{"row":6,"focus":0,"price":"60.25","ask":"16"},{"row":7,"focus":0,"price":"60.24","ask":"9"},{"row":8,"focus":0,"price":"60.23","ask":"13"},{"row":9,"focus":0,"price":"60.22","ask":"76"},{"row":10,"focus":1,"price":"2 @ 60.21","ask":"9"},{"row":11,"focus":0,"price":"60.20","bid":"11"},{"row":12,"focus":0,"price":"60.19","bid":"40"},{"row":13,"focus":0,"price":"60.18","bid":"63"},{"row":14,"focus":0,"price":"60.17","bid":"30"},{"row":15,"focus":0,"price":"60.16","bid":"23"},{"row":16,"focus":0,"price":"60.15","bid":"24"},{"row":17,"focus":0,"price":"60.14","bid":"18"},{"row":18,"focus":0,"price":"60.13","bid":"17"},{"row":19,"focus":0,"price":"60.12","bid":"15"},{"row":20,"focus":0,"price":"60.11","bid":"9"}]}
+13:17:13.224 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":1,"price":"2 @ 60.21","ask":"10"},{"row":11,"focus":0,"price":"60.20","bid":"10"}]}
+13:17:13.790 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|60ms
+13:17:13.798 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:17:13.799 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:17:13.801 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:17:13.802 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:17:13.803 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:17:13.804 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:17:13.805 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:17:13.806 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:17:13.808 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:17:13.809 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:17:13.810 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:17:13.811 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:17:13.813 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:17:13.814 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:17:13.815 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:17:13.816 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:17:13.816 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:17:13.817 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:17:13.817 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:17:13.818 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:17:13.847 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7697":"360K","7059":"2","topic":"smd+304037393","conid":304037393,"_updated":1763385431532,"6119":"q0","server_id":"q0","31":"60.21"}
+13:17:14.452 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.31"},{"row":1,"focus":0,"price":"60.30"},{"row":2,"focus":0,"price":"60.29"},{"row":3,"focus":0,"price":"60.28"},{"row":4,"focus":0,"price":"60.27"},{"row":5,"focus":0,"price":"60.26"},{"row":6,"focus":0,"price":"60.25"},{"row":7,"focus":0,"price":"60.24"},{"row":8,"focus":0,"price":"60.23"},{"row":9,"focus":0,"price":"60.22"},{"row":10,"focus":1,"price":"2 @ 60.21","ask":"10"},{"row":11,"focus":0,"price":"60.20","bid":"10"},{"row":12,"focus":0,"price":"60.19"},{"row":13,"focus":0,"price":"60.18"},{"row":14,"focus":0,"price":"60.17"},{"row":15,"focus":0,"price":"60.16"},{"row":16,"focus":0,"price":"60.15"},{"row":17,"focus":0,"price":"60.14"},{"row":18,"focus":0,"price":"60.13"},{"row":19,"focus":0,"price":"60.12"},{"row":20,"focus":0,"price":"60.11"}]}
+13:17:14.760 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":1,"price":"2 @ 60.21","ask":"11"}]}
+13:17:15.680 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":1,"price":"2 @ 60.21","ask":"8"},{"row":11,"focus":0,"price":"60.20","bid":"12"}]}
+13:17:16.602 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":1,"price":"2 @ 60.21","ask":"13"},{"row":11,"focus":0,"price":"60.20","bid":"10"}]}
+13:17:17.247 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":1,"focus":0,"price":"60.30","ask":"24"},{"row":2,"focus":0,"price":"60.29","ask":"8"},{"row":3,"focus":0,"price":"60.28","ask":"16"},{"row":4,"focus":0,"price":"60.27","ask":"10"},{"row":5,"focus":0,"price":"60.26","ask":"11"},{"row":6,"focus":0,"price":"60.25","ask":"18"},{"row":7,"focus":0,"price":"60.24","ask":"8"},{"row":8,"focus":0,"price":"60.23","ask":"12"},{"row":9,"focus":0,"price":"60.22","ask":"79"},{"row":12,"focus":0,"price":"60.19","bid":"38"},{"row":13,"focus":0,"price":"60.18","bid":"62"},{"row":14,"focus":0,"price":"60.17","bid":"30"},{"row":15,"focus":0,"price":"60.16","bid":"22"},{"row":16,"focus":0,"price":"60.15","bid":"24"},{"row":17,"focus":0,"price":"60.14","bid":"18"},{"row":18,"focus":0,"price":"60.13","bid":"17"},{"row":19,"focus":0,"price":"60.12","bid":"15"},{"row":20,"focus":0,"price":"60.11","bid":"9"}]}
+13:17:17.416 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763385437263}
+13:17:17.834 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385437688,"6119":"q0","31":"60.20","topic":"smd+304037393"}
+13:17:18.143 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":0,"price":"60.21","ask":"10"},{"row":11,"focus":1,"price":"2 @ 60.20","bid":"10"},{"row":12,"focus":0,"price":"60.19","bid":"36"},{"row":13,"focus":0,"price":"60.18","bid":"61"},{"row":14,"focus":0,"price":"60.17","bid":"27"},{"row":15,"focus":0,"price":"60.16","bid":"23"}]}
+13:17:18.753 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":0,"price":"60.21","ask":"17"},{"row":11,"focus":1,"price":"2 @ 60.20","bid":"4"}]}
+13:17:18.844 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":7,"focus":0,"price":"60.24","ask":"9"},{"row":12,"focus":0,"price":"60.19","bid":"37"},{"row":13,"focus":0,"price":"60.18","bid":"58"},{"row":14,"focus":0,"price":"60.17","bid":"30"},{"row":15,"focus":0,"price":"60.16","bid":"24"}]}
+13:17:18.886 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|67ms
+13:17:18.894 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:17:18.895 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:17:18.897 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:17:18.898 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:17:18.899 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:17:18.900 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:17:18.901 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:17:18.902 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:17:18.905 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:17:18.906 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:17:18.907 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:17:18.908 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:17:18.909 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:17:18.909 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:17:18.910 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:17:18.911 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:17:18.912 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:17:18.912 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:17:18.913 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:17:18.914 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:17:18.952 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7697":"360K","7059":"2","topic":"smd+304037393","conid":304037393,"_updated":1763385437688,"6119":"q0","server_id":"q0","31":"60.20"}
+13:17:19.674 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.30"},{"row":1,"focus":0,"price":"60.29"},{"row":2,"focus":0,"price":"60.28"},{"row":3,"focus":0,"price":"60.27"},{"row":4,"focus":0,"price":"60.26"},{"row":5,"focus":0,"price":"60.25"},{"row":6,"focus":0,"price":"60.24"},{"row":7,"focus":0,"price":"60.23"},{"row":8,"focus":0,"price":"60.22"},{"row":9,"focus":0,"price":"60.21","ask":"17"},{"row":10,"focus":1,"price":"2 @ 60.20","bid":"4"},{"row":11,"focus":0,"price":"60.19"},{"row":12,"focus":0,"price":"60.18"},{"row":13,"focus":0,"price":"60.17"},{"row":14,"focus":0,"price":"60.16"},{"row":15,"focus":0,"price":"60.15"},{"row":16,"focus":0,"price":"60.14"},{"row":17,"focus":0,"price":"60.13"},{"row":18,"focus":0,"price":"60.12"},{"row":19,"focus":0,"price":"60.11"},{"row":20,"focus":0,"price":"60.10"}]}
+13:17:19.675 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.21","ask":"15"},{"row":10,"focus":1,"price":"2 @ 60.20","bid":"7"}]}
+13:17:20.289 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.21","ask":"14"},{"row":10,"focus":1,"price":"2 @ 60.20","bid":"8"}]}
+13:17:21.210 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.21","ask":"15"},{"row":10,"focus":1,"price":"2 @ 60.20","bid":"7"}]}
+13:17:22.747 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.30","ask":"24"},{"row":1,"focus":0,"price":"60.29","ask":"8"},{"row":2,"focus":0,"price":"60.28","ask":"16"},{"row":3,"focus":0,"price":"60.27","ask":"10"},{"row":4,"focus":0,"price":"60.26","ask":"11"},{"row":5,"focus":0,"price":"60.25","ask":"18"},{"row":6,"focus":0,"price":"60.24","ask":"9"},{"row":7,"focus":0,"price":"60.23","ask":"12"},{"row":8,"focus":0,"price":"60.22","ask":"80"},{"row":11,"focus":0,"price":"60.19","bid":"36"},{"row":12,"focus":0,"price":"60.18","bid":"57"},{"row":13,"focus":0,"price":"60.17","bid":"30"},{"row":14,"focus":0,"price":"60.16","bid":"24"},{"row":15,"focus":0,"price":"60.15","bid":"24"},{"row":16,"focus":0,"price":"60.14","bid":"18"},{"row":17,"focus":0,"price":"60.13","bid":"17"},{"row":18,"focus":0,"price":"60.12","bid":"15"},{"row":19,"focus":0,"price":"60.11","bid":"9"}]}
+13:17:22.747 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.21","ask":"17"},{"row":10,"focus":1,"price":"2 @ 60.20","bid":"6"}]}
+13:17:23.360 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":8,"focus":0,"price":"60.22","ask":"81"},{"row":11,"focus":0,"price":"60.19","bid":"35"},{"row":12,"focus":0,"price":"60.18","bid":"56"}]}
+13:17:23.681 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385443521,"6119":"q0","7059":"1","31":"60.21","topic":"smd+304037393"}
+13:17:23.682 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":8,"focus":0,"price":"60.22","ask":"80"},{"row":9,"focus":1,"price":"1 @ 60.21","ask":"10"},{"row":10,"focus":0,"price":"60.20","bid":"11"},{"row":11,"focus":0,"price":"60.19","bid":"45"}]}
+13:17:24.033 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|116ms
+13:17:24.050 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:17:24.052 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:17:24.053 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:17:24.054 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:17:24.055 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:17:24.056 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:17:24.057 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:17:24.058 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:17:24.059 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:17:24.060 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:17:24.061 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:17:24.062 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:17:24.064 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:17:24.065 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:17:24.066 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:17:24.066 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:17:24.067 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:17:24.067 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:17:24.068 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:17:24.069 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:17:24.230 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7697":"360K","7059":"1","topic":"smd+304037393","conid":304037393,"_updated":1763385443521,"6119":"q0","server_id":"q0","31":"60.21"}
+13:17:24.590 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.31"},{"row":1,"focus":0,"price":"60.30"},{"row":2,"focus":0,"price":"60.29"},{"row":3,"focus":0,"price":"60.28"},{"row":4,"focus":0,"price":"60.27"},{"row":5,"focus":0,"price":"60.26"},{"row":6,"focus":0,"price":"60.25"},{"row":7,"focus":0,"price":"60.24"},{"row":8,"focus":0,"price":"60.23"},{"row":9,"focus":0,"price":"60.22"},{"row":10,"focus":1,"price":"1 @ 60.21","ask":"10"},{"row":11,"focus":0,"price":"60.20","bid":"11"},{"row":12,"focus":0,"price":"60.19"},{"row":13,"focus":0,"price":"60.18"},{"row":14,"focus":0,"price":"60.17"},{"row":15,"focus":0,"price":"60.16"},{"row":16,"focus":0,"price":"60.15"},{"row":17,"focus":0,"price":"60.14"},{"row":18,"focus":0,"price":"60.13"},{"row":19,"focus":0,"price":"60.12"},{"row":20,"focus":0,"price":"60.11"}]}
+13:17:25.025 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":1,"price":"1 @ 60.21","ask":"7"},{"row":11,"focus":0,"price":"60.20","bid":"9"}]}
+13:17:25.026 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":0,"price":"60.21","ask":"7"},{"row":11,"focus":1,"price":"4 @ 60.20","bid":"9"}]}
+13:17:25.039 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385445023,"6119":"q0","7059":"4","31":"60.20","topic":"smd+304037393"}
+13:17:25.084 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|74ms
+13:17:25.084 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"6db888206d54162abbd938ea5a0dae2f","ssoExpires":532489,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ25050","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"32930411|5C:BA:2C:60:27:50"}}}
+13:17:25.514 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":0,"price":"60.21","ask":"18"},{"row":11,"focus":1,"price":"4 @ 60.20","bid":"4"}]}
+13:17:26.382 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":0,"price":"60.21","ask":"12"},{"row":11,"focus":1,"price":"4 @ 60.20","bid":"7"}]}
+13:17:27.047 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":0,"price":"60.21","ask":"10"},{"row":11,"focus":1,"price":"4 @ 60.20","bid":"8"}]}
+13:17:27.361 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763385447264}
+13:17:27.817 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":1,"focus":0,"price":"60.30","ask":"24"},{"row":2,"focus":0,"price":"60.29","ask":"8"},{"row":3,"focus":0,"price":"60.28","ask":"16"},{"row":4,"focus":0,"price":"60.27","ask":"10"},{"row":5,"focus":0,"price":"60.26","ask":"11"},{"row":6,"focus":0,"price":"60.25","ask":"18"},{"row":7,"focus":0,"price":"60.24","ask":"9"},{"row":8,"focus":0,"price":"60.23","ask":"12"},{"row":9,"focus":0,"price":"60.22","ask":"80"},{"row":11,"focus":1,"price":"4 @ 60.20","bid":"9"},{"row":12,"focus":0,"price":"60.19","bid":"39"},{"row":13,"focus":0,"price":"60.18","bid":"57"},{"row":14,"focus":0,"price":"60.17","bid":"30"},{"row":15,"focus":0,"price":"60.16","bid":"22"},{"row":16,"focus":0,"price":"60.15","bid":"24"},{"row":17,"focus":0,"price":"60.14","bid":"18"},{"row":18,"focus":0,"price":"60.13","bid":"17"},{"row":19,"focus":0,"price":"60.12","bid":"15"},{"row":20,"focus":0,"price":"60.11","bid":"9"}]}
+13:17:28.276 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":11,"focus":1,"price":"1 @ 60.20","bid":"9"}]}
+13:17:28.277 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385448195,"6119":"q0","7059":"1","topic":"smd+304037393"}
+13:17:29.090 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":0,"price":"60.21","ask":"14"},{"row":11,"focus":1,"price":"1 @ 60.20","bid":"8"},{"row":12,"focus":0,"price":"60.19","bid":"38"}]}
+13:17:29.203 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|131ms
+13:17:29.210 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:17:29.212 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:17:29.213 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:17:29.214 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385449195,"6119":"q0","7059":"16","31":"60.19","topic":"smd+304037393"}
+13:17:29.215 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:17:29.216 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:17:29.217 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:17:29.218 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:17:29.219 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:17:29.220 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:17:29.221 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:17:29.222 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:17:29.223 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:17:29.224 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:17:29.225 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":5,"focus":0,"price":"60.26","ask":"12"},{"row":9,"focus":0,"price":"60.22","ask":"83"},{"row":11,"focus":0,"price":"60.20","bid":"8"},{"row":12,"focus":1,"price":"16 @ 60.19","bid":"22"}]}
+13:17:29.226 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:17:29.227 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:17:29.228 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:17:29.229 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:17:29.230 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:17:29.231 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:17:29.232 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:17:29.292 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7697":"360K","7059":"16","topic":"smd+304037393","conid":304037393,"_updated":1763385449195,"6119":"q0","server_id":"q0","31":"60.19"}
+13:17:29.743 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.29"},{"row":1,"focus":0,"price":"60.28"},{"row":2,"focus":0,"price":"60.27"},{"row":3,"focus":0,"price":"60.26"},{"row":4,"focus":0,"price":"60.25"},{"row":5,"focus":0,"price":"60.24"},{"row":6,"focus":0,"price":"60.23"},{"row":7,"focus":0,"price":"60.22"},{"row":8,"focus":0,"price":"60.21","ask":"29"},{"row":9,"focus":0,"price":"60.20","bid":"3"},{"row":10,"focus":1,"price":"16 @ 60.19"},{"row":11,"focus":0,"price":"60.18"},{"row":12,"focus":0,"price":"60.17"},{"row":13,"focus":0,"price":"60.16"},{"row":14,"focus":0,"price":"60.15"},{"row":15,"focus":0,"price":"60.14"},{"row":16,"focus":0,"price":"60.13"},{"row":17,"focus":0,"price":"60.12"},{"row":18,"focus":0,"price":"60.11"},{"row":19,"focus":0,"price":"60.10"},{"row":20,"focus":0,"price":"60.09"}]}
+13:17:30.222 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":1,"price":"1 @ 60.20","bid":"3"},{"row":10,"focus":0,"price":"60.19"}]}
+13:17:30.223 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385450196,"6119":"q0","7059":"1","31":"60.20","topic":"smd+304037393"}
+13:17:30.431 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":8,"focus":0,"price":"60.21","ask":"31"},{"row":9,"focus":1,"price":"1 @ 60.20"},{"row":10,"focus":0,"price":"60.19","bid":"22"}]}
+13:17:31.663 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":8,"focus":0,"price":"60.21","ask":"28"}]}
+13:17:32.920 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.29","ask":"8"},{"row":1,"focus":0,"price":"60.28","ask":"16"},{"row":2,"focus":0,"price":"60.27","ask":"10"},{"row":3,"focus":0,"price":"60.26","ask":"12"},{"row":4,"focus":0,"price":"60.25","ask":"17"},{"row":5,"focus":0,"price":"60.24","ask":"10"},{"row":6,"focus":0,"price":"60.23","ask":"12"},{"row":7,"focus":0,"price":"60.22","ask":"84"},{"row":11,"focus":0,"price":"60.18","bid":"57"},{"row":12,"focus":0,"price":"60.17","bid":"29"},{"row":13,"focus":0,"price":"60.16","bid":"23"},{"row":14,"focus":0,"price":"60.15","bid":"24"},{"row":15,"focus":0,"price":"60.14","bid":"18"},{"row":16,"focus":0,"price":"60.13","bid":"17"},{"row":17,"focus":0,"price":"60.12","bid":"15"},{"row":18,"focus":0,"price":"60.11","bid":"9"},{"row":19,"focus":0,"price":"60.10","bid":"14"}]}
+13:17:33.195 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":5,"focus":0,"price":"60.24","ask":"11"},{"row":9,"focus":1,"price":"1 @ 60.20","bid":"1"},{"row":10,"focus":0,"price":"60.19"},{"row":19,"focus":0,"price":"60.10"}]}
+13:17:33.787 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":3,"focus":0,"price":"60.26","ask":"11"},{"row":6,"focus":0,"price":"60.23","ask":"13"},{"row":7,"focus":0,"price":"60.22","ask":"82"},{"row":10,"focus":0,"price":"60.19","bid":"34"},{"row":11,"focus":0,"price":"60.18","bid":"58"},{"row":12,"focus":0,"price":"60.17","bid":"28"}]}
+13:17:34.267 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":8,"focus":0,"price":"60.21","ask":"17"},{"row":9,"focus":1,"price":"1 @ 60.20","bid":"4"}]}
+13:17:34.743 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":1,"price":"1 @ 60.20","bid":"5"},{"row":10,"focus":0,"price":"60.19","bid":"36"},{"row":14,"focus":0,"price":"60.15","bid":"25"}]}
+13:17:34.744 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|509ms
+13:17:34.752 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:17:34.753 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:17:34.754 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:17:34.755 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:17:34.756 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:17:34.757 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:17:34.758 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:17:34.759 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:17:34.760 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:17:34.761 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:17:34.761 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:17:34.762 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:17:34.763 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:17:34.763 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:17:34.764 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:17:34.765 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:17:34.766 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:17:34.767 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:17:34.768 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:17:34.769 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:17:34.800 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7697":"360K","7059":"1","topic":"smd+304037393","conid":304037393,"_updated":1763385450196,"6119":"q0","server_id":"q0","31":"60.20"}
+13:17:35.649 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.30"},{"row":1,"focus":0,"price":"60.29"},{"row":2,"focus":0,"price":"60.28"},{"row":3,"focus":0,"price":"60.27"},{"row":4,"focus":0,"price":"60.26"},{"row":5,"focus":0,"price":"60.25"},{"row":6,"focus":0,"price":"60.24"},{"row":7,"focus":0,"price":"60.23"},{"row":8,"focus":0,"price":"60.22"},{"row":9,"focus":0,"price":"60.21","ask":"17"},{"row":10,"focus":1,"price":"1 @ 60.20","bid":"5"},{"row":11,"focus":0,"price":"60.19"},{"row":12,"focus":0,"price":"60.18"},{"row":13,"focus":0,"price":"60.17"},{"row":14,"focus":0,"price":"60.16"},{"row":15,"focus":0,"price":"60.15"},{"row":16,"focus":0,"price":"60.14"},{"row":17,"focus":0,"price":"60.13"},{"row":18,"focus":0,"price":"60.12"},{"row":19,"focus":0,"price":"60.11"},{"row":20,"focus":0,"price":"60.10"}]}
+13:17:35.649 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.21","ask":"18"},{"row":10,"focus":1,"price":"1 @ 60.20","bid":"4"}]}
+13:17:36.883 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.21","ask":"17"}]}
+13:17:37.496 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763385457264}
+13:17:38.413 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.21","ask":"15"},{"row":10,"focus":1,"price":"1 @ 60.20","bid":"5"}]}
+13:17:38.414 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.30","ask":"24"},{"row":1,"focus":0,"price":"60.29","ask":"8"},{"row":2,"focus":0,"price":"60.28","ask":"16"},{"row":3,"focus":0,"price":"60.27","ask":"10"},{"row":4,"focus":0,"price":"60.26","ask":"11"},{"row":5,"focus":0,"price":"60.25","ask":"17"},{"row":6,"focus":0,"price":"60.24","ask":"11"},{"row":7,"focus":0,"price":"60.23","ask":"13"},{"row":8,"focus":0,"price":"60.22","ask":"83"},{"row":11,"focus":0,"price":"60.19","bid":"34"},{"row":12,"focus":0,"price":"60.18","bid":"58"},{"row":13,"focus":0,"price":"60.17","bid":"29"},{"row":14,"focus":0,"price":"60.16","bid":"33"},{"row":15,"focus":0,"price":"60.15","bid":"25"},{"row":16,"focus":0,"price":"60.14","bid":"18"},{"row":17,"focus":0,"price":"60.13","bid":"17"},{"row":18,"focus":0,"price":"60.12","bid":"15"},{"row":19,"focus":0,"price":"60.11","bid":"9"}]}
+13:17:39.453 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":1,"price":"1 @ 60.20","bid":"4"}]}
+13:17:39.837 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|51ms
+13:17:39.839 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:17:39.840 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:17:39.840 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:17:39.841 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:17:39.841 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:17:39.841 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:17:39.841 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:17:39.842 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:17:39.842 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:17:39.842 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:17:39.842 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:17:39.842 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:17:39.843 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:17:39.843 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:17:39.843 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:17:39.843 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:17:39.843 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:17:39.844 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:17:39.844 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:17:39.844 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:17:39.899 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385459882,"6119":"q0","7059":"5","31":"60.21","topic":"smd+304037393"}
+13:17:39.943 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7697":"360K","7059":"5","topic":"smd+304037393","conid":304037393,"_updated":1763385459882,"6119":"q0","server_id":"q0","31":"60.21"}
+13:24:57.539 INFO  main GatewayStart         : config ../root/conf.yaml !!ibgroup.web.core.clientportal.gw.Config
+authDelay: 3000
+ccp: false
+cors: {origin.allowed: '*', allowCredentials: false}
+ip2loc: US
+ips:
+  allow: [10.*, 192.*, 131.216.*, 127.0.0.1]
+  deny: [212.90.324.10]
+listenPort: 5000
+listenSsl: true
+portalBaseURL: ''
+proxyRemoteHost: https://api.ibkr.com
+proxyRemoteSsl: true
+sslCert: vertx.jks
+sslPwd: mywebapi
+ssoPing: 5
+svcEnvironment: v1
+tst: false
+twsBaseURL: /tws.proxy
+webApps:
+- {cache: true, index: index.html, listing: false, name: demo, proxy: ''}
+
+13:24:57.656 INFO  vert.x-eventloop-thread-0 GatewayHttpProxy     :  -> mount demo on /demo
+13:24:57.671 INFO  vert.x-eventloop-thread-0 GatewayVerticle      : version: a27ed42161ad96c53e715ca5c5e3e3fa4cff5262 Mon, 24 Apr 2023 15:41:53 -0400
+13:24:57.671 INFO  vert.x-eventloop-thread-0 GatewayVerticle      : Java Version: 17.0.17
+13:25:03.405 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Login?forwardTo=22&RL=1&ip2loc=US,200|302ms
+13:25:03.406 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, URL_PARAM="forwardTo=22&RL=1&ip2loc=US"; Version=1; Domain=.ibkr.com; Path=/;Secure, JSESSIONID=5C4658A0522794351B95CEB02BB2D5A7.ny5wwwdam1-internet; Path=/sso; HttpOnly;Secure;SameSite=None, x-sess-uuid=0.8c30f6c1.1763385903.38ce13e; secure; HttpOnly]
+13:25:03.410 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, partnerID=""; Domain=.ibkr.com; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/;Secure;HttpOnly;SameSite=None, URL_PARAM="forwardTo=22&RL=1&ip2loc=US"; Version=1; Domain=.ibkr.com; Path=/;Secure, JSESSIONID=5C4658A0522794351B95CEB02BB2D5A7.ny5wwwdam1-internet; Path=/sso; HttpOnly;Secure;SameSite=None, x-sess-uuid=0.8c30f6c1.1763385903.38ce13e; secure; HttpOnly] -> 
+13:25:03.614 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/bootstrap-5.2.2/bootstrap.min.css,200|123ms
+13:25:03.635 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/ibkr/theme-ibkr-portal.min.css,200|88ms
+13:25:03.651 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/bootstrap-switch-3.3.2/bootstrap-switch.min.css,200|112ms
+13:25:03.656 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/reg-am/login.min.css,200|113ms
+13:25:03.658 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /css/fontawesome-6.4.2/all.min.css,200|155ms
+13:25:03.761 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /scripts/common/js/jquery-3.7.0/jquery.min.js,200|211ms
+13:25:03.847 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /scripts/common/js/bootstrap-5.2.2/bootstrap.bundle.min.js,200|192ms
+13:25:03.922 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/lib/xyz.bundle.min.js,200|174ms
+13:25:03.923 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [x-sess-uuid=0.9c30f6c1.1763385903.2d932bc; secure; HttpOnly]
+13:25:03.923 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [x-sess-uuid=0.9c30f6c1.1763385903.2d932bc; secure; HttpOnly] -> 
+13:25:04.193 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/fontawesome-6.4.2/webfonts/fa-solid-900.woff2,200|34ms
+13:25:04.213 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/proxima-nova/Proxima-Nova-Regular.woff2,200|57ms
+13:25:04.223 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/fontawesome-6.4.2/webfonts/fa-brands-400.woff2,200|62ms
+13:25:04.227 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /fonts/proxima-nova/Proxima-Nova-Semibold.woff2,200|69ms
+13:25:04.236 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /images/common/logos/ibkr/interactive-brokers.svg,200|97ms
+13:25:04.277 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /portal.proxy/v1/gstat/bulletins,204|60ms
+13:25:04.283 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /images/web/favicons/home-screen-icon-128x128.png,200|34ms
+13:25:04.464 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/report,200|280ms
+13:25:04.464 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [x-sess-uuid=0.9c30f6c1.1763385904.2d9343c; secure; HttpOnly]
+13:25:04.465 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [x-sess-uuid=0.9c30f6c1.1763385904.2d9343c; secure; HttpOnly] -> 
+13:25:05.907 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /images/common/logos/ibkr/interactive-brokers-inverse.svg,200|35ms
+13:25:07.854 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Authenticator,200|242ms
+13:25:07.855 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [x-sess-uuid=0.9c30f6c1.1763385907.2d9345b; secure; HttpOnly]
+13:25:07.855 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [x-sess-uuid=0.9c30f6c1.1763385907.2d9345b; secure; HttpOnly] -> 
+13:25:08.465 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Authenticator,200|569ms
+13:25:08.466 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [web=311544119; Domain=.ibkr.com; Expires=Tue, 17 Nov 2026 13:25:08 GMT; Path=/; Secure;Secure;SameSite=None, x-sess-uuid=0.8c30f6c1.1763385907.38ce48d; secure; HttpOnly]
+13:25:08.467 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [web=311544119; Domain=.ibkr.com; Expires=Tue, 17 Nov 2026 13:25:08 GMT; Path=/; Secure;Secure;SameSite=None, x-sess-uuid=0.8c30f6c1.1763385907.38ce48d; secure; HttpOnly] -> 
+13:25:08.886 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /sso/Dispatcher,302|381ms
+13:25:08.886 INFO  vert.x-eventloop-thread-0 CookieManager        : set cookies [USERID=49432819; Domain=.ibkr.com; Path=/;Secure;SameSite=None, x-sess-uuid=0.9c30f6c1.1763385908.2d9347c; secure; HttpOnly]
+13:25:08.886 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : Remapping Set-cookies [USERID=49432819; Domain=.ibkr.com; Path=/;Secure;SameSite=None, x-sess-uuid=0.9c30f6c1.1763385908.2d9347c; secure; HttpOnly] -> 
+13:25:08.887 INFO  vert.x-eventloop-thread-0 GatewayHttpProxy     : Client login succeeds
+13:25:09.097 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/sso/validate?gw=1,200|208ms
+13:25:09.104 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : portal validate response: {"PAPER_USER_NAME":"dave17216","IS_PENDING_APPLICANT":false,"SF_ENABLED":false,"HARDWARE_INFO":"","UNIQUE_LOGIN_ID":"49432819-1763385908072","AUTH_TIME":1763385908103,"SF_CONFIG":"","USER_NAME":"dave17216","CREDENTIAL_TYPE":0,"IS_FREE_TRIAL":false,"LOGIN_TYPE":2,"LANDING_APP":"PORTAL","CREDENTIAL":"dave17216","ANOMALOUS_LOGIN":false,"RESULT":true,"IP":"193.5.232.5","USER_ID":49432819,"EXPIRES":1763385909047,"TOKEN":"f40a89501fbfbd7a24bcca48475f09dd5a2ed73f","took":109,"IS_MASTER":false,"features":{"env":"PROD","wlms":true,"realtime":true,"bond":true,"optionChains":true,"calendar":true,"newMf":true},"region":"EU"}
+13:25:09.213 INFO  vert.x-eventloop-thread-0 GatewayHttpProxy     : authenticated to cp
+13:25:09.214 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : cancel timer SsoService 0
+13:25:09.214 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : start timer 300000 SsoService
+13:25:09.216 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : forward event ON_SSO_VALIDATION, payload 49432819
+13:25:09.264 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/one/user,200|51ms
+13:25:09.265 INFO  vert.x-eventloop-thread-0 ClientPortalService  : get user reply {"username":"dave17216","features":{"env":"PROD","wlms":true,"realtime":true,"bond":true,"optionChains":true,"calendar":true,"newMf":true},"wbId":"","uar":{"portfolioAnalyst":true,"userInfo":true,"messageCenter":true,"accountDetails":true,"tradingRestrictions":true,"tws":true,"fyi":true,"voting":true,"forum":true,"recentTransactions":true},"props":{"isIBAMClient":false,"ReadOnlySession":null},"accts":{"DU2259313":{"isIBAMClient":false,"clearingStatus":"O","openDate":1589320800000,"isFAClient":false,"isFunded":true,"tradingPermissions":["CFD","CRYPTO","WGR","FUT","FUND","IOPT","WAR","STK","CMDTY","CASH","OPT","BILL","BOND","FOP","SSF"]}},"hasBrokerageAccessInd":true,"hfcipEligibleInd":false,"fa":false,"has2fa":false,"islite":false,"ispaper":true,"applicants":[{"id":5876833,"type":"INDIVIDUAL","businessType":"INDEPENDENT","nlcode":"de","legalCountry":{"name":"Switzerland","alpha3":"CHE"}}]}
+13:25:11.229 INFO  vert.x-eventloop-thread-0 SsoService           : sso init status=200, url=https://api.ibkr.com/v1/api/ssodh/init
+13:25:11.299 DEBUG vert.x-eventloop-thread-0 SsoService           : K 70a6c4770cbc8f0f36345f5189744ad0e6fe415c
+13:25:11.300 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : forward event ON_SSODH_COMPLETED, payload none
+13:25:11.301 DEBUG vert.x-eventloop-thread-0 GatewayHttpProxy     : delaying authentication for 3000
+13:25:11.306 INFO  vert.x-eventloop-thread-0 TstTokenUtils        : Current MAC address : 72-6E-73-EE-0C-BE
+13:25:11.309 DEBUG vert.x-eventloop-thread-0 SsoService           : tst token generated: 92a5eeb30d38acd241f712efe8b30e5fcef8af60
+13:25:11.464 INFO  vert.x-eventloop-thread-0 SsoService           : publish tst token status=200, url=https://api.ibkr.com/sso/Authenticator?ACTION=PUBLISH_TST&RESP_TYPE=JSON&DEVICE_ID=22bc7ee1|72-6E-73-EE-0C-BE
+13:25:12.720 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|49ms
+13:25:14.621 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|316ms
+13:25:14.621 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : status {"authenticated":false,"competing":false,"connected":false,"MAC":"5C:BA:2C:60:27:50"}
+13:25:14.621 INFO  vert.x-eventloop-thread-0 ClientPortalService  : process auth status {"authenticated":false,"competing":false,"connected":false,"MAC":"5C:BA:2C:60:27:50"}
+13:25:14.632 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : auth brokerage, k=70a6c4770cbc8f0f36345f5189744ad0e6fe415c, post={"username":"dave17216","machineId":"3c0aa7fe","compete":true}
+13:25:16.604 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> POST https://api.ibkr.com/v1/api/iserver/auth/ssodh/init,200|1972ms
+13:25:16.608 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : iserver init : {"passed":true,"authenticated":true,"connected":true,"competing":false,"hardware_info":"2b8cd171|5C:BA:2C:60:27:50"}
+13:25:16.609 INFO  vert.x-eventloop-thread-0 ClientPortalService  : process auth status {"passed":true,"authenticated":true,"connected":true,"competing":false,"hardware_info":"2b8cd171|5C:BA:2C:60:27:50"}
+13:25:16.612 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : start timer 30000 ClientPortalService
+13:25:16.752 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/accounts,200|141ms
+13:25:16.753 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : iserver accounts {}
+13:25:28.260 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|68ms
+13:25:28.397 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|56ms
+13:25:28.427 INFO  vert.x-eventloop-thread-0 GwWebsocketHandler   : starting ws: /v1/api/ws -> /v1/api/ws. id: ffcac997-44ca-4bc3-b20a-89ecf21e5919
+13:25:28.428 INFO  vert.x-eventloop-thread-0 GwWebsocketHandler   :  ws headers: [Cookie: REGION=; XYZAB_AM.LOGIN=f40a89501fbfbd7a24bcca48475f09dd5a2ed73f; URL_PARAM="forwardTo=22&RL=1&ip2loc=US"; XYZAB=f40a89501fbfbd7a24bcca48475f09dd5a2ed73f; USERID=49432819; api=2c16a427bf394ed548e98b471d17bbb8; web=311544119, User-Agent: ClientPortalGW/1]
+13:25:28.514 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/trsrv/futures?symbols=CL,200|69ms
+13:25:28.598 DEBUG vert.x-eventloop-thread-0 ClientConnection     : WebSocket handshake complete
+13:25:28.599 INFO  vert.x-eventloop-thread-0 GwWebsocketHandler   : connected to server: /v1/api/ws
+13:25:28.620 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","success":"dave17216","isFT":false,"isPaper":true}
+13:25:28.624 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"act","args":{"accounts":["DU2259313"],"acctProps":{"DU2259313":{"hasChildAccounts":false,"supportsCashQty":true,"liteUnderPro":false,"noFXConv":false,"isProp":false,"supportsFractions":true,"allowCustomerTime":false,"autoFx":false}},"aliases":{"DU2259313":"DU2259313"},"allowFeatures":{"showGFIS":true,"showEUCostReport":false,"allowEventContract":true,"allowFXConv":true,"allowFinancialLens":false,"allowMTA":true,"allowTypeAhead":true,"allowEventTrading":true,"snapshotRefreshTimeout":30,"liteUser":false,"showWebNews":true,"research":true,"debugPnl":true,"showTaxOpt":true,"showImpactDashboard":true,"allowDynAccount":false,"allowCrypto":false,"allowFA":false,"allowLiteUnderPro":false,"allowedAssetTypes":"STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO","restrictTradeSubscription":false,"showUkUserLabels":true,"sideBySide":true},"chartPeriods":{"STK":["*"],"CFD":["*"],"OPT":["2h","1d","2d","1w","1m"],"FOP":["2h","1d","2d","1w","1m"],"WAR":["*"],"IOPT":["*"],"FUT":["*"],"CASH":["*"],"IND":["*"],"BOND":["*"],"FUND":["*"],"CMDTY":["*"],"PHYSS":["*"],"CRYPTO":["*"]},"groups":[],"profiles":[],"selectedAccount":"DU2259313","serverInfo":{"serverName":"JifZ27081","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"sessionId":"691ab112.00000009","isFT":false,"isPaper":true}}
+13:25:28.624 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sts","args":{"connected":true,"authenticated":true,"competing":false,"message":"","fail":"","serverName":"JifZ27081","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM","username":"dave17216"}}
+13:25:28.665 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/trsrv/futures?symbols=NG,200|55ms
+13:25:29.637 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:25:29.638 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:25:29.638 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:25:29.638 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:25:29.639 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:25:29.639 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:25:29.639 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:25:29.639 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:25:29.640 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:25:29.640 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:25:29.640 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:25:29.641 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:25:29.641 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:25:29.641 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:25:29.641 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:25:29.641 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:25:29.642 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:25:29.642 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:25:29.642 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:25:29.643 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:25:30.300 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","conidEx":"304037393","topic":"smd+304037393","conid":304037393,"_updated":1763385930105,"6119":"q0","server_id":"q0"}
+13:25:30.301 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385930105,"6119":"q0","55":"CL","topic":"smd+304037393"}
+13:25:30.587 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.32"},{"row":1,"focus":0,"price":"60.31"},{"row":2,"focus":0,"price":"60.30"},{"row":3,"focus":0,"price":"60.29"},{"row":4,"focus":0,"price":"60.28"},{"row":5,"focus":0,"price":"60.27"},{"row":6,"focus":0,"price":"60.26"},{"row":7,"focus":0,"price":"60.25"},{"row":8,"focus":0,"price":"60.24","ask":"23"},{"row":9,"focus":0,"price":"60.23"},{"row":10,"focus":1,"price":"1 @ 60.22","bid":"19"},{"row":11,"focus":0,"price":"60.21"},{"row":12,"focus":0,"price":"60.20"},{"row":13,"focus":0,"price":"60.19"},{"row":14,"focus":0,"price":"60.18"},{"row":15,"focus":0,"price":"60.17"},{"row":16,"focus":0,"price":"60.16"},{"row":17,"focus":0,"price":"60.15"},{"row":18,"focus":0,"price":"60.14"},{"row":19,"focus":0,"price":"60.13"},{"row":20,"focus":0,"price":"60.12"}]}
+13:25:30.895 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385930606,"6119":"q0","31":"60.22","6509":"RB","7697":"360K","7059":"1","topic":"smd+304037393"}
+13:25:30.896 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.32","ask":"12"},{"row":1,"focus":0,"price":"60.31","ask":"9"},{"row":2,"focus":0,"price":"60.30","ask":"34"},{"row":3,"focus":0,"price":"60.29","ask":"16"},{"row":4,"focus":0,"price":"60.28","ask":"19"},{"row":5,"focus":0,"price":"60.27","ask":"12"},{"row":6,"focus":0,"price":"60.26","ask":"22"},{"row":7,"focus":0,"price":"60.25","ask":"49"},{"row":11,"focus":0,"price":"60.21","bid":"44"},{"row":12,"focus":0,"price":"60.20","bid":"18"},{"row":13,"focus":0,"price":"60.19","bid":"24"},{"row":14,"focus":0,"price":"60.18","bid":"16"},{"row":15,"focus":0,"price":"60.17","bid":"16"},{"row":16,"focus":0,"price":"60.16","bid":"27"},{"row":17,"focus":0,"price":"60.15","bid":"17"},{"row":18,"focus":0,"price":"60.14","bid":"10"},{"row":19,"focus":0,"price":"60.13","bid":"11"}]}
+13:25:31.811 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":7,"focus":0,"price":"60.25","ask":"51"},{"row":10,"focus":1,"price":"1 @ 60.22","bid":"20"}]}
+13:25:32.430 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":7,"focus":0,"price":"60.25","ask":"50"},{"row":8,"focus":0,"price":"60.24","ask":"21"},{"row":10,"focus":1,"price":"1 @ 60.22","bid":"22"},{"row":13,"focus":0,"price":"60.19","bid":"26"}]}
+13:25:32.735 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":7,"focus":0,"price":"60.25","ask":"48"},{"row":11,"focus":0,"price":"60.21","bid":"47"},{"row":12,"focus":0,"price":"60.20","bid":"20"},{"row":13,"focus":0,"price":"60.19","bid":"24"},{"row":19,"focus":0,"price":"60.13"}]}
+13:25:33.310 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":8,"focus":0,"price":"60.24","ask":"20"},{"row":9,"focus":0,"price":"60.23","bid":"1"},{"row":10,"focus":1,"price":"1 @ 60.22"}]}
+13:25:33.957 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":4,"focus":0,"price":"60.28","ask":"17"},{"row":7,"focus":0,"price":"60.25","ask":"45"},{"row":8,"focus":0,"price":"60.24","ask":"17"},{"row":9,"focus":0,"price":"60.23","bid":"3"},{"row":10,"focus":1,"price":"1 @ 60.22","bid":"26"},{"row":11,"focus":0,"price":"60.21","bid":"51"},{"row":13,"focus":0,"price":"60.19","bid":"26"}]}
+13:25:34.681 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":8,"focus":0,"price":"60.24","ask":"16"},{"row":10,"focus":1,"price":"1 @ 60.22","bid":"27"}]}
+13:25:34.886 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|234ms
+13:25:34.892 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:25:34.893 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:25:34.894 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:25:34.895 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:25:34.896 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:25:34.896 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:25:34.897 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:25:34.897 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:25:34.898 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:25:34.899 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:25:34.900 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:25:34.901 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:25:34.902 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:25:34.902 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:25:34.903 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:25:34.903 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:25:34.904 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:25:34.905 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:25:34.905 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:25:34.905 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:25:34.933 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7697":"360K","7059":"1","topic":"smd+304037393","conid":304037393,"_updated":1763385930606,"6119":"q0","server_id":"q0","31":"60.22"}
+13:25:35.192 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.32"},{"row":1,"focus":0,"price":"60.31"},{"row":2,"focus":0,"price":"60.30"},{"row":3,"focus":0,"price":"60.29"},{"row":4,"focus":0,"price":"60.28"},{"row":5,"focus":0,"price":"60.27"},{"row":6,"focus":0,"price":"60.26"},{"row":7,"focus":0,"price":"60.25"},{"row":8,"focus":0,"price":"60.24","ask":"16"},{"row":9,"focus":0,"price":"60.23","bid":"3"},{"row":10,"focus":1,"price":"1 @ 60.22"},{"row":11,"focus":0,"price":"60.21"},{"row":12,"focus":0,"price":"60.20"},{"row":13,"focus":0,"price":"60.19"},{"row":14,"focus":0,"price":"60.18"},{"row":15,"focus":0,"price":"60.17"},{"row":16,"focus":0,"price":"60.16"},{"row":17,"focus":0,"price":"60.15"},{"row":18,"focus":0,"price":"60.14"},{"row":19,"focus":0,"price":"60.13"},{"row":20,"focus":0,"price":"60.12"}]}
+13:25:35.805 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":8,"focus":0,"price":"60.24","ask":"15"}]}
+13:25:36.114 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385935990,"6119":"q0","31":"60.23","topic":"smd+304037393"}
+13:25:36.114 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":1,"price":"1 @ 60.23","bid":"3"},{"row":10,"focus":0,"price":"60.22"}]}
+13:25:36.420 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":8,"focus":0,"price":"60.24","ask":"18"},{"row":9,"focus":1,"price":"1 @ 60.23"},{"row":10,"focus":0,"price":"60.22","bid":"22"}]}
+13:25:37.353 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":8,"focus":0,"price":"60.24","ask":"26"},{"row":10,"focus":0,"price":"60.22","bid":"14"}]}
+13:25:37.354 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763385937263}
+13:25:37.957 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":0,"price":"60.22","bid":"15"}]}
+13:25:38.542 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.32","ask":"12"},{"row":1,"focus":0,"price":"60.31","ask":"9"},{"row":2,"focus":0,"price":"60.30","ask":"34"},{"row":3,"focus":0,"price":"60.29","ask":"16"},{"row":4,"focus":0,"price":"60.28","ask":"19"},{"row":5,"focus":0,"price":"60.27","ask":"14"},{"row":6,"focus":0,"price":"60.26","ask":"22"},{"row":7,"focus":0,"price":"60.25","ask":"15"},{"row":11,"focus":0,"price":"60.21","bid":"31"},{"row":12,"focus":0,"price":"60.20","bid":"55"},{"row":13,"focus":0,"price":"60.19","bid":"23"},{"row":14,"focus":0,"price":"60.18","bid":"18"},{"row":15,"focus":0,"price":"60.17","bid":"16"},{"row":16,"focus":0,"price":"60.16","bid":"27"},{"row":17,"focus":0,"price":"60.15","bid":"17"},{"row":18,"focus":0,"price":"60.14","bid":"10"},{"row":19,"focus":0,"price":"60.13","bid":"11"}]}
+13:25:38.544 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385938514,"6119":"q0","7059":"2","topic":"smd+304037393"}
+13:25:38.881 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":8,"focus":0,"price":"60.24"},{"row":9,"focus":1,"price":"2 @ 60.23","ask":"13"},{"row":10,"focus":0,"price":"60.22","bid":"5"}]}
+13:25:39.495 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":6,"focus":0,"price":"60.26","ask":"20"},{"row":8,"focus":0,"price":"60.24","ask":"37"},{"row":9,"focus":1,"price":"2 @ 60.23","ask":"19"},{"row":10,"focus":0,"price":"60.22","bid":"2"},{"row":11,"focus":0,"price":"60.21","bid":"27"},{"row":12,"focus":0,"price":"60.20","bid":"51"}]}
+13:25:39.932 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":4,"focus":0,"price":"60.28","ask":"15"},{"row":5,"focus":0,"price":"60.27","ask":"12"},{"row":6,"focus":0,"price":"60.26","ask":"37"},{"row":7,"focus":0,"price":"60.25","ask":"21"},{"row":8,"focus":0,"price":"60.24"},{"row":9,"focus":1,"price":"1 @ 60.23","ask":"19"},{"row":11,"focus":0,"price":"60.21","bid":"18"},{"row":12,"focus":0,"price":"60.20","bid":"16"},{"row":13,"focus":0,"price":"60.19","bid":"24"},{"row":14,"focus":0,"price":"60.18","bid":"15"},{"row":19,"focus":0,"price":"60.13"}]}
+13:25:40.110 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385940015,"6119":"q0","7059":"1","topic":"smd+304037393"}
+13:25:40.112 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|199ms
+13:25:40.122 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:25:40.124 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:25:40.126 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:25:40.128 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:25:40.130 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:25:40.131 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:25:40.132 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:25:40.134 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:25:40.135 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:25:40.137 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:25:40.138 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:25:40.140 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:25:40.142 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:25:40.144 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:25:40.145 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:25:40.147 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:25:40.148 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:25:40.149 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:25:40.150 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:25:40.150 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:25:40.178 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7697":"360K","7059":"1","topic":"smd+304037393","conid":304037393,"_updated":1763385940015,"6119":"q0","server_id":"q0","31":"60.23"}
+13:25:40.417 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.33"},{"row":1,"focus":0,"price":"60.32"},{"row":2,"focus":0,"price":"60.31"},{"row":3,"focus":0,"price":"60.30"},{"row":4,"focus":0,"price":"60.29"},{"row":5,"focus":0,"price":"60.28"},{"row":6,"focus":0,"price":"60.27"},{"row":7,"focus":0,"price":"60.26"},{"row":8,"focus":0,"price":"60.25","ask":"14"},{"row":9,"focus":0,"price":"60.24","bid":"7"},{"row":10,"focus":1,"price":"1 @ 60.23"},{"row":11,"focus":0,"price":"60.22"},{"row":12,"focus":0,"price":"60.21"},{"row":13,"focus":0,"price":"60.20"},{"row":14,"focus":0,"price":"60.19"},{"row":15,"focus":0,"price":"60.18"},{"row":16,"focus":0,"price":"60.17"},{"row":17,"focus":0,"price":"60.16"},{"row":18,"focus":0,"price":"60.15"},{"row":19,"focus":0,"price":"60.14"},{"row":20,"focus":0,"price":"60.13"}]}
+13:25:40.725 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":1,"price":"1 @ 60.24","bid":"7"},{"row":10,"focus":0,"price":"60.23"}]}
+13:25:41.381 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385941016,"6119":"q0","31":"60.24","topic":"smd+304037393"}
+13:25:41.382 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":8,"focus":0,"price":"60.25","ask":"7"}]}
+13:25:42.272 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":8,"focus":0,"price":"60.25","ask":"8"}]}
+13:25:43.793 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.33","ask":"7"},{"row":1,"focus":0,"price":"60.32","ask":"12"},{"row":2,"focus":0,"price":"60.31","ask":"9"},{"row":3,"focus":0,"price":"60.30","ask":"34"},{"row":4,"focus":0,"price":"60.29","ask":"18"},{"row":5,"focus":0,"price":"60.28","ask":"17"},{"row":6,"focus":0,"price":"60.27","ask":"14"},{"row":7,"focus":0,"price":"60.26","ask":"50"},{"row":8,"focus":0,"price":"60.25","ask":"7"},{"row":10,"focus":0,"price":"60.23","bid":"36"},{"row":11,"focus":0,"price":"60.22","bid":"13"},{"row":12,"focus":0,"price":"60.21","bid":"23"},{"row":13,"focus":0,"price":"60.20","bid":"20"},{"row":14,"focus":0,"price":"60.19","bid":"27"},{"row":15,"focus":0,"price":"60.18","bid":"17"},{"row":16,"focus":0,"price":"60.17","bid":"16"},{"row":17,"focus":0,"price":"60.16","bid":"27"},{"row":18,"focus":0,"price":"60.15","bid":"19"}]}
+13:25:44.271 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":5,"focus":0,"price":"60.28","ask":"18"},{"row":6,"focus":0,"price":"60.27","ask":"47"},{"row":7,"focus":0,"price":"60.26","ask":"45"},{"row":10,"focus":0,"price":"60.23","bid":"39"},{"row":11,"focus":0,"price":"60.22","bid":"14"},{"row":14,"focus":0,"price":"60.19","bid":"28"}]}
+13:25:44.716 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":8,"focus":0,"price":"60.25","ask":"4"},{"row":9,"focus":1,"price":"1 @ 60.24","bid":"9"}]}
+13:25:45.173 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":4,"focus":0,"price":"60.29","ask":"16"},{"row":6,"focus":0,"price":"60.27","ask":"45"},{"row":7,"focus":0,"price":"60.26","ask":"42"}]}
+13:25:45.333 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|183ms
+13:25:45.345 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:25:45.346 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:25:45.348 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:25:45.349 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:25:45.350 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:25:45.352 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:25:45.354 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:25:45.355 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:25:45.357 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:25:45.358 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:25:45.360 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:25:45.360 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:25:45.361 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:25:45.362 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:25:45.363 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:25:45.363 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:25:45.364 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:25:45.365 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:25:45.366 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:25:45.367 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:25:45.948 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7697":"360K","7059":"1","topic":"smd+304037393","conid":304037393,"_updated":1763385941016,"6119":"q0","server_id":"q0","31":"60.24"}
+13:25:45.949 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.34"},{"row":1,"focus":0,"price":"60.33"},{"row":2,"focus":0,"price":"60.32"},{"row":3,"focus":0,"price":"60.31"},{"row":4,"focus":0,"price":"60.30"},{"row":5,"focus":0,"price":"60.29"},{"row":6,"focus":0,"price":"60.28"},{"row":7,"focus":0,"price":"60.27"},{"row":8,"focus":0,"price":"60.26"},{"row":9,"focus":0,"price":"60.25","ask":"3"},{"row":10,"focus":1,"price":"1 @ 60.24","bid":"9"},{"row":11,"focus":0,"price":"60.23"},{"row":12,"focus":0,"price":"60.22"},{"row":13,"focus":0,"price":"60.21"},{"row":14,"focus":0,"price":"60.20"},{"row":15,"focus":0,"price":"60.19"},{"row":16,"focus":0,"price":"60.18"},{"row":17,"focus":0,"price":"60.17"},{"row":18,"focus":0,"price":"60.16"},{"row":19,"focus":0,"price":"60.15"},{"row":20,"focus":0,"price":"60.14"}]}
+13:25:46.640 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":0,"price":"60.25","ask":"10"},{"row":10,"focus":1,"price":"1 @ 60.24","bid":"8"}]}
+13:25:46.682 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|68ms
+13:25:46.682 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"2c16a427bf394ed548e98b471d17bbb8","ssoExpires":562383,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ27081","serverVersion":"Build 10.40.1c, Oct 23, 2025 4:00:29 PM"},"hardware_info":"2b8cd171|5C:BA:2C:60:27:50"}}}
+13:25:47.389 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385947253,"6119":"q0","31":"60.25","7059":"4","topic":"smd+304037393"}
+13:25:47.390 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"system","hb":1763385947264}
+13:25:47.472 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":1,"price":"4 @ 60.25","ask":"3"},{"row":10,"focus":0,"price":"60.24","bid":"8"}]}
+13:25:48.401 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":1,"price":"4 @ 60.25","ask":"1"},{"row":10,"focus":0,"price":"60.24","bid":"16"}]}
+13:25:48.402 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":1,"price":"1 @ 60.25","ask":"1"}]}
+13:25:48.709 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.34","ask":"5"},{"row":1,"focus":0,"price":"60.33","ask":"7"},{"row":2,"focus":0,"price":"60.32","ask":"12"},{"row":3,"focus":0,"price":"60.31","ask":"9"},{"row":4,"focus":0,"price":"60.30","ask":"34"},{"row":5,"focus":0,"price":"60.29","ask":"16"},{"row":6,"focus":0,"price":"60.28","ask":"18"},{"row":7,"focus":0,"price":"60.27","ask":"46"},{"row":8,"focus":0,"price":"60.26","ask":"33"},{"row":11,"focus":0,"price":"60.23","bid":"41"},{"row":12,"focus":0,"price":"60.22","bid":"12"},{"row":13,"focus":0,"price":"60.21","bid":"23"},{"row":14,"focus":0,"price":"60.20","bid":"22"},{"row":15,"focus":0,"price":"60.19","bid":"28"},{"row":16,"focus":0,"price":"60.18","bid":"17"},{"row":17,"focus":0,"price":"60.17","bid":"16"},{"row":18,"focus":0,"price":"60.16","bid":"27"},{"row":19,"focus":0,"price":"60.15","bid":"19"}]}
+13:25:49.016 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385948754,"6119":"q0","7059":"1","topic":"smd+304037393"}
+13:25:49.017 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":9,"focus":1,"price":"1 @ 60.25","ask":"3"},{"row":10,"focus":0,"price":"60.24","bid":"12"}]}
+13:25:49.630 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":7,"focus":0,"price":"60.27","ask":"45"},{"row":8,"focus":0,"price":"60.26","ask":"30"},{"row":10,"focus":0,"price":"60.24","bid":"14"},{"row":13,"focus":0,"price":"60.21","bid":"24"},{"row":14,"focus":0,"price":"60.20","bid":"23"}]}
+13:25:50.552 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":5,"focus":0,"price":"60.29","ask":"17"},{"row":8,"focus":0,"price":"60.26","ask":"31"},{"row":10,"focus":0,"price":"60.24","bid":"13"},{"row":13,"focus":0,"price":"60.21","bid":"25"}]}
+13:25:50.553 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/auth/status,200|183ms
+13:25:50.564 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269459991+{}
+13:25:50.566 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269459991
+13:25:50.568 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460004+{}
+13:25:50.569 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460004
+13:25:50.570 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460187+{}
+13:25:50.572 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460187
+13:25:50.573 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037427+{}
+13:25:50.574 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037427
+13:25:50.576 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+256019341+{}
+13:25:50.577 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+256019341
+13:25:50.578 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460021+{}
+13:25:50.580 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460021
+13:25:50.581 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037436+{}
+13:25:50.582 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037436
+13:25:50.583 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+304037410+{}
+13:25:50.584 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+304037410
+13:25:50.585 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: umd+269460039+{}
+13:25:50.586 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: ubd+DU2259313+269460039
+13:25:50.587 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: smd+304037393+{"fields":["31","55","6008","6509","7059","7697"]}
+13:25:50.587 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : user message received from front-end: sbd+DU2259313+304037393
+13:25:50.624 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"55":"CL","6509":"RB","conidEx":"304037393","7697":"360K","7059":"1","topic":"smd+304037393","conid":304037393,"_updated":1763385948754,"6119":"q0","server_id":"q0","31":"60.25"}
+13:25:50.855 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":0,"focus":0,"price":"60.35"},{"row":1,"focus":0,"price":"60.34"},{"row":2,"focus":0,"price":"60.33"},{"row":3,"focus":0,"price":"60.32"},{"row":4,"focus":0,"price":"60.31"},{"row":5,"focus":0,"price":"60.30"},{"row":6,"focus":0,"price":"60.29"},{"row":7,"focus":0,"price":"60.28"},{"row":8,"focus":0,"price":"60.27"},{"row":9,"focus":0,"price":"60.26"},{"row":10,"focus":1,"price":"1 @ 60.25","ask":"3"},{"row":11,"focus":0,"price":"60.24","bid":"13"},{"row":12,"focus":0,"price":"60.23"},{"row":13,"focus":0,"price":"60.22"},{"row":14,"focus":0,"price":"60.21"},{"row":15,"focus":0,"price":"60.20"},{"row":16,"focus":0,"price":"60.19"},{"row":17,"focus":0,"price":"60.18"},{"row":18,"focus":0,"price":"60.17"},{"row":19,"focus":0,"price":"60.16"},{"row":20,"focus":0,"price":"60.15"}]}
+13:25:51.473 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":1,"price":"1 @ 60.25","ask":"5"},{"row":11,"focus":0,"price":"60.24","bid":"10"}]}
+13:25:52.386 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":1,"price":"1 @ 60.25","ask":"4"},{"row":11,"focus":0,"price":"60.24","bid":"12"}]}
+13:25:53.622 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":11,"focus":0,"price":"60.24","bid":"13"}]}
+13:25:53.930 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385953787,"6119":"q0","7059":"2","topic":"smd+304037393"}
+13:25:53.931 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":1,"price":"2 @ 60.25","ask":"4"}]}
+13:25:54.242 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":1,"focus":0,"price":"60.34","ask":"5"},{"row":2,"focus":0,"price":"60.33","ask":"7"},{"row":3,"focus":0,"price":"60.32","ask":"12"},{"row":4,"focus":0,"price":"60.31","ask":"9"},{"row":5,"focus":0,"price":"60.30","ask":"34"},{"row":6,"focus":0,"price":"60.29","ask":"15"},{"row":7,"focus":0,"price":"60.28","ask":"18"},{"row":8,"focus":0,"price":"60.27","ask":"48"},{"row":9,"focus":0,"price":"60.26","ask":"25"},{"row":10,"focus":1,"price":"2 @ 60.25","ask":"1"},{"row":11,"focus":0,"price":"60.24","bid":"17"},{"row":12,"focus":0,"price":"60.23","bid":"42"},{"row":13,"focus":0,"price":"60.22","bid":"12"},{"row":14,"focus":0,"price":"60.21","bid":"26"},{"row":15,"focus":0,"price":"60.20","bid":"23"},{"row":16,"focus":0,"price":"60.19","bid":"28"},{"row":17,"focus":0,"price":"60.18","bid":"17"},{"row":18,"focus":0,"price":"60.17","bid":"16"},{"row":19,"focus":0,"price":"60.16","bid":"27"},{"row":20,"focus":0,"price":"60.15","bid":"19"}]}
+13:25:55.159 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385954288,"6119":"q0","31":"60.24","7059":"10","topic":"smd+304037393"}
+13:25:55.160 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":8,"focus":0,"price":"60.27","ask":"43"},{"row":9,"focus":0,"price":"60.26","ask":"37"},{"row":10,"focus":0,"price":"60.25","ask":"1"},{"row":11,"focus":1,"price":"10 @ 60.24","bid":"17"},{"row":12,"focus":0,"price":"60.23","bid":"30"},{"row":13,"focus":0,"price":"60.22","bid":"51"},{"row":15,"focus":0,"price":"60.20","bid":"21"}]}
+13:25:55.168 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":10,"focus":0,"price":"60.25","ask":"5"},{"row":11,"focus":1,"price":"10 @ 60.24","bid":"3"}]}
+13:25:55.361 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"server_id":"q0","conidEx":"304037393","conid":304037393,"_updated":1763385955287,"6119":"q0","7059":"1","topic":"smd+304037393"}
+13:25:55.362 DEBUG vert.x-eventloop-thread-0 GwWebsocketHandler   : Websocket Proxy response body: {"topic":"sbd+DU2259313+304037393","data":[{"row":6,"focus":0,"price":"60.29","ask":"21"},{"row":7,"focus":0,"price":"60.28","ask":"19"},{"row":8,"focus":0,"price":"60.27","ask":"12"},{"row":9,"focus":0,"price":"60.26","ask":"40"},{"row":11,"focus":1,"price":"1 @ 60.24","bid":"3"},{"row":12,"focus":0,"price":"60.23","bid":"37"},{"row":13,"focus":0,"price":"60.22","bid":"62"},{"row":14,"focus":0,"price":"60.21","bid":"28"},{"row":15,"focus":0,"price":"60.20","bid":"26"},{"row":16,"focus":0,"price":"60.19","bid":"25"},{"row":17,"focus":0,"price":"60.18","bid":"16"}]}

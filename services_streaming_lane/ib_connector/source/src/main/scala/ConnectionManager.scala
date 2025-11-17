@@ -30,23 +30,6 @@ trait ConnectionManager {
       */
     var accId:String =""
 
-    /**
-      * The SmdProcessor will push / append requests here if a connection state is faulty
-      * and its the only entity that can do that and ConnectionManager the only entity 
-      * that can pop request from the set
-      * will contain conId to resubscribe the smd topic
-      * 
-      */
-    var requestSetSmd :Set[Long]= Set()
-
-    /**
-      * The SbdProcessor will push / append requests here if a connection state is faulty
-      * and its the only entity that can do that, and ConnectionManager the only entity 
-      * that can pop request from the set
-      * will contain conId to resubscribe the sbd topic
-      * 
-      */
-    var requestSetSbd: Set[Long]=Set()
 	/**
 	  * has no arguments because for testing we provide a constant function and 
 	  * for produciton the function must use kubernets api to get peers the function
@@ -79,72 +62,36 @@ trait ConnectionManager {
       * initailizing frame that will bring the connection states to a valid state, only then we pop the fullfilled requests
       */
     def apply(ws:SyncWebSocket):Unit={
-        if (symbolUniverse==Nil){
-            symbolUniverse=ApiHandler.computeSymbolUniverse()
-        }
+      if (symbolUniverse==Nil){
+          symbolUniverse=ApiHandler.computeSymbolUniverse()
+      }
 
-        symbolShards = computeShards()
+      symbolShards = computeShards()
 
-        if(podIdentity==""){
-            podIdentity=determinePodIdentity()
-        }
+      if(podIdentity==""){
+          podIdentity=determinePodIdentity()
+      }
 
-        if(accId==""){
-            accId=getAccountId()
-        }
+      if(accId==""){
+          accId=getAccountId()
+      }
 
-        // Now we first unsubscribe from all conId in the requestSetSmd and requestSetSbd , wait 100 ms , then subscribe them again
-        // then we wait 400 milliseconds, then we  pop / remove all the processed requests form requestSet
+      // --- Enforce shard-based subscriptions for all symbols ---
+      val myShardConIds: Set[Long] = symbolShards.getOrElse(podIdentity, Nil).map(_._1).toSet
+      val universeConIds: Set[Long] = symbolUniverse.map(_._1).toSet
 
-        // next for every symbol (Long,String) not in the shard for this pod (symbolShards[podIdentity]) we unsubscribe smt and sbd
-        // for every symbol that is in the shard we subscribe
-      	// --- Handle explicit re-subscribe requests (read without popping first) ---
-		val toResubSmd: Set[Long] = requestSetSmd
-		val toResubSbd: Set[Long] = requestSetSbd
+      // Unsubscribe everything not in my shard
+      (universeConIds -- myShardConIds).foreach { con =>
+        val c = con.toString
+        ApiHandler.unsubscribetbt(c, Some(ws))
+        //ApiHandler.unsubscribeL2(accId, c, Some(ws))
+      }
 
-		// SMD (tick-by-tick)
-		toResubSmd.foreach { con =>
-			val c = con.toString
-			ApiHandler.unsubscribetbt(c, Some(ws))
-		}
-		Thread.sleep(100L)
-		toResubSmd.foreach { con =>
-			val c = con.toString
-			ApiHandler.subscribetbt(c, Some(ws))
-		}
-
-		// SBD (L2 DOM)
-		toResubSbd.foreach { con =>
-			val c = con.toString
-			ApiHandler.unsubscribeL2(accId, c, Some(ws))
-		}
-		Thread.sleep(100L)
-		toResubSbd.foreach { con =>
-			val c = con.toString
-			ApiHandler.subscribeL2(accId, c, Some(ws))
-		}
-
-		// Wait for initializing frames to arrive; then pop fulfilled requests
-		Thread.sleep(400L)
-		requestSetSmd = requestSetSmd -- toResubSmd
-		requestSetSbd = requestSetSbd -- toResubSbd
-
-		// --- Enforce shard-based subscriptions for all symbols ---
-		val myShardConIds: Set[Long] = symbolShards.getOrElse(podIdentity, Nil).map(_._1).toSet
-		val universeConIds: Set[Long] = symbolUniverse.map(_._1).toSet
-
-		// Unsubscribe everything not in my shard
-		(universeConIds -- myShardConIds).foreach { con =>
-			val c = con.toString
-			ApiHandler.unsubscribetbt(c, Some(ws))
-			ApiHandler.unsubscribeL2(accId, c, Some(ws))
-		}
-
-		// Subscribe everything in my shard
-		myShardConIds.foreach { con =>
-			val c = con.toString
-			ApiHandler.subscribetbt(c, Some(ws))
-			ApiHandler.subscribeL2(accId, c, Some(ws))
-		}
+      // Subscribe everything in my shard
+      myShardConIds.foreach { con =>
+        val c = con.toString
+        ApiHandler.subscribetbt(c, Some(ws))
+        //ApiHandler.subscribeL2(accId, c, Some(ws))
+      }
     }
 }

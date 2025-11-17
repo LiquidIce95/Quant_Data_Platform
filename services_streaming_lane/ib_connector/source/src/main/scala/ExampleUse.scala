@@ -35,6 +35,7 @@ object ExampleUse {
 		}
 
 		object SM extends StreamManager {
+
 			def connectionsLifeCycleManagement(): Unit = {
 				val ws = webSocketLock.synchronized {
 					webSocketOpt.get

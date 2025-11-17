@@ -54,7 +54,8 @@ trait StreamManager {
 	/**
 	  * subscribes or unsubscribes based on symbol universe and pod symbol shardin logic
 	  * or requests in a concurrent set from the startReader function, the implementation is 
-	  * responsible for holding the necessary information to perform this task
+	  * responsible for holding the necessary information to perform this task, in addition
+	  * it restarts the feeds for the conIds in the respective Set.
 	  */
 	def connectionsLifeCycleManagement():Unit
 
@@ -119,6 +120,7 @@ trait StreamManager {
 	  * from authenticate
 	  */
 	def portalLifeCycleManagement():Unit
+
 
 	/**
 	  * starts the Reader, subscribes to the provided symbol list TODO updates the hearbeat attribute upon receival of the heartbeat, 
