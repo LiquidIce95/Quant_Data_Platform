@@ -22,9 +22,10 @@ object EndPoints {
 }
 
 object ApiHandler {
-
+	val numberOfFrontMonths = 10
 	val baseUrl: String = "https://localhost:5000/v1/api"
 	val webSocketUrl: String = "wss://localhost:5000/v1/api/ws"
+	val portalManager = 
 	private var sessionCookieOpt: Option[String] = None
 
 	// Map each endpoint to a prepared quickRequest
@@ -137,7 +138,7 @@ object ApiHandler {
 		val clFront5: List[(Long, String)] =
 			clArray
 				.sortBy(c => c("expirationDate").num.toLong)
-				.take(5)
+				.take(numberOfFrontMonths)
 				.map { c =>
 					val conId = c("conid").num.toLong
 					val exp   = c("expirationDate").num.toLong.toString
@@ -155,7 +156,7 @@ object ApiHandler {
 		val ngFront5: List[(Long, String)] =
 			ngArray
 				.sortBy(c => c("expirationDate").num.toLong)
-				.take(5)
+				.take(numberOfFrontMonths)
 				.map { c =>
 					val conId = c("conid").num.toLong
 					val exp   = c("expirationDate").num.toLong.toString
