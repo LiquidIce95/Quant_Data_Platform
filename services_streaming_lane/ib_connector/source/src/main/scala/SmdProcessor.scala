@@ -5,52 +5,24 @@ import ujson._
 
 /** Processes IBKR SMD tick frames and emits normalized ticks to Kafka. */
 class SmdProcessor(
-	producerApi: KafkaProducerApi
+	producerApi: KafkaProducerApi,
+	api:ApiHandler
 ) {
 
-	val symbolUniverse: List[(Long, String)] =
-		ApiHandler.computeSymbolUniverse()
+	val symbolUniverse: List[(Long, String, String)] =
+		api.computeSymbolUniverse()
 
-	private def buildMonthYearCode(expiry: String): String = {
-        assert(expiry.length()==8)
-
-        val yearSuffix = expiry.substring(2, 4)
-        val monthStr = expiry.substring(4, 6)
-        val monthOpt = monthStr.toIntOption
-        monthOpt match {
-            case Some(m) =>
-                val monthCode =
-                    m match {
-                        case 1  => "F"
-                        case 2  => "G"
-                        case 3  => "H"
-                        case 4  => "J"
-                        case 5  => "K"
-                        case 6  => "M"
-                        case 7  => "N"
-                        case 8  => "Q"
-                        case 9  => "U"
-                        case 10 => "V"
-                        case 11 => "X"
-                        case 12 => "Z"
-                        case _  => ""
-                    }
-                monthCode + yearSuffix
-            case None =>
-                expiry
-        }
-		
-	}
-
+	
 	private val conidToCode: Map[Long, String] = {
 		val m = scala.collection.mutable.Map[Long, String]()
 		var i = 0
 		while (i < symbolUniverse.length) {
-			val pair = symbolUniverse(i)
-			val conId = pair._1
-			val expiry = pair._2
-			val code = buildMonthYearCode(expiry)
-			m.update(conId, code)
+			val triplet = symbolUniverse(i)
+			val conId = triplet._1
+			val expiry = triplet._2
+			val symbol = triplet._3
+			val code = CommonUtils.buildMonthYearCode(expiry)
+			m.update(conId, symbol+code)
 			i = i + 1
 		}
 		m.toMap
@@ -113,7 +85,7 @@ class SmdProcessor(
 					case "31" =>
 						tick.price = Some(valueAsString(value))
 					case "55" =>
-						tick.tradingSymbol = Some(valueAsString(value) + conidToCode(conId))
+						tick.tradingSymbol = Some(conidToCode(conId))
 					case "6509" =>
 						tick.marketDataType = Some(valueAsString(value))
 					case "7059" =>

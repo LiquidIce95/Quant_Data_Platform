@@ -14,7 +14,7 @@ import scala.util.{Failure, Success}
 
 
 
-trait StreamManager {
+abstract class  StreamManager(api:ApiHandler) {
 
 	// collects stdout/stderr from the portal process
 
@@ -26,29 +26,8 @@ trait StreamManager {
 
 	protected val heartBeatTimestampLock :AnyRef = new AnyRef
 
-	implicit val ec: ExecutionContext = ExecutionContext.global
-	val scheduler = Executors.newSingleThreadScheduledExecutor()
-
-	def scheduleAtFixedRate(intervalMs: Long)(f: => Unit): Unit = {
-		def loop(): Unit = {
-			Future(f).onComplete {
-				case Failure(e) =>
-					e.printStackTrace()		// or println(s"scheduled task failed: ${e.getMessage}")
-					scheduler.schedule(
-						new Runnable { def run(): Unit = loop() },
-						intervalMs,
-						TimeUnit.MILLISECONDS
-					)
-				case Success(_) =>
-					scheduler.schedule(
-						new Runnable { def run(): Unit = loop() },
-						intervalMs,
-						TimeUnit.MILLISECONDS
-					)
-			}
-		}
-		loop()
-	}
+	implicit val ec : ExecutionContext= CommonUtils.ec
+	
 
 
 	/**
@@ -91,18 +70,20 @@ trait StreamManager {
 		}
 
 		if (wsOpt==None){
+			println("!!!!!!!!!!!portal seems to have an issue")
 			webSocketLock.synchronized{
-				webSocketOpt = ApiHandler.establishWebSocket()
+				webSocketOpt = api.establishWebSocket()
 				assert(webSocketOpt!=None)
 			}
 		}
 		else if (now - heartBeatTimestampOld > timeIntervall) {
+			println("!!!!!!!!!!!portal seems to have an issue")
 			webSocketLock.synchronized {
 				val ws  = webSocketOpt.get
 
 				
 				ws.close()
-				webSocketOpt = ApiHandler.establishWebSocket()
+				webSocketOpt = api.establishWebSocket()
 				assert(webSocketOpt!=None, "we have a problem with reinitializing the websocket connection")
 				heartBeatTimestampLock.synchronized{
 					heartBeatTimestamp=System.currentTimeMillis()
@@ -113,13 +94,6 @@ trait StreamManager {
 		}
 		
 	}
-
-	/**
-	  * checks if the client portal is running, if not we start it and authenticate again
-	  * @return a tuple where the first component is the result of startIbPortal and the second 
-	  * from authenticate
-	  */
-	def portalLifeCycleManagement():Unit
 
 
 	/**
@@ -170,7 +144,7 @@ trait StreamManager {
 				println("we got something else ")
 			}
 		}
-		println("reader terminates")
+		println("!!!!!!!!!!!reader seems to have an issue")
 		heartBeatTimestampLock.synchronized{
 			heartBeatTimestamp=0L
 		}
@@ -186,10 +160,8 @@ trait StreamManager {
 		var readerFuture: Future[Unit] = Future.successful(())
 
 		//IMPORTANT socketLifeCycleManagement and startReader share webSocketOpt , so we must use a lock
-		scheduleAtFixedRate(schedulingIntervall){
+		CommonUtils.scheduleAtFixedRate(schedulingIntervall){
 			println("next lifecycle starts")
-			println("portalLifeCycle")
-			portalLifeCycleManagement()
 			println("socketLifeCycle")
 			socketLifeCycleManagement(heartBeatTolerance)
 			println("connectionsLifeCycle")

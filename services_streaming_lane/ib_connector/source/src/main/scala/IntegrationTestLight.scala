@@ -8,20 +8,25 @@ import java.nio.charset.StandardCharsets
 import sttp.client4.ws.SyncWebSocket
 import upickle.core.LinkedHashMap
 import scala.sys.process._
+import scala.collection.mutable
 
 object IntegrationTestLight {
+
 	def main(args: Array[String]): Unit = {
 
-		object PM extends PortalManager {
-			def computeUser(): Int = 1
+		val api :ApiHandler = new ApiHandler {
+			def computeUser(): Int = {1}
 		}
 
+		api.startApi()
 
-		object CM extends ConnectionManager {
-			def computeShards(): Map[String, List[(Long, String)]] = {
+		println(f"api started, ${api.isHealthy()}")
+
+		object CM extends ConnectionManager(api) {
+			def computeShards(): mutable.Map[String, List[(Long, String, String)]] = {
 				// pick the 2nd CL from symbolUniverse (which was built as CL-front5 ++ NG-front5)
-				val pick: List[(Long, String)] = symbolUniverse.lift(8).toList
-				Map("one" -> pick)
+				val pick: List[(Long, String, String)] = symbolUniverse.take(8)
+				mutable.Map("one" -> pick)
 			}
 			def determinePodIdentity(): String = "one"
 			def getAccountId(): String = {
@@ -38,9 +43,9 @@ object IntegrationTestLight {
 
 		val producer = KafkaProducerApi()
 
-		val smdProcessor = new SmdProcessor(producer)
+		val smdProcessor = new SmdProcessor(producer,api)
 
-		object SM extends StreamManager {
+		object SM extends StreamManager(api) {
 
 			def connectionsLifeCycleManagement(): Unit = {
 				val ws = webSocketLock.synchronized {
@@ -55,7 +60,6 @@ object IntegrationTestLight {
 			def onSbdFrame(message: LinkedHashMap[String, ujson.Value]): Unit = {
 				println(ujson.write(ujson.Obj.from(message)))
 			}
-			def portalLifeCycleManagement(): Unit = PM.apply()
 		}
 
 		// make sure you ran az login on this container

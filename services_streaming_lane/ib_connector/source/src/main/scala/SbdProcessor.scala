@@ -7,41 +7,13 @@ import scala.collection.mutable
 // its apply method will override onSmdFrame in StreamManager, sends request in form of conId to the requestSetSmd
 
 class SbdProcessor(
-    producerApi:KafkaProducerApi
+    producerApi:KafkaProducerApi,
+    api:ApiHandler
     ) {
 
-    val symbolUniverse :List[(Long,String)]= ApiHandler.computeSymbolUniverse()
+    val symbolUniverse :List[(Long,String,String)]= api.computeSymbolUniverse()
 
-    private def buildMonthYearCode(expiry: String): String = {
-          assert(expiry.length()==8)
 
-          val yearSuffix = expiry.substring(2, 4)
-          val monthStr = expiry.substring(4, 6)
-          val monthOpt = monthStr.toIntOption
-          monthOpt match {
-              case Some(m) =>
-                  val monthCode =
-                      m match {
-                          case 1  => "F"
-                          case 2  => "G"
-                          case 3  => "H"
-                          case 4  => "J"
-                          case 5  => "K"
-                          case 6  => "M"
-                          case 7  => "N"
-                          case 8  => "Q"
-                          case 9  => "U"
-                          case 10 => "V"
-                          case 11 => "X"
-                          case 12 => "Z"
-                          case _  => ""
-                      }
-                  monthCode + yearSuffix
-              case None =>
-                  expiry
-          }
-      
-    }
 
     private val conidToCode: Map[Long, String] = {
       val m = scala.collection.mutable.Map[Long, String]()
@@ -50,7 +22,7 @@ class SbdProcessor(
         val pair = symbolUniverse(i)
         val conId = pair._1
         val expiry = pair._2
-        val code = buildMonthYearCode(expiry)
+        val code = CommonUtils.buildMonthYearCode(expiry)
         m.update(conId, code)
         i = i + 1
       }

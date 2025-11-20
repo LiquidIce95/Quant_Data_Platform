@@ -2,8 +2,9 @@ package src.main.scala
 
 import sttp.client4.ws.SyncWebSocket
 import sttp.client4.quick._
+import scala.collection.mutable
 
-trait ConnectionManager {
+abstract class  ConnectionManager(api:ApiHandler) {
 
     /**
       * compute shards overwrites this, represents the 
@@ -11,7 +12,7 @@ trait ConnectionManager {
       * a symbol is a tuple wher the first component is the conId, the second is expiry date
       * 
       */
-    var symbolShards: Map[String,List[(Long,String)]]= Map.empty
+    var symbolShards: mutable.Map[String,List[(Long,String,String)]]= mutable.Map.empty
 
     /**
       * Long is the contract Id from interactive brokers
@@ -19,7 +20,7 @@ trait ConnectionManager {
       * a symbol is a tuple wher the first component is the conId, the second is expiry date
       * 
       */
-    var symbolUniverse:List[(Long,String)]=Nil
+    var symbolUniverse:List[(Long,String,String)]=Nil
 
     var podIdentity: String = "" 
 
@@ -30,15 +31,15 @@ trait ConnectionManager {
       */
     var accId:String =""
 
-	/**
-	  * has no arguments because for testing we provide a constant function and 
-	  * for produciton the function must use kubernets api to get peers the function
-	  * that performs the sharding is tested seperately
-	  * pod identity and peer identities are assumed to be constant during runtime
-	  * @return a map that relates the peer names to the list of symbols / shard it must process
+	  /**
+      * has no arguments because for testing we provide a constant function and 
+      * for produciton the function must use kubernets api to get peers the function
+      * that performs the sharding is tested seperately
+      * pod identity and peer identities are assumed to be constant during runtime
+      * @return a map that relates the peer names to the list of symbols / shard it must process
       * where the symbols are tuples, where the first component is conId and the second is expiry date
-	  */
-	def computeShards(): Map[String, List[(Long,String)]]
+      */
+	  def computeShards(): mutable.Map[String, List[(Long,String,String)]]
 
 
     /**
@@ -62,7 +63,7 @@ trait ConnectionManager {
       */
     def apply(ws:SyncWebSocket):Unit={
       if (symbolUniverse==Nil){
-          symbolUniverse=ApiHandler.computeSymbolUniverse()
+          symbolUniverse=api.computeSymbolUniverse()
       }
 
       symbolShards = computeShards()
@@ -79,17 +80,19 @@ trait ConnectionManager {
       val myShardConIds: Set[Long] = symbolShards.getOrElse(podIdentity, Nil).map(_._1).toSet
       val universeConIds: Set[Long] = symbolUniverse.map(_._1).toSet
 
+      println(f"current shard is ${myShardConIds}")
+
       // Unsubscribe everything not in my shard
       (universeConIds -- myShardConIds).foreach { con =>
         val c = con.toString
-        ApiHandler.unsubscribetbt(c, Some(ws))
+        api.unsubscribetbt(c, Some(ws))
         //ApiHandler.unsubscribeL2(accId, c, Some(ws))
       }
 
       // Subscribe everything in my shard
       myShardConIds.foreach { con =>
         val c = con.toString
-        ApiHandler.subscribetbt(c, Some(ws))
+        api.subscribetbt(c, Some(ws))
         //ApiHandler.subscribeL2(accId, c, Some(ws))
       }
     }
