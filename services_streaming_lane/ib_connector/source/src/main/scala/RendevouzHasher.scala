@@ -1,6 +1,7 @@
 package src.main.scala
 import scala.collection.mutable
 import src.main.scala.Status.Online
+import src.main.scala.TestOptimalDistributionFunction.fact
 
 
 sealed abstract class Status
@@ -14,7 +15,7 @@ object Status {
   *
   * @param api 
   */
-abstract class RendevouzHasher(api:ApiHandler) {
+abstract class RendevouzHasher {
 
     /**
       * maps every symbol's name to a sorted list (by score) of the enities names and the score's
@@ -25,7 +26,7 @@ abstract class RendevouzHasher(api:ApiHandler) {
     /**
       * map every entity name to a status,needs to be given 
       */
-    protected val stateMap : mutable.Map[String,Status]
+    val stateMap : mutable.Map[String,Status]
 
     /**
       * maps entity names to the list of symbols its taking care of
@@ -180,7 +181,7 @@ abstract class RendevouzHasher(api:ApiHandler) {
     * @return the updated version of entityMap
     */
   def apply(onlineEntities: List[String]):mutable.Map[String,List[String]]={
-    assert(entityNames.contains(onlineEntities))
+    assert(onlineEntities.forall(entityNames.contains))
 
     if (scoreMap.isEmpty) {
       computeScores()
@@ -226,4 +227,105 @@ abstract class RendevouzHasher(api:ApiHandler) {
   }
 
 
+}
+
+
+object TestRendevouzHasher{
+
+
+    def pickRandomIndex(n: Int, rnd: scala.util.Random): Int = {
+        require(n > 0)
+        rnd.nextInt(n)    // returns an integer in [0, n-1]
+    }
+    def pickRandomEntity(entities: List[String], rnd: scala.util.Random): String = {
+        require(entities.nonEmpty)
+        entities(rnd.nextInt(entities.size))
+    }
+
+    def onlineSymbolCounts(
+        stateMap: mutable.Map[String, Status],
+        entityMap: mutable.Map[String, List[String]]
+    ): List[Int] = {
+        stateMap.collect {
+            case (entity, Status.Online) =>
+                entityMap(entity).size
+        }.toList
+    }
+  def testQuick():Unit= {
+    for (n<-4 until 25){
+        for (m<-2 until 800){
+            val rnd = new scala.util.Random()
+
+            val symbols = {for (j<-0 until m) yield j.toString()}.toList
+            val entities = {for (i<-0 until n) yield i.toString()}.toList
+
+            val scoreTable = new OptimalDistributionFunction(m,n)
+
+            assert(scoreTable.thisMatrixFine(),"this TAble is not fine")
+        
+            val rendevouzH = new RendevouzHasher {
+                protected val entityNames: List[String] = entities
+                protected val symbolNames: List[String] = symbols 
+                def scoreFunction(symbol: String, entityName: String): Int = {
+                    val symbolInt = symbol.toInt
+                    val entityInt = entityName.toInt
+                    scoreTable.distributionMatrix(symbolInt)(entityInt)
+                }
+                val stateMap: mutable.Map[String,Status] = mutable.Map.from(for (e <- entities) yield e -> Status.Online)
+
+            }
+
+            val symbolsToEntities = rendevouzH(onlineEntities = entities)
+
+
+            // here compute how many symbols each entity has , get min,max, assert(max-min<=1)
+            val symbolCount = onlineSymbolCounts(rendevouzH.stateMap,symbolsToEntities)
+
+            val min = symbolCount.min 
+            val max = symbolCount.max 
+
+            assert(max-min <=1,"min max comparison not good when all are online")
+            // end of your solution
+
+            val numberOfflineEnts = pickRandomIndex(n,rnd)
+
+            var offlinePicks :List[String]= List.empty
+
+            while(offlinePicks.size < numberOfflineEnts){
+                //here create onlineEnts:List[String] that consists of all the current picks
+                //then call rendevouzH(onlineEnts), 
+                // perform the same check as above
+                val offlinePick = pickRandomEntity(entities.filterNot(offlinePicks.contains),rnd)
+
+                offlinePicks = offlinePicks :+ offlinePick
+                val onlineEnts : List[String]=entities.filterNot(offlinePicks.contains)
+
+                val updatedMap = rendevouzH(onlineEnts)
+
+                val symbolCountNew = onlineSymbolCounts(rendevouzH.stateMap,updatedMap)
+
+                val min = symbolCountNew.min 
+                val max = symbolCountNew.max
+                val ok    = max - min <= 1
+                val red   = "\u001b[31m"
+                val green = "\u001b[32m"
+                val reset = "\u001b[0m"
+
+                val color = if (ok) green else red
+
+                //assert(max-min<=1,"min max comparison not good")
+                println(
+                  s"${color}assertion was $ok with max-min=${max - min} n:$n, m:$m offline size:${offlinePicks.size}$reset"
+                )                // your implementation ends here
+            }
+
+        }
+
+
+    }
+  }
+
+  def main(args: Array[String]):Unit={
+    testQuick()
+  }
 }

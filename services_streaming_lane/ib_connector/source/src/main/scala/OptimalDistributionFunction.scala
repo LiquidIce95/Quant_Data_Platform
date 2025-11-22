@@ -1,5 +1,7 @@
 package src.main.scala
 
+import scala.collection.mutable
+
 class OptimalDistributionFunction(
     val m:Int,
     val n:Int
@@ -12,21 +14,55 @@ class OptimalDistributionFunction(
 		r
 	}
 
+    private val garbageValue = 0
+
+    val offsets :mutable.Map[(Vector[Int],Int),Int]= mutable.Map.empty
+
+    def offlineEntities(A:Array[Array[Int]],row:Int,n:Int):Vector[Int]={
+        val entitiesOffline = (0 until n).map{
+            j=> if (A(row)(j)!= garbageValue) 1 else 0
+        }.toVector
+        entitiesOffline
+    }
+
     def initMatrix (A : Array[Array[Int]],m:Int,n:Int):Array[Array[Int]]={
+        
+        for (i<-0 until m){
+            for (j<-0 until n){
+                A(i)(j)= garbageValue
+            }
+        }
+
+        var originalOffset =0
         for (i<-0 until m){
             A(i)(i%(n))=n-1;
+            originalOffset=i%n
         }
+
+        originalOffset=(originalOffset+1)%n
+
+        for (i<-0 until m){
+            val E = offlineEntities(A,i,n)
+            offsets((E,n-1))=originalOffset
+        }
+
+
 
         for (k<-n-2 to 1 by -1) {
             for (j<-0 until n){
-                var index = 0 
                 for (i<-0 until m){
+                    val E = offlineEntities(A,i,n)
                     if (A(i)(j)== k+1) {
-                        while (A(i)(index)!=0){
-                            index = (index+1)%(n)
+                        if (!offsets.contains((E,k))) {
+                            offsets((E,k))=offsets((E,k+1))
                         }
-                        A(i)(index)=k
-                        index = (index+1)%n
+                        while (A(i)(offsets((E,k)))!=garbageValue){
+                            offsets((E,k)) = (offsets((E,k))+1)%(n)
+                        }
+                        A(i)(offsets((E,k)))=k
+                        offsets((E,k)) = (offsets((E,k))+1)%n
+                        val E_ = offlineEntities(A,i,n) 
+                        offsets((E_,k)) = offsets((E,k))
                     }
                 }
             }
