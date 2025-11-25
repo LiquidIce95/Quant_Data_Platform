@@ -22,7 +22,7 @@ object ListPeersInMyNamespace {
 
 			val podNames = pods.toArray.map(_.asInstanceOf[io.fabric8.kubernetes.api.model.Pod].getMetadata.getName)
 			podNames.foreach(println)
-		} finally {t
+		} finally {
 			client.close()
 		}
 	}
