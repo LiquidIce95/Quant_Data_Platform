@@ -83,9 +83,9 @@ This is implemented in `OptimalDistributionFunction.scala`.
 
 Testing for m=n! shows that it works for any offline sequence in such cases and for m=n!+1 or m=n!-1 the
 maximum difference between the total symbols between two entities does not exceed 1.
-However if m has a large distance to n! than this error rate (maximal differnce in symbols) grows very quickly.
+However if m has a large distance to n! than this error rate (maximal difference in symbols) grows very quickly.
 
-Thus this approach hits a hard limit:
+Even though it performs better on n up to 4, this approach hits a hard limit:
 
 > To reflect every possible offline ordering, the score table needs `n!` rows.
 
@@ -113,11 +113,64 @@ Round Robin guarantees:
 - **Fast initialization**
 
 This makes it far more suitable than “optimal” score-table hashing for realistic cluster sizes.
+## Performance Characteristics
 
-## Performance comparisons
+Every sharding strategy has two relevant costs:
 
-Any approach that uses a precomputed table will have more initialization cost but lower runtime cost than those approaches that do not initialize but perform computations at runtime. But as said, for best possible balancing, a precomputed table that achieves it would have at least n! rows and thus would take O(n!) time and space to build. At runtime, when an entity fails one still needs to lookup the score for the stale symbols which in worst case can create O(m) lookups and redistributions (you still need to move the symbols they do not move by themselves).
+1. **Initialization cost** — time and memory required before the system starts processing.  
+2. **Runtime redistribution cost** — work needed when entities go online/offline.
 
-Round Robin on the other hand does not have any initialization cost in form of time or space. At runtime it does not perform a lookup but instead makes at most O(m) distributions to the remaining entities. So even at runtime the Round robin approach performes as good as the precomputed table approaches.
+### Precomputed Score-Table Approaches
+
+Methods based on a precomputed score table (such as `OptimalDistributionFunction`) have the following profile:
+
+- **Initialization cost:**  
+  Extremely high for larger `n`.  
+  To encode all possible offline sequences, the table must contain at least `n!` rows.  
+  Building such a table takes **O(n!)** time and memory, which becomes infeasible already for `n ≥ 5`.
+
+- **Runtime cost:**  
+  When an entity goes offline, each stale symbol requires a score lookup.  
+  In the worst case, up to **O(m)** redistributions are needed.  
+  (Symbols do not “move themselves”—you still iterate through all stale symbols.)
+
+Thus, precomputed approaches trade **massive initialization cost** for **moderate runtime cost**, but are only viable for very small cluster sizes.
+
+---
+
+### Round Robin
+
+Round Robin has a radically different profile:
+
+- **Initialization cost:**  
+  *Near zero*.  
+  Just assign the symbols cyclically once — **O(m)** time, no large auxiliary structures.
+
+- **Runtime cost:**  
+  No score lookups.  
+  When the set of online entities changes, we simply:
+  - collect all symbols from currently online entities  
+  - redistribute them evenly using a cyclic pass  
+
+  This takes at most **O(m)** operations.
+
+Crucially:
+
+> Round Robin guarantees perfect load balance (`maxDiff ≤ 1`) after every redistribution, with no need for `n!` precomputation.
+
+It retains predictable and stable behavior even for medium-sized clusters where score-table methods become completely impractical.
+
+---
+
+### Summary
+
+| Method                      | Initialization Cost | Runtime Cost     | Load Balance | Feasible for Medium n |
+|-----------------------------|----------------------|------------------|--------------|------------------------|
+| Score-Table (Optimal)       | **O(n!)**            | O(m)             | Very high (when m divisible by n!) | ❌ No |
+| Hash-based Rendezvous       | O(1)                 | O(m) for stale symbols | Medium / depends on m, n | ✔ Yes |
+| **Round Robin**             | **O(m)**             | **O(m)**         | **Perfect (`≤1`)** | ✔✔ Best |
+
+Round Robin avoids the factorial blow-up entirely and consistently produces near-optimal distributions, making it the most practical and robust strategy in realistic distributed systems.
+
 
 ---
