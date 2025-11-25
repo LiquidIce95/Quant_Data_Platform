@@ -1,6 +1,7 @@
 package src.main.scala
 
 import org.scalatest.funsuite.AnyFunSuite
+import src.main.scala.Algorithms.OptimalDistributionFunction
 
 class TestOptimalDistributionFunction extends AnyFunSuite {
 	def fact(n: Int): Int = {

@@ -18,6 +18,7 @@ lazy val root = (project in file("."))
 			"com.softwaremill.sttp.client4" %% "core" % "4.0.0-RC1",
 			"com.lihaoyi" %% "cask" % "0.10.2",
 			
+			"org.apache.commons" % "commons-math3" % "3.6.1",
 
 			// --- Config files (HOCON) ---
 			"com.typesafe" % "config" % "1.4.3",
