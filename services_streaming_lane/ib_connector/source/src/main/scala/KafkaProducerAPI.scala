@@ -5,6 +5,7 @@ import org.apache.kafka.common.serialization.StringSerializer
 import java.util.Properties
 import java.util.concurrent.Future
 
+
 class KafkaProducerApi(
   bootstrapServers: String = sys.env.getOrElse("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"),
   clientId:        String  = sys.env.getOrElse("KAFKA_CLIENT_ID",        "ib-producer"),
@@ -28,12 +29,16 @@ class KafkaProducerApi(
     * since the symbols are ordered ascending by expiry we will distribute
     * the hot months first
     */
-  val partitionIndices : Map[Long,String] = {
-    for (i<-0 until symbolUniverse.size) yield symbolUniverse(i)._1 -> i.toString()
+  val partitionIndices : Map[Long,Int] = {
+    for (i<-0 until symbolUniverse.size) yield symbolUniverse(i)._1 -> i
   }.toMap
+  
+
+  val partitionSizes :Map[String,Int] = Map("ticklast"->producer.partitionsFor("ticklast").size(),"l2-data"->producer.partitionsFor("l2-data").size())
 
   /**
-    * 
+    * We want to send the data for a particular contract to the same partition to keep the data ordered
+    * This will yield great performance boost later down the line in spark and clickhouse
     *
     * @param topic the topic to send the messages to 
     * @param key the key that determines the partion, needs to be conId= contract id
@@ -41,7 +46,7 @@ class KafkaProducerApi(
     * @return
     */
   def send(topic: String, key: Long, value: String): Future[RecordMetadata] = {
-    producer.send(new ProducerRecord[String, String](topic, partitionIndices(key), value))
+    producer.send(new ProducerRecord[String, String](topic, partitionIndices(key)%partitionSizes(topic),key.toString(), value))
   }
 
   def flush(): Unit = producer.flush()
