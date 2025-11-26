@@ -220,3 +220,83 @@
 <- 200 GET /v1/api/iserver/auth/status
 -> GET /v1/api/iserver/auth/status
 <- 200 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status
+-> GET /v1/api/iserver/auth/status
+<- 401 GET /v1/api/iserver/auth/status

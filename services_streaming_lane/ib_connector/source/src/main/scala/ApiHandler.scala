@@ -229,8 +229,7 @@ trait ApiHandler {
 
 	def isHealthy():Boolean={
 		val running = outputLock.synchronized{
-			portalOutput.toString.contains("Open https://localhost:5000 to login") &&
-				!portalOutput.toString.contains("Server listen failed Address already in use")
+			portalOutput.toString.contains("Open https://localhost:5000 to login") && !portalOutput.toString.contains("Server listen failed Address already in use")
 		}
 		val authed= Try {
 			val statusReq = endpointsMap(EndPoints.AuthStatus)
@@ -259,47 +258,51 @@ trait ApiHandler {
 	  * 
 	  */
 	def startIbPortal(): Boolean = {
-		val workDir = new File("./clientportal.gw")
-
-
-		// kill all processes listening on port 5000
-		val cmdKill = Seq(
-			"bash",
-			"-lc",
-			"lsof -ti:5000 | xargs -r kill"
-		).!
-
-		Thread.sleep(2000L)
-		val cmd = Seq(
-			"bash",
-			"-lc",
-			"./bin/run.sh root/conf.yaml"
-		)
 		outputLock.synchronized{
-			portalOutput.clear()
-        	portalProcFuture = Future {
-            	Process(cmd,workDir).!(portalLogger)
-            	()
-        	}
+			val workDir = new File("./clientportal.gw")
 
+
+			// kill all processes listening on port 5000 including any left overs from old trials
+			val cmdKill = Seq(
+				"bash",
+				"-lc",
+				"lsof -ti:5000 | xargs -r kill"
+			).!
+
+			Thread.sleep(6000L)
+			val cmd = Seq(
+				"bash",
+				"-lc",
+				"./bin/run.sh root/conf.yaml"
+			)
+			outputLock.synchronized{
+				portalOutput.clear()
+				portalProcFuture = Future {
+					Process(cmd,workDir).!(portalLogger)
+					()
+				}
+
+			}
+
+			val timeout:Long = 50000L
+			val deadline = System.currentTimeMillis()+timeout
+			var portalStarted = false
+
+			while(!portalStarted && System.currentTimeMillis()<deadline){
+				Thread.sleep(3000L)
+				portalStarted = outputLock.synchronized{
+					portalOutput.toString.contains("Open https://localhost:5000 to login") && !portalOutput.toString.contains("Server listen failed Address already in use")
+				}
+			}
+			portalStarted
 		}
-		// start portal asynchronously; do not wait for termination
-
-		// give the gateway a bit of time to print its startup banner
-		Thread.sleep(3000L)
-
-		outputLock.synchronized{
-			portalOutput.toString.contains("Open https://localhost:5000 to login") &&
-				!portalOutput.toString.contains("Server listen failed Address already in use")
-		}
-
 	}
 
 	/**
 	  * runs the python authenticator without 2fa script and checks if we got 
 	  * "authenticated":true in the console output
-	  *
-	  * @param userId
+	  *	if you need to call the authenticator that also handles 2FA then you need to change the bash command
+	  * @param userId the user to use for using the api 1 or two
 	  * @return true if the string was present in the console output and false otherwise
 	  */
 	def authenticate(userId: Int = 1): Boolean = {
@@ -335,57 +338,14 @@ trait ApiHandler {
      * thorws an exception if its unable to start portal and authenticate in this case we need to restart pod
      */
     def startPortalLifeCycleManagement():Unit={
-
         // 1) Try to check current auth status via Web API
-        val statusReq = endpointsMap(EndPoints.AuthStatus)
-
-        var portalRunning: Boolean = !portalProcFuture.isCompleted && !hasFatalErrorInLogs
-		
-
-
-        val isAuthOk: Boolean =
-            if (portalRunning){
-                Try {
-                    val resp = statusReq.send()
-                    if (resp.code.isSuccess) {
-                        val json = ujson.read(resp.body)
-                        json.obj.get("authenticated") match {
-                            case Some(v) => v.bool
-                            case None    => false
-                        }
-                    } else {
-                        false
-                    }
-                } match {
-                    case Success(b) => b
-                    case Failure(_) => false
-                }
-            }
-            else {
-                false
-            }
-        // 2) If portal is reachable and authenticated, we’re done
-        if (isAuthOk && portalRunning) {
+        val healthy = outputLock.synchronized{
+			isHealthy()
+		}
+        if (healthy) {
             ()
         } else {
-			println("!!!!!!!!!!!portal seems to have an issue")
-            val portalStarted = if (!portalRunning){
-                startIbPortal()
-            } 
-            else {
-                true
-            }
-            // 3) Otherwise: try to (re)start portal and re-authenticate
-            val userId: Int             = computeUser()
-            val authed: Boolean         = authenticate(userId)
-        	portalRunning = !portalProcFuture.isCompleted && !hasFatalErrorInLogs
-			
-
-            if (portalStarted && authed && portalRunning) {
-                ()
-            } else {
-                throw new Exception(s"we have a problem with the clinet portal, need to restart pod portalStarted: $portalStarted, authed:$authed, portalRunning:$portalRunning")
-            }
+			startIbPortal()
         }
     }
 
@@ -395,14 +355,13 @@ trait ApiHandler {
         val timeout:Long = 20000L
         val deadline = System.currentTimeMillis()+timeout
 
-
 		CommonUtils.scheduleAtFixedRate(lifeCyclePeriod) {
 			startPortalLifeCycleManagement()
 		}
 
-        while(!isHealthy()&& System.currentTimeMillis()<deadline){
-            Thread.sleep(3000L)
-        }        
+		while(!isHealthy()&& System.currentTimeMillis()<deadline){
+        	Thread.sleep(3000L)
+        }
 
         if(!isHealthy()){
             throw new Exception("we cannot start the api, need to restart pod")
