@@ -197,14 +197,10 @@ trait ApiHandler {
     // logger that appends all lines to portalOutput
 	val portalLogger: ProcessLogger = ProcessLogger(
 		(line: String) => {
-			outputLock.synchronized {
 			portalOutput.append(line).append('\n')
-			}
 		},
 		(err: String) => {
-			outputLock.synchronized {
 			portalOutput.append(err).append('\n')
-			}
 		}
 	)
 
@@ -268,6 +264,7 @@ trait ApiHandler {
 				"-lc",
 				"lsof -ti:5000 | xargs -r kill"
 			).!
+			portalOutput.clear()
 
 			Thread.sleep(6000L)
 			val cmd = Seq(
@@ -275,14 +272,12 @@ trait ApiHandler {
 				"-lc",
 				"./bin/run.sh root/conf.yaml"
 			)
-			outputLock.synchronized{
-				portalOutput.clear()
-				portalProcFuture = Future {
-					Process(cmd,workDir).!(portalLogger)
-					()
-				}
-
+			portalProcFuture = Future {
+				Process(cmd,workDir).!(portalLogger)
+				()
 			}
+
+			
 
 			val timeout:Long = 50000L
 			val deadline = System.currentTimeMillis()+timeout
@@ -290,13 +285,13 @@ trait ApiHandler {
 
 			while(!portalStarted && System.currentTimeMillis()<deadline){
 				Thread.sleep(3000L)
-				portalStarted = outputLock.synchronized{
-					portalOutput.toString.contains("Open https://localhost:5000 to login") && !portalOutput.toString.contains("Server listen failed Address already in use")
-				}
+				portalStarted = portalOutput.toString.contains("Open https://localhost:5000 to login") && !portalOutput.toString.contains("Server listen failed Address already in use")
+				
 			}
 			portalStarted
 		}
 	}
+	
 
 	/**
 	  * runs the python authenticator without 2fa script and checks if we got 
@@ -343,14 +338,16 @@ trait ApiHandler {
 			isHealthy()
 		}
         if (healthy) {
+			// we need to authenticte to keep session valid
+			authenticate(computeUser())
             ()
         } else {
-			startIbPortal()
+			if (startIbPortal()) (authenticate(computeUser()))
         }
     }
 
 	def startApi():Unit={
-		val lifeCyclePeriod:Long = 3000L
+		val lifeCyclePeriod:Long = 6000L
 		
         val timeout:Long = 20000L
         val deadline = System.currentTimeMillis()+timeout

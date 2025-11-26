@@ -24,7 +24,9 @@ class TestApiHandler extends AnyFunSuite {
 
         @tailrec
         def tryToStartPortal(trial:Int):Boolean={
-            if (trial==0) (false)
+            if (trial==0) {
+                false
+            }
             else if (api.startIbPortal()){
                 true
             } else {
