@@ -63,9 +63,9 @@ class RoundRobin[E,S](
 		assert(offlineEntities.contains(entityName))
 
 		var index :Int = 0
-		val atLeast = math.floor(symbolNames.size/onlineEntities.size).toInt
+		val atLeast = math.floor(symbolNames.size/(onlineEntities.size+1)).toInt
 		var newSymbols = Vector.empty[S]
-		for (i<-0 until atLeast){
+		for (_<-0 until atLeast){
 			val currEnt = onlineEntities(index)._1
 			var entSymbols = entityMap(currEnt)
 			val last = entSymbols.last
@@ -74,7 +74,7 @@ class RoundRobin[E,S](
 			entityMap(currEnt) = entityMap(currEnt).dropRight(1)
 			index = (index+1)%onlineEntities.size
 		}
-
+		entityMap(entityName)=newSymbols
 
 
 	}

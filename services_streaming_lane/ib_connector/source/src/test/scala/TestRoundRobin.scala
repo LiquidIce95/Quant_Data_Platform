@@ -98,6 +98,7 @@ class TestRoundRobin extends AnyFunSuite {
 
 					var maxDiff = max - min
 
+					assert(symbolCount.sum == m)
                     assert(maxDiff<=1)
 
 					val numberOnlineEnts = pickRandomIndex(n, rnd)
@@ -111,8 +112,7 @@ class TestRoundRobin extends AnyFunSuite {
 
 						val updatedMap = robin(onlinePicks)
 
-						val symbolCountNew =
-							onlineSymbolCounts(robin.stateMap, updatedMap)
+						val symbolCountNew = onlineSymbolCounts(robin.stateMap, updatedMap)
 
 						// this is critical behaviour
 						assert(symbolCountNew.sum == m)
