@@ -10,16 +10,17 @@ When distributing *symbols* (units of data or work) over a set of *entities* (se
    When an entity goes offline, only the symbols hosted by that entity should be redistributed. No other symbols should move.  
    If an entity comes online, the same principle applies: ideally, symbols should remain stable unless strictly necessary.
 
-These goals are central in distributed systems. One of the main motivations for distributed architectures is scalability—adding or removing machines dynamically. However, balancing and stability are **in tension** with each other.
+These goals are central in distributed systems. One of the main motivations for distributed architectures is scalability—adding or removing machines dynamically.
 
 ---
 
 ## Key Insight 1 – Upscaling and Minimal Data Loss Conflict
 
-When an entity goes **offline**, only its symbols become stale, so minimal data loss is achievable.
+When an entity goes **offline** (downscaling), only its symbols become stale, so minimal data loss is achievable by only moving those symbols. 
+If we were to move other symbols then we make them unnecessarily stale and create more data loss.
 
-When an entity goes **online**, no symbols are stale.  
-But to restore perfect load balance, some symbols must move — which **violates** minimal data loss.
+When an entity goes **online** (upscaling), no symbols are stale.  
+But to restore perfect load balance, some symbols must move — which **violates** minimal data loss (to only move those that are stale).
 
 Thus, load balancing and minimal disruption are inherently conflicting objectives.
 
@@ -31,8 +32,8 @@ Let `n` be the number of entities.
 
 There are **n! different sequences** in which the entities can fail:
 
-- First, any of the `n` entities may go offline.
-- Then any of the remaining `n−1`.
+- First, at the beginning any of the `n` entities may go offline.
+- Then any of the remaining `n−1` can go offline.
 - Then any of the remaining `n−2`, and so on.
 
 This creates a full permutation tree of size:
@@ -43,13 +44,8 @@ n \times (n-1) \times (n-2) \times \dots \times 1 = n!
 
 Each path corresponds to a unique offline sequence.
 
-If we want a scoring-based method to allocate symbols **perfectly** for *all* these cases, the number of distinct states needed is also `n!`.
+So if we want to use a method that can handle all cases then it needs to consider at least n! cases.
 
-This leads to an important conclusion:
-
-> To guarantee perfect balancing for all offline sequences, a score table must encode at least **n! rows**.
-
-And therefore, the number of symbols `m` must be divisible by `n!` to keep all states perfectly balanced.
 
 ---
 
@@ -65,13 +61,16 @@ Load distribution becomes skewed.
 
 ## Rendezvous (Highest Random Weight) Hashing
 
-Rendezvous hashing improves load balancing:
+Rendezvous hashing also satisfies minimal data loss but improves load balancing in downscaling events:
 
 - For each `(symbol, entity)` pair, compute a **score** using a hash function.
 - A symbol is assigned to the entity with the highest score.
 - If one entity goes offline, each symbol moves to the entity with the next highest score.
 
 This preserves minimal data loss and reduces skew—**in theory**.
+
+Notice that if e1 and then e2 go offline and we had perfect load balance, then it is preserved if e2 goes online and then
+e1 goes online, but not necessarily if e1 goes online first.
 
 However, in practice:
 
@@ -85,7 +84,7 @@ Testing for m=n! shows that it works for any offline sequence in such cases and 
 maximum difference between the total symbols between two entities does not exceed 1.
 However if m has a large distance to n! than this error rate (maximal difference in symbols) grows very quickly.
 
-Even though it performs better on n up to 4, this approach hits a hard limit:
+Even though it performs better on n up to 5, this approach hits a hard limit:
 
 > To reflect every possible offline ordering, the score table needs `n!` rows.
 
@@ -107,7 +106,7 @@ For small to medium `n` and `m`, the best approach is **simple Round Robin**:
 
 Round Robin guarantees:
 
-- **Perfect load balance:** `maxDiff ≤ 1`  
+- **Perfect load balance:** `maxDiff ≤ 1 even on upscaling`  
 - **Predictable performance**
 - **No huge score tables**
 - **Fast initialization**
