@@ -9,7 +9,7 @@ class SmdProcessor(
 	api:ApiHandler
 ) {
 
-	val symbolUniverse: List[(Long, String, String)] =
+	val symbolUniverse: Vector[(Long, String, String)] =
 		api.computeSymbolUniverse()
 
 	
@@ -122,7 +122,7 @@ class SmdProcessor(
 
 			producerApi.send(
 				topic,
-				tick.tradingSymbol.get,
+				conId,
 				payload
 			)
 		}

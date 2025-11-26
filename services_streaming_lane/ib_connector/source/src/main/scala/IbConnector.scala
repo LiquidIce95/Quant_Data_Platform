@@ -11,8 +11,10 @@ import scala.collection.mutable
 import org.apache.kafka.shaded.com.google.protobuf.Api
 import scala.util.Try
 import scala.annotation.tailrec
+import src.main.scala.KubernetesApiHandler.getPodName
+import io.fabric8.kubernetes.api.model.Pod
 
-object ExampleUse {
+object IbConnector {
 	
 	@tailrec
 	def startConnector(retries:Int=0){
@@ -22,18 +24,38 @@ object ExampleUse {
 		}
 		Try {				
 			val api :ApiHandler = new ApiHandler {
-				def computeUser(): Int = {1}
+				def computeUser(): Int = {
+                    val peers = KubernetesApiHandler.getPeers()
+
+                    val peerNames = {for (peer<-peers) yield getPodName(peer)}.toVector
+
+                    val userNumber:Int = peerNames.indexOf(KubernetesApiHandler.getThisPodName())
+                    userNumber
+                }
 			}
 
 			api.startApi()
 			println(f"api started ${api.isHealthy()}")
+
+            val producer = new KafkaProducerApi(api=api)
+
+            val smdProcessor = new SmdProcessor(producer,api) 
+            val peers = KubernetesApiHandler.getPeers()
+            val symbolUniverse = api.computeSymbolUniverse()
+            val peerNames = {for (peer<-peers) yield getPodName(peer)}.toVector.sortBy(x=>x)
+
+            val roundRobin = new RoundRobin[String,(Long,String,String)](peerNames,symbolUniverse)
+
 			object CM extends ConnectionManager(api) {
 				def computeShards(): mutable.Map[String, Vector[(Long, String,String)]] = {
-					// pick the 2nd CL from symbolUniverse (which was built as CL-front5 ++ NG-front5)
-					val pick: Vector[(Long, String, String)] = symbolUniverse.take(1)
-					mutable.Map("one" -> pick)
+					val onlinePeers = KubernetesApiHandler.getHealthyPeers()
+
+                    val onlinePeersNames = {for (peer<-onlinePeers) yield KubernetesApiHandler.getPodName(peer)}.toVector
+
+                    roundRobin(onlinePeersNames)
+					
 				}
-				def determinePodIdentity(): String = "one"
+				def determinePodIdentity(): String = KubernetesApiHandler.getThisPodName()
 				def getAccountId(): String = {
 					val cmd = Seq(
 						"bash","-lc",
@@ -53,25 +75,26 @@ object ExampleUse {
 					val ws = webSocketLock.synchronized {
 						webSocketOpt.get
 					}
-					CM.apply(ws)
+					CM(ws)
 
 				}
 				def onSmdFrame(message: LinkedHashMap[String, ujson.Value]): Unit = {
-					println(ujson.write(ujson.Obj.from(message)))
+					smdProcessor(message)
 				}
 				def onSbdFrame(message: LinkedHashMap[String, ujson.Value]): Unit = {
-					println(ujson.write(ujson.Obj.from(message)))
+					()
 				}
 			}
 
-			// make sure you ran az login on this container
+			// make sure you ran az login on this container and the managed identiy is set up in production
 			SM.startStream()
 
 			// keep the test alive
-			Thread.sleep(Long.MaxValue)
 		} match {
 			case scala.util.Success(_) =>
-				() // if we ever get here (e.g. sleep interrupted), just stop recursing
+                // this is a good palce to create a log 
+                println("the connector started successfully")
+				() 
 			case scala.util.Failure(e) =>
 				println(s"startConnector failed: ${e.getMessage}")
 				startConnector(retries + 1)
@@ -80,6 +103,6 @@ object ExampleUse {
 	}
 
 	def main(args: Array[String]): Unit = {
-		startConnector(5)
+		startConnector(6)
 	}
 }

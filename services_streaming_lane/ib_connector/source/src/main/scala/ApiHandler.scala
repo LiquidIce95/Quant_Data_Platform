@@ -34,7 +34,7 @@ trait ApiHandler {
 	val numberOfFrontMonths = 10
 	val baseUrl: String = "https://localhost:5000/v1/api"
 	val webSocketUrl: String = "wss://localhost:5000/v1/api/ws"
-	var symbolUniverse :List[(Long,String,String)] = Nil
+	var symbolUniverse :Vector[(Long,String,String)] = Vector.empty
 	private var sessionCookieOpt: Option[String] = None
 
 	// Map each endpoint to a prepared quickRequest
@@ -136,8 +136,14 @@ trait ApiHandler {
 		Some(ws)
 	}
 
-	def computeSymbolUniverse():List[(Long,String,String)]={
-		if (symbolUniverse != Nil){
+	/**
+	  * computes the total symbol that we are interested in streming
+	  *
+	  * @return returns triplets denoting contract id expiry date and contract month 
+	  * sorted ascending by contract month
+	  */
+	def computeSymbolUniverse():Vector[(Long,String,String)]={
+		if (symbolUniverse != Vector.empty){
 			symbolUniverse
 		}
 		// CL
@@ -147,7 +153,7 @@ trait ApiHandler {
 		val clJson  = ujson.read(clBody)
 		val clArray = clJson("CL").arr
 
-		val clFront5: List[(Long, String,String)] =
+		val clFront5: Vector[(Long, String,String)] =
 			clArray
 				.sortBy(c => c("expirationDate").num.toLong)
 				.take(numberOfFrontMonths)
@@ -157,7 +163,7 @@ trait ApiHandler {
 					val symbol = "CL"
 					(conId, exp, symbol)
 				}
-				.toList
+				.toVector.sortBy(x=>x._2)
 
 		// NG
 		val ngReq   = endpointsMap(EndPoints.FuturesContractNG)
@@ -166,7 +172,7 @@ trait ApiHandler {
 		val ngJson  = ujson.read(ngBody)
 		val ngArray = ngJson("NG").arr
 
-		val ngFront5: List[(Long, String,String)] =
+		val ngFront5: Vector[(Long, String,String)] =
 			ngArray
 				.sortBy(c => c("expirationDate").num.toLong)
 				.take(numberOfFrontMonths)
@@ -176,11 +182,11 @@ trait ApiHandler {
 					val symbol = "NG"
 					(conId, exp, symbol)
 				}
-				.toList
+				.toVector
 
             symbolUniverse=(clFront5 ++ ngFront5)
 			symbolUniverse
-	}
+	}.sortBy(x=>x._2)
 
 	// portal manager starts here
 

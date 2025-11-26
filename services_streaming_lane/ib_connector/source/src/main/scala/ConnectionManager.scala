@@ -12,7 +12,7 @@ abstract class  ConnectionManager(api:ApiHandler) {
       * a symbol is a tuple wher the first component is the conId, the second is expiry date
       * 
       */
-    var symbolShards: mutable.Map[String,List[(Long,String,String)]]= mutable.Map.empty
+    var symbolShards: mutable.Map[String,Vector[(Long,String,String)]]= mutable.Map.empty
 
     /**
       * Long is the contract Id from interactive brokers
@@ -20,7 +20,7 @@ abstract class  ConnectionManager(api:ApiHandler) {
       * a symbol is a tuple wher the first component is the conId, the second is expiry date
       * 
       */
-    var symbolUniverse:List[(Long,String,String)]=Nil
+    var symbolUniverse:Vector[(Long,String,String)]=Vector.empty
 
     var podIdentity: String = "" 
 
@@ -39,7 +39,7 @@ abstract class  ConnectionManager(api:ApiHandler) {
       * @return a map that relates the peer names to the list of symbols / shard it must process
       * where the symbols are tuples, where the first component is conId and the second is expiry date
       */
-	  def computeShards(): mutable.Map[String, List[(Long,String,String)]]
+	  def computeShards(): mutable.Map[String, Vector[(Long,String,String)]]
 
 
     /**
@@ -77,7 +77,7 @@ abstract class  ConnectionManager(api:ApiHandler) {
       }
 
       // --- Enforce shard-based subscriptions for all symbols ---
-      val myShardConIds: Set[Long] = symbolShards.getOrElse(podIdentity, Nil).map(_._1).toSet
+      val myShardConIds: Set[Long] = {for (symbol<-symbolShards(podIdentity)) yield symbol._1}.toSet
       val universeConIds: Set[Long] = symbolUniverse.map(_._1).toSet
 
       println(f"current shard is ${myShardConIds}")

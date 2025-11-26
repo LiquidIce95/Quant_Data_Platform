@@ -11,7 +11,7 @@ class SbdProcessor(
     api:ApiHandler
     ) {
 
-    val symbolUniverse :List[(Long,String,String)]= api.computeSymbolUniverse()
+    val symbolUniverse :Vector[(Long,String,String)]= api.computeSymbolUniverse()
 
 
 

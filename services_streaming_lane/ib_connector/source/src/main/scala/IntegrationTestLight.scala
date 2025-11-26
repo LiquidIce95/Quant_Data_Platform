@@ -23,9 +23,9 @@ object IntegrationTestLight {
 		println(f"api started, ${api.isHealthy()}")
 
 		object CM extends ConnectionManager(api) {
-			def computeShards(): mutable.Map[String, List[(Long, String, String)]] = {
+			def computeShards(): mutable.Map[String, Vector[(Long, String, String)]] = {
 				// pick the 2nd CL from symbolUniverse (which was built as CL-front5 ++ NG-front5)
-				val pick: List[(Long, String, String)] = symbolUniverse.take(8)
+				val pick: Vector[(Long, String, String)] = symbolUniverse.take(8)
 				mutable.Map("one" -> pick)
 			}
 			def determinePodIdentity(): String = "one"
@@ -41,7 +41,7 @@ object IntegrationTestLight {
 			}
 		}
 
-		val producer = KafkaProducerApi()
+		val producer = new KafkaProducerApi(api=api)
 
 		val smdProcessor = new SmdProcessor(producer,api)
 
