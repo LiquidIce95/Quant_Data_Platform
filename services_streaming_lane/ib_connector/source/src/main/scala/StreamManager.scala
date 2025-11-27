@@ -18,7 +18,7 @@ abstract class  StreamManager(api:ApiHandler) {
 
 	// collects stdout/stderr from the portal process
 
-	var webSocketOpt :Option[SyncWebSocket]=None
+	var webSocket :SyncWebSocket=api.establishWebSocket()
 
 	var heartBeatTimestamp:Long =System.currentTimeMillis()
 
@@ -65,26 +65,19 @@ abstract class  StreamManager(api:ApiHandler) {
 		}
 		val now = System.currentTimeMillis()
 
-		val wsOpt = webSocketLock.synchronized{
-			webSocketOpt
+		val ws = webSocketLock.synchronized{
+			webSocket
 		}
 
-		if (wsOpt==None){
-			println("!!!!!!!!!!!portal seems to have an issue")
-			webSocketLock.synchronized{
-				webSocketOpt = api.establishWebSocket()
-				assert(webSocketOpt!=None)
-			}
-		}
-		else if (now - heartBeatTimestampOld > timeIntervall) {
+		if (now - heartBeatTimestampOld > timeIntervall) {
 			println("!!!!!!!!!!!portal seems to have an issue")
 			webSocketLock.synchronized {
-				val ws  = webSocketOpt.get
+				val ws  = webSocket
 
 				
 				ws.close()
-				webSocketOpt = api.establishWebSocket()
-				assert(webSocketOpt!=None, "we have a problem with reinitializing the websocket connection")
+				webSocket = api.establishWebSocket()
+				assert(webSocket!=None, "we have a problem with reinitializing the websocket connection")
 				heartBeatTimestampLock.synchronized{
 					heartBeatTimestamp=System.currentTimeMillis()
 				}
@@ -104,8 +97,8 @@ abstract class  StreamManager(api:ApiHandler) {
 	  */
 	def startReader():Unit={
 		val ws : SyncWebSocket = webSocketLock.synchronized{
-			assert(webSocketOpt!=None)
-			webSocketOpt.get
+			assert(webSocket!=None)
+			webSocket
 		}
 		while(ws.isOpen()){
 			val frame: WebSocketFrame = ws.receive()

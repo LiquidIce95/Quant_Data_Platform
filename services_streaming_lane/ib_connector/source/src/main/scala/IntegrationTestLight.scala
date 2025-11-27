@@ -40,7 +40,7 @@ object IntegrationTestLight {
 
 			def connectionsLifeCycleManagement(): Unit = {
 				val ws = webSocketLock.synchronized {
-					webSocketOpt.get
+					webSocket
 				}
 				CM.apply(ws)
 

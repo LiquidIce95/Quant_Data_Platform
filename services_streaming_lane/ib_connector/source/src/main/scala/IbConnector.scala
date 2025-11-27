@@ -67,7 +67,7 @@ object IbConnector {
 
 				def connectionsLifeCycleManagement(): Unit = {
 					val ws = webSocketLock.synchronized {
-						webSocketOpt.get
+						webSocket
 					}
 					CM(ws)
 

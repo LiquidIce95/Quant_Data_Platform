@@ -120,7 +120,7 @@ trait ApiHandler {
 	/**
 	  * creates a websocket object and stores it as an attribute, returns the web socket object
 	  */
-	def establishWebSocket(): Option[SyncWebSocket] = {
+	def establishWebSocket(): SyncWebSocket = {
 		fetchAndStoreCookie()
 		assert(sessionCookieOpt != None)
 		val backend = DefaultSyncBackend()
@@ -133,7 +133,7 @@ trait ApiHandler {
 				.send(backend)
 				.body
 
-		Some(ws)
+		ws
 	}
 
 	/**
