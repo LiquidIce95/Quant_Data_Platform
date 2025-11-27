@@ -31,7 +31,7 @@ object EndPoints {
 }
 
 trait ApiHandler {
-	val numberOfFrontMonths = 10
+	val numberOfFrontMonths = 7
 	val baseUrl: String = "https://localhost:5000/v1/api"
 	val webSocketUrl: String = "wss://localhost:5000/v1/api/ws"
 	var symbolUniverse :Vector[(Long,String,String)] = Vector.empty

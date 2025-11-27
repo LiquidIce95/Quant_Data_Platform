@@ -388,3 +388,5 @@
 -> POST https://api.ibkr.com/v1/api/iserver/auth/ssodh/init,200|2135ms
 -> request: /v1/api/iserver/accounts
 -> GET /v1/api/iserver/accounts,200|62ms
+-> request: /v1/api/tickle
+-> GET /v1/api/tickle,200|52ms

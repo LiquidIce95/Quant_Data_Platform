@@ -29,8 +29,11 @@ object IbConnector {
 
                     val peerNames = {for (peer<-peers) yield getPodName(peer)}.toVector
 
-                    val userNumber:Int = peerNames.indexOf(KubernetesApiHandler.getThisPodName())
-                    userNumber
+					val userNumber:Int = peerNames.indexOf(KubernetesApiHandler.getThisPodName())+1
+					if (userNumber<=0) {
+						throw new Exception(s"this pod name ${KubernetesApiHandler.getThisPodName} is not foudn among the peers")
+					}                    
+					userNumber
                 }
 			}
 
@@ -56,16 +59,7 @@ object IbConnector {
 					
 				}
 				def determinePodIdentity(): String = KubernetesApiHandler.getThisPodName()
-				def getAccountId(): String = {
-					val cmd = Seq(
-						"bash","-lc",
-						"az keyvault secret show --vault-name ibkr-secrets --name ibkr-accountId-1 --query value -o tsv"
-					)
-					val out = new StringBuilder
-					val pl  = ProcessLogger( line => out.append(line), err => out.append(err) )
-					Process(cmd).!(pl)
-					out.toString.trim
-				}
+				
 			}
 
 			object SM extends StreamManager(api) {
@@ -103,6 +97,6 @@ object IbConnector {
 	}
 
 	def main(args: Array[String]): Unit = {
-		startConnector(6)
+		startConnector(0)
 	}
 }

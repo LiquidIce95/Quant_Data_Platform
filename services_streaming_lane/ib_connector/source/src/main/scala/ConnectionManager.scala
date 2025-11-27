@@ -20,16 +20,10 @@ abstract class  ConnectionManager(api:ApiHandler) {
       * a symbol is a tuple wher the first component is the conId, the second is expiry date
       * 
       */
-    var symbolUniverse:Vector[(Long,String,String)]=Vector.empty
+    var symbolUniverse:Vector[(Long,String,String)]=api.computeSymbolUniverse()
 
-    var podIdentity: String = "" 
+    val podIdentity: String = determinePodIdentity() 
 
-    /**
-      * is needed for subscribing / unsubscribing to L2 data
-      *
-      * 
-      */
-    var accId:String =""
 
 	  /**
       * has no arguments because for testing we provide a constant function and 
@@ -50,31 +44,13 @@ abstract class  ConnectionManager(api:ApiHandler) {
       */
     def determinePodIdentity():String
 
-    /**
-      * calls and endpoint to get accountId and stores the accountId in this attribute
-      *
-      * @return
-      */
-    def getAccountId():String
 
     /**
       * we send unsubscribe and subscribe messages over the ApiHandler to the socket, wait a little bit for the reader to receive the 
       * initailizing frame that will bring the connection states to a valid state, only then we pop the fullfilled requests
       */
     def apply(ws:SyncWebSocket):Unit={
-      if (symbolUniverse==Nil){
-          symbolUniverse=api.computeSymbolUniverse()
-      }
-
       symbolShards = computeShards()
-
-      if(podIdentity==""){
-          podIdentity=determinePodIdentity()
-      }
-
-      if(accId==""){
-          accId=getAccountId()
-      }
 
       // --- Enforce shard-based subscriptions for all symbols ---
       val myShardConIds: Set[Long] = {for (symbol<-symbolShards(podIdentity)) yield symbol._1}.toSet

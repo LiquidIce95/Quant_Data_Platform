@@ -3146,3 +3146,5 @@ webApps:
 19:39:44.071 DEBUG vert.x-eventloop-thread-0 BaseServiceProxy     : start timer 30000 ClientPortalService
 19:39:44.132 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/iserver/accounts,200|62ms
 19:39:44.133 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : iserver accounts {}
+19:40:14.154 INFO  vert.x-eventloop-thread-0 BaseServiceProxy     : -> GET /v1/api/tickle,200|52ms
+19:40:14.154 DEBUG vert.x-eventloop-thread-0 ClientPortalService  : tickle {"session":"e1272ff234380519fa9c874cad9f225c","ssoExpires":562402,"collission":false,"userId":49432819,"hmds":{"error":"no bridge"},"iserver":{"authStatus":{"authenticated":true,"competing":false,"connected":true,"message":"","MAC":"5C:BA:2C:60:27:50","serverInfo":{"serverName":"JifZ29076","serverVersion":"Build 10.41.1b, Nov 20, 2025 5:19:38 PM"},"hardware_info":"2052db37|5C:BA:2C:60:27:50"}}}

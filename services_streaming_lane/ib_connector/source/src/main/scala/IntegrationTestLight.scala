@@ -25,20 +25,11 @@ object IntegrationTestLight {
 		object CM extends ConnectionManager(api) {
 			def computeShards(): mutable.Map[String, Vector[(Long, String, String)]] = {
 				// pick the 2nd CL from symbolUniverse (which was built as CL-front5 ++ NG-front5)
-				val pick: Vector[(Long, String, String)] = symbolUniverse.take(8)
+				val pick: Vector[(Long, String, String)] = symbolUniverse.take(2)
 				mutable.Map("one" -> pick)
 			}
 			def determinePodIdentity(): String = "one"
-			def getAccountId(): String = {
-				val cmd = Seq(
-					"bash","-lc",
-					"az keyvault secret show --vault-name ibkr-secrets --name ibkr-accountId-1 --query value -o tsv"
-				)
-				val out = new StringBuilder
-				val pl  = ProcessLogger( line => out.append(line), err => out.append(err) )
-				Process(cmd).!(pl)
-				out.toString.trim
-			}
+			
 		}
 
 		val producer = new KafkaProducerApi(api=api)

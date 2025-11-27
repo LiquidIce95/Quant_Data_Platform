@@ -80,6 +80,6 @@ object ExampleUse {
 	}
 
 	def main(args: Array[String]): Unit = {
-		startConnector(5)
+		startConnector(0)
 	}
 }

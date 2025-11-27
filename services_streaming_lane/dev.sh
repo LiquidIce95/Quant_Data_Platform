@@ -73,6 +73,7 @@ CLIENT_PORTAL_SVC_FILE="$CLIENT_PORTAL_DIR/infra/40-client-portal-service.yml"
 IB_DIR="$ROOT/services_streaming_lane/ib_connector"
 IB_SRC_DIR="$IB_DIR/source"
 IB_NS_FILE="$IB_DIR/infra/00-namespace.yml"
+IB_RBAC_FILE="$IB_DIR/infra/05-ib-connector-rbac.yml"
 IB_POD_FILE="$IB_DIR/infra/10-ib-connector-pod.yml"
 IB_IMG="ib-connector:dev"
 
@@ -194,6 +195,7 @@ deploy_ib_connector() {
 	need docker; need kind; need kubectl; need envsubst
 
 	have "$IB_NS_FILE"
+	have "$IB_RBAC_FILE"
 	have "$IB_POD_FILE"
 	have "$IB_SRC_DIR/Dockerfile"
 
@@ -209,6 +211,10 @@ deploy_ib_connector() {
 
 	echo "[ib-connector] Loading image into kind cluster '${CLUSTER_NAME}' …"
 	kind load docker-image ib-connector:dev --name "$CLUSTER_NAME"
+
+	echo "[ib-connector] Applying RBAC manifest …"
+	export NAMESPACE_IB NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
+	envsubst < "$IB_RBAC_FILE" | kubectl apply -f -	
 
 	echo "[ib-connector] Applying pod manifest …"
 	export NAMESPACE_IB NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
@@ -238,6 +244,17 @@ ib_connector_integration_test_light() {
 		bash -lc '
 			cd /work
 			sbt -batch "runMain src.main.scala.IntegrationTestLight"
+		'
+}
+
+
+ib_connector_run() {
+	need kubectl
+	echo "[ib-connector] Running 'runMain src.main.scala.IbConnector' inside the ib-connector pod …"
+	kubectl -n "${NAMESPACE_IB}" exec -it ib-connector -c ib-connector -- \
+		bash -lc '
+			cd /work
+			sbt -batch "runMain src.main.scala.IbConnector"
 		'
 }
 
@@ -450,8 +467,10 @@ IB Connector (legacy):
 
 IB Connector (current):
   deploy_ib_connector         Build image, load to kind, (re)create truststore Secret, apply pod
+  azure_authenticate_first	  Runs az login on the first pod in the ib connector namespace
   ib_connector_play           Exec into pod and run 'runMain play'
   ib_connector_integration_test_light run the light integration test without sharding and kubernetes api
+  ib_connector_run			  Run the produciton version of the ib connector
 
 Spark:
   deploy_spark                Apply spark infra, build base image, build app.jar, bake overlay image
@@ -463,9 +482,6 @@ ClickHouse:
   deploy_clickhouse           Build clickhouse:dev image, load to kind, deploy pod + service on spark node
   peek_clickhouse_market_trades  Show 10 latest rows from quant.market_trades
 
-Client Portal API:
-  deploy_client_portal        Build image, load to kind, apply manifests, and stream logs
-  forward_client_portal_port  Port-forward svc/client-portal :5000 -> localhost:5000
 
 EOF
 }
@@ -482,6 +498,7 @@ case "$cmd" in
 	simulate_stream_legacy) shift; simulate_stream_legacy "$@";;
 	deploy_ib_connector) deploy_ib_connector ;;
 	ib_connector_play) ib_connector_play ;;
+	ib_connector_run) ib_connector_run;;
 	ib_connector_integration_test_light) ib_connector_integration_test_light;;
 	deploy_spark) deploy_spark ;;
 	start_spark_sim) start_spark_sim ;;

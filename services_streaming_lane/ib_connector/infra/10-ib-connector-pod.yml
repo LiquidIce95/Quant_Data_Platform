@@ -4,6 +4,7 @@ metadata:
   name: ib-connector
   namespace: ${NAMESPACE_IB}
 spec:
+  serviceAccountName: ib-connector
   containers:
     - name: ib-connector
       image: ib-connector:dev
