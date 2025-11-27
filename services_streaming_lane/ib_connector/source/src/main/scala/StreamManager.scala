@@ -77,7 +77,6 @@ abstract class  StreamManager(api:ApiHandler) {
 				
 				ws.close()
 				webSocket = api.establishWebSocket()
-				assert(webSocket!=None, "we have a problem with reinitializing the websocket connection")
 				heartBeatTimestampLock.synchronized{
 					heartBeatTimestamp=System.currentTimeMillis()
 				}
@@ -97,7 +96,6 @@ abstract class  StreamManager(api:ApiHandler) {
 	  */
 	def startReader():Unit={
 		val ws : SyncWebSocket = webSocketLock.synchronized{
-			assert(webSocket!=None)
 			webSocket
 		}
 		while(ws.isOpen()){
