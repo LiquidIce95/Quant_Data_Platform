@@ -68,7 +68,6 @@ object ExampleUse {
 			SM.startStream()
 
 			// keep the test alive
-			Thread.sleep(Long.MaxValue)
 		} match {
 			case scala.util.Success(_) =>
 				() // if we ever get here (e.g. sleep interrupted), just stop recursing
