@@ -1,0 +1,137 @@
+classDiagram
+    direction LR
+
+    class EndPoints {
+      <<enum>>
+      +Tickle
+      +AuthStatus
+      +FuturesContractNG
+      +FuturesContractCL
+      +tbtTopic
+      +l2Topic
+    }
+
+    class Status {
+      <<enum>>
+      +Online
+      +Offline
+    }
+
+    class RoundRobin~E,S~ {
+      +entityNames: Vector~E~
+      +symbolNames: Vector~S~
+      -stateMap: Map~E,Status~
+      -entityMap: Map~E,Vector~S~~
+      +initEntityMap(): Unit
+      +onEntityLost(e:E,online:Vector~E~): Unit
+      +onEntityWon(e:E): Unit
+      +apply(online:Vector~E~): Map~E,Vector~S~~
+    }
+
+    class ApiHandler {
+      <<trait>>
+      +numberOfFrontMonths: Int
+      +baseUrl: String
+      +webSocketUrl: String
+      +symbolUniverse: Vector~(Long,String,String)~
+      -sessionCookieOpt: Option~String~
+      -portalOutput: StringBuilder
+      -portalLogger: ProcessLogger
+      -portalProcFuture: Future~Unit~
+      +endpointsMap: Map~EndPoints,Request[String]~
+      +subscribetbt(conId:String,ws:Option~SyncWebSocket~): Unit
+      +unsubscribetbt(conId:String,ws:Option~SyncWebSocket~): Unit
+      +subscribeL2(accId:String,conId:String,ws:Option~SyncWebSocket~): Unit
+      +unsubscribeL2(accId:String,conId:String,ws:Option~SyncWebSocket~): Unit
+      -fetchAndStoreCookie(): Unit
+      +establishWebSocket(): SyncWebSocket
+      +computeSymbolUniverse(): Vector~(Long,String,String)~
+      -hasFatalErrorInLogs: Boolean
+      +computeUser(): Int
+      +isHealthy(): Boolean
+      +startIbPortal(): Boolean
+      +authenticate(userId:Int): Boolean
+      +startPortalLifeCycleManagement(): Unit
+      +startApi(): Unit
+    }
+
+    class KafkaProducerApi {
+      -producer: KafkaProducer[String,String]
+      +symbolUniverse: Vector~(Long,String,String)~
+      +partitionIndices: Map~Long,Int~
+      +partitionSizes: Map~String,Int~
+      +send(topic:String,key:Long,value:String): Future~RecordMetadata~
+      +flush(): Unit
+      +close(): Unit
+    }
+
+    class SmdProcessor {
+      -producerApi: KafkaProducerApi
+      -api: ApiHandler
+      +symbolUniverse: Vector~(Long,String,String)~
+      -conidToCode: Map~Long,String~
+      -stateByConId: Map~Long,TickState~
+      -topic: String
+      -valueAsString(v:Value): String
+      +apply(msg:LinkedHashMap[String,Value]): Unit
+    }
+
+    class KubernetesApiHandler {
+      <<object>>
+      +myPodName: String
+      +myPodNamespace: String
+      +getPeers(): Vector~Pod~
+      +getHealthyPeers(): Vector~Pod~
+      +getOfflinePeers(): Vector~Pod~
+      +getPodName(pod:Pod): String
+      +getThisPodName(): String
+      +getThisNameSpace(): String
+    }
+
+    class ConnectionManager {
+      <<abstract>>
+      -api: ApiHandler
+      +symbolShards: Map~String,Vector~(Long,String,String)~~
+      +symbolUniverse: Vector~(Long,String,String)~
+      +podIdentity: String
+      +computeShards(): Map~String,Vector~(Long,String,String)~~
+      +determinePodIdentity(): String
+      +apply(ws:SyncWebSocket): Unit
+    }
+
+    class StreamManager {
+      <<abstract>>
+      -api: ApiHandler
+      -webSocket: SyncWebSocket
+      -heartBeatTimestamp: Long
+      +connectionsLifeCycleManagement(): Unit
+      +onSmdFrame(msg:LinkedHashMap[String,Value]): Unit
+      +onSbdFrame(msg:LinkedHashMap[String,Value]): Unit
+      +socketLifeCycleManagement(dt:Long): Unit
+      +startReader(): Unit
+      +startStream(): Unit
+    }
+
+
+    %% Relationships
+
+    ApiHandler ..> EndPoints : uses
+    ApiHandler ..> SyncWebSocket : establishes
+
+    RoundRobin ..> Status : uses
+
+    KafkaProducerApi --> ApiHandler : api
+    SmdProcessor --> KafkaProducerApi : producerApi
+    SmdProcessor --> ApiHandler : api
+
+    ConnectionManager --> ApiHandler : api
+    ConnectionManager ..> RoundRobin : uses
+    ConnectionManager ..> KubernetesApiHandler : uses
+
+    StreamManager --> ApiHandler : api
+    StreamManager --> SmdProcessor: uses
+    StreamManager --> ConnectionManager: uses
+    StreamManager o--> SyncWebSocket : manages
+
+    KubernetesApiHandler ..> Pod : fabric8 model
+

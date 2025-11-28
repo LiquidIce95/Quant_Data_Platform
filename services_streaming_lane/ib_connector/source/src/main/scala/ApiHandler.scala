@@ -35,6 +35,10 @@ trait ApiHandler {
 	val baseUrl: String = "https://localhost:5000/v1/api"
 	val webSocketUrl: String = "wss://localhost:5000/v1/api/ws"
 	var symbolUniverse :Vector[(Long,String,String)] = Vector.empty
+	val initTimeOut :Long = 50000L
+	val killTimeOut :Long = 6000L 
+	val authenTimeOut:Long = 10000L
+	val startTimeOut :Long = 10000L
 	private var sessionCookieOpt: Option[String] = None
 
 	// Map each endpoint to a prepared quickRequest
@@ -266,7 +270,7 @@ trait ApiHandler {
 			).!
 			portalOutput.clear()
 
-			Thread.sleep(6000L)
+			Thread.sleep(killTimeOut)
 			val cmd = Seq(
 				"bash",
 				"-lc",
@@ -279,12 +283,12 @@ trait ApiHandler {
 
 			
 
-			val timeout:Long = 50000L
+			val timeout:Long = initTimeOut
 			val deadline = System.currentTimeMillis()+timeout
 			var portalStarted = false
 
 			while(!portalStarted && System.currentTimeMillis()<deadline){
-				Thread.sleep(3000L)
+				Thread.sleep(4000L)
 				portalStarted = portalOutput.toString.contains("Open https://localhost:5000 to login") && !portalOutput.toString.contains("Server listen failed Address already in use")
 				
 			}
@@ -321,7 +325,7 @@ trait ApiHandler {
 		)
 
 		Process(cmd, workDir).!(logger)
-		Thread.sleep(10000L)
+		Thread.sleep(authenTimeOut)
 		output.toString.contains("\"authenticated\":true")
 	}
 
@@ -349,7 +353,7 @@ trait ApiHandler {
 	def startApi():Unit={
 		val lifeCyclePeriod:Long = 6000L
 		
-        val timeout:Long = 20000L
+        val timeout:Long = startTimeOut+authenTimeOut+killTimeOut+initTimeOut
         val deadline = System.currentTimeMillis()+timeout
 
 		CommonUtils.scheduleAtFixedRate(lifeCyclePeriod) {

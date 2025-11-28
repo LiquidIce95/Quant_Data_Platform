@@ -237,16 +237,6 @@ ib_connector_play() {
 		'
 }
 
-ib_connector_integration_test_light() {
-	need kubectl
-	echo "[ib-connector] Running 'runMain src.main.scala.IntegrationTestLight' inside the ib-connector pod …"
-	kubectl -n "${NAMESPACE_IB}" exec -it ib-connector -c ib-connector -- \
-		bash -lc '
-			cd /work
-			sbt -batch "runMain src.main.scala.IntegrationTestLight"
-		'
-}
-
 
 ib_connector_run() {
 	need kubectl
@@ -469,7 +459,6 @@ IB Connector (current):
   deploy_ib_connector         Build image, load to kind, (re)create truststore Secret, apply pod
   azure_authenticate_first	  Runs az login on the first pod in the ib connector namespace
   ib_connector_play           Exec into pod and run 'runMain play'
-  ib_connector_integration_test_light run the light integration test without sharding and kubernetes api
   ib_connector_run			  Run the produciton version of the ib connector
 
 Spark:
@@ -479,7 +468,7 @@ Spark:
   peek_spark                  Shows logs from the driver pod
 
 ClickHouse:
-  deploy_clickhouse           Build clickhouse:dev image, load to kind, deploy pod + service on spark node
+  deploy_clickhouse           Build clickhouse:dev image, load to kind, deploy pod + service on spark node as single instance
   peek_clickhouse_market_trades  Show 10 latest rows from quant.market_trades
 
 
@@ -499,7 +488,6 @@ case "$cmd" in
 	deploy_ib_connector) deploy_ib_connector ;;
 	ib_connector_play) ib_connector_play ;;
 	ib_connector_run) ib_connector_run;;
-	ib_connector_integration_test_light) ib_connector_integration_test_light;;
 	deploy_spark) deploy_spark ;;
 	start_spark_sim) start_spark_sim ;;
 	start_spark_sim2) start_spark_sim2 ;;
