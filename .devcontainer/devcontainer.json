@@ -7,7 +7,8 @@
 	"workspaceFolder": "/usr/local/airflow/",
 
 	"mounts": [
-		"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached"
+		"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached",
+		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
 	],
 
 	"remoteUser": "root",
@@ -15,6 +16,7 @@
 
 	"postCreateCommand": "bash -lc 'git config --global --add safe.directory /work && curl -sL https://aka.ms/InstallAzureCLIDeb | bash'",
 
+	"runArgs": ["--network=host"],
 
 
 	"customizations": {

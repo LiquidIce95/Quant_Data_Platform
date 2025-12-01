@@ -13,12 +13,17 @@ RUN apt-get update && \
         gpg --dearmor > /usr/share/keyrings/hashicorp-archive-keyring.gpg && \
     echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" > /etc/apt/sources.list.d/hashicorp.list && \
     apt-get update && \
-    apt-get install -y --no-install-recommends terraform && \
+    apt-get install -y --no-install-recommends \
+        terraform \
+        docker.io \
+        gettext-base \
+        sudo && \
     curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash && \
     curl -Lo /usr/local/bin/kind https://kind.sigs.k8s.io/dl/v0.23.0/kind-linux-amd64 && \
     chmod +x /usr/local/bin/kind && \
+    curl -fsSLo /usr/local/bin/kubectl https://dl.k8s.io/release/v1.29.3/bin/linux/amd64/kubectl && \
+    chmod +x /usr/local/bin/kubectl && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
-
 
 WORKDIR /usr/local/airflow
 
@@ -28,6 +33,4 @@ ENV AIRFLOW_HOME=/usr/local/airflow
 
 USER airflow
 
-
 RUN pip install --no-cache-dir -r requirements.txt
-
