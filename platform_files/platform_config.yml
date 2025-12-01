@@ -1,3 +1,7 @@
+# this defines all variables tha are environment agnostic (dev,test,prod) and are shared across two or more components (ib connector and kafka)
 connectors:
   ib_connector:
     name: ib_connector
+kafka:
+spark:
+clickhouse:
