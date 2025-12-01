@@ -13,3 +13,8 @@ services_streaming_lane/ib_connector/source/ibkr_client_portal.pem
 services_streaming_lane/ib_connector/source/ibkr_truststore.jks
 services_streaming_lane/ib_connector/infra/ibkr_client_portal.pem
 services_streaming_lane/ib_connector/source/core
+airflow.cfg
+airflow.db
+logs
+standalone_admin_password.txt
+webserver_config.py

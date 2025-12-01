@@ -1,0 +1,35 @@
+{
+	"name": "platform_controller",
+	//keeps build context the same as for dockerfile
+	"build": { "dockerfile": "../Dockerfile", "context": "../" },
+
+	"workspaceMount": "source=${localWorkspaceFolder},target=/usr/local/airflow/,type=bind,consistency=cached",
+	"workspaceFolder": "/usr/local/airflow/",
+
+	"mounts": [
+		"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached"
+	],
+
+	"remoteUser": "root",
+	"updateRemoteUserUID": false,
+
+	"postCreateCommand": "bash -lc 'git config --global --add safe.directory /work && curl -sL https://aka.ms/InstallAzureCLIDeb | bash'",
+
+
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"scalameta.metals",
+				"scala-lang.scala",
+				"ms-python.debugpy",
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"ms-python.vscode-python-envs"
+			],
+			"settings": {
+				"metals.serverVersion": "1.6.2"
+			}
+		}
+	}
+}
