@@ -2,6 +2,7 @@
 
 I am going to refer to this diagram throughout this file. If you prefer to laod it into draw.io, you can do so by using architecture.drawio.xml
 
+# Conceptual Architecture
 # Major Design decisions
 
 As you know from the Business_use_case.md and the user stories, we have the following requirements and constraints to satisfy.
@@ -105,11 +106,28 @@ primarily latency and storage cost and the number of topics. In fact keeping the
 
 # Batch Processing
 
+After talking to the analysts, it turns out that the Company only uses structured / tabular data.
+
 ## Major components
 
 ### Connectors
 The same reasoning applies here since our reasoning depended on source not data frequency.
 
 ### Data Lake
-The data lake is the place where we store our raw data
+The data lake is the place where we store our raw data. 
+
+Advantages:
+We have access to the raw data as a baseline for DataOps. It also decouples the source system from the pipeline, (if the source system is down we still have access to the last version of the raw data) which also allows us to conduct tests without needing the source systems.
+
+Disadvantages:
+storage cost and latency
+
+### Data Warehouse ingestion tables
+They store the raw data from the lake, as a string table where no transformations are applied.
+
+Advantages:
+We have raw data as tables which is more pleasant to work with. Also we can add these tables to the Data Catalogue and lineage to get a complete picture of the transformations applied to the data.
+
+Disadvantages:
+storage cost and latency
 
