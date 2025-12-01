@@ -41,23 +41,23 @@ SPARK_DIR="$ROOT/services_streaming_lane/spark_processor"
 SPARK_HOME="$ROOT/services_streaming_lane/spark-${SPARK_VERSION}-bin-hadoop3"
 
 CLICKHOUSE_DIR="$ROOT/services_streaming_lane/click_house"
-CLICKHOUSE_INFRA_DIR="$CLICKHOUSE_DIR/infra"
+CLICKHOUSE_INFRA_DIR="$CLICKHOUSE_DIR/infra_dev"
 
-# Kafka manifests
-NS_FILE="$KAFKA_DIR/00-namespace.yml"
-KAFKA_FILE="$KAFKA_DIR/10-kafka-cluster.yml"
-TOPICS_FILE="$KAFKA_DIR/20-topics.yml"
+# Kafka manifests (now under infra_dev)
+NS_FILE="$KAFKA_DIR/infra_dev/00-namespace.yml"
+KAFKA_FILE="$KAFKA_DIR/infra_dev/10-kafka-cluster.yml"
+TOPICS_FILE="$KAFKA_DIR/infra_dev/20-topics.yml"
 
-# Spark infra files
-SPARK_NS_FILE="$SPARK_DIR/infra/00-namespace.yml"
-SPARK_RBAC_FILE="$SPARK_DIR/infra/10-rbac.yml"
-SPARK_DRIVER_POD_TMPL="$SPARK_DIR/infra/20-driver-pod-template.yml"
-SPARK_EXEC_POD_TMPL="$SPARK_DIR/infra/21-executor-pod-template.yml"
-SPARK_DEFAULTS_FILE="$SPARK_DIR/infra/30-spark-defaults.conf"
+# Spark infra files (infra_dev)
+SPARK_NS_FILE="$SPARK_DIR/infra_dev/00-namespace.yml"
+SPARK_RBAC_FILE="$SPARK_DIR/infra_dev/10-rbac.yml"
+SPARK_DRIVER_POD_TMPL="$SPARK_DIR/infra_dev/20-driver-pod-template.yml"
+SPARK_EXEC_POD_TMPL="$SPARK_DIR/infra_dev/21-executor-pod-template.yml"
+SPARK_DEFAULTS_FILE="$SPARK_DIR/infra_dev/30-spark-defaults.conf"
 
 # ========= IB Connector (legacy) =========
-IB_NS_FILE_LEGACY="$ROOT/services_streaming_lane/ib_connector_legacy/infra/00-namespace.yml"
-IB_POD_FILE_LEGACY="$ROOT/services_streaming_lane/ib_connector_legacy/infra/10-ib-connector-pod.yml"
+IB_NS_FILE_LEGACY="$ROOT/services_streaming_lane/ib_connector_legacy/infra_dev/00-namespace.yml"
+IB_POD_FILE_LEGACY="$ROOT/services_streaming_lane/ib_connector_legacy/infra_dev/10-ib-connector-pod.yml"
 
 # ========= Client Portal =========
 CLIENT_PORTAL_NS="${CLIENT_PORTAL_NS:-client-portal-api}"
@@ -65,16 +65,16 @@ CLIENT_PORTAL_DIR="$ROOT/services_streaming_lane/ib_client_portal_api"
 CLIENT_PORTAL_SRC_DIR="$CLIENT_PORTAL_DIR/source"
 CLIENT_PORTAL_IMG="client-portal:1.0.0"
 
-CLIENT_PORTAL_NS_FILE="$CLIENT_PORTAL_DIR/infra/00-namespace.yml"
-CLIENT_PORTAL_DEPLOY_FILE="$CLIENT_PORTAL_DIR/infra/30-client-portal-deployment.yml"
-CLIENT_PORTAL_SVC_FILE="$CLIENT_PORTAL_DIR/infra/40-client-portal-service.yml"
+CLIENT_PORTAL_NS_FILE="$CLIENT_PORTAL_DIR/infra_dev/00-namespace.yml"
+CLIENT_PORTAL_DEPLOY_FILE="$CLIENT_PORTAL_DIR/infra_dev/30-client-portal-deployment.yml"
+CLIENT_PORTAL_SVC_FILE="$CLIENT_PORTAL_DIR/infra_dev/40-client-portal-service.yml"
 
 # ========= IB Connector (current project) =========
 IB_DIR="$ROOT/services_streaming_lane/ib_connector"
 IB_SRC_DIR="$IB_DIR/source"
-IB_NS_FILE="$IB_DIR/infra/00-namespace.yml"
-IB_RBAC_FILE="$IB_DIR/infra/05-ib-connector-rbac.yml"
-IB_POD_FILE="$IB_DIR/infra/10-ib-connector-pod.yml"
+IB_NS_FILE="$IB_DIR/infra_dev/00-namespace.yml"
+IB_RBAC_FILE="$IB_DIR/infra_dev/05-ib-connector-rbac.yml"
+IB_POD_FILE="$IB_DIR/infra_dev/10-ib-connector-pod.yml"
 IB_IMG="ib-connector:dev"
 
 
@@ -200,8 +200,8 @@ deploy_ib_connector() {
 	have "$IB_SRC_DIR/Dockerfile"
 
 	# Ensure cert artifacts exist so the image can bake them in
-	have "$IB_DIR/infra/ibkr_truststore.jks"
-	have "$IB_DIR/infra/ibkr_client_portal.pem"
+	have "$IB_DIR/infra_dev/ibkr_truststore.jks"
+	have "$IB_DIR/infra_dev/ibkr_client_portal.pem"
 
 	echo "[ib-connector] Applying namespace …"
 	kubectl apply -f "$IB_NS_FILE"
