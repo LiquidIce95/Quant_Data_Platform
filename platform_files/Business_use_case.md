@@ -44,6 +44,12 @@ Metrics of success:
 - Tick data should be stored in Data warehouse as historical data
 
 ---
+There is additional information that came up later when talking to the stake holders:
+
+After talking to the teams they mostly agree that interactive brokers streaming data should be the first source to be onboarded onto the new system, since they rely heavily on it. They also find the notion of a OLAP store nice, as long as they dont have to write complicated SQL and not work with many different tools they are fine with it.
+
+After talking to the analysts, it turns out that the Company only uses structured / tabular data. Also they are usually interested in data for one of the two cases: Either to conduct analysis in which case they are interested in getting large volumes of data or in feeding their models or algoritms with input in which case they want the latest data but not lots of it.
+
 
 Read "architecture.md" to find out how this can be achieved
 
