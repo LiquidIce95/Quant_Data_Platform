@@ -2,6 +2,8 @@
 
 I am going to refer to this diagram throughout this file. If you prefer to laod it into draw.io, you can do so by using architecture.drawio.xml
 
+I also assume that you know what a data model is.
+
 # Conceptual Architecture
 
 In this section we define the conceptual architecture which is completely technology agnostic and focuses on the key relationships that we need to build a good platform for this use case. 
@@ -27,125 +29,404 @@ As you know from the Business_use_case.md and the user stories, we have the foll
 10. Other people need to know that the system is healthy and working (SRE, security ,users, ect)
 
 
-The overall architecture resembles the *Lambda architecture*. Data can be categorized into streaming / micro batching or simply batch processing. So we split the Platform into Stream and batch processing. So any data source can be processed by at least one pipeline type (streaming or batch).
+The overall architecture resembles the *Lambda architecture*. The reasons why I chose such architecture are as follows.
 
-Hence each part of the system accomodates the correct user group (large volums of historical data or low volumes of recent data) which allows us to better serve them. 
-
-Another benefit is that both pipelines are decoupled and allow the use of specific tools that are best suited for each pipeline. By using two seperate databases, one for historical data up to a few dayes delayed and one for all realtime data of the last few days, we force this onto our users so they cannot misuse the databases. In the database of the streaminglane we hold data form the last x days, whereas in the Warehouse all the data until the last x-th day is stored. As a result, most queries on the smaller database should run faster which is critical for financial realtime data.
-
-Then we simply treat our streaming database as another batch processing data source.
+- Real-time data users care about recency not volume, hence we can use a specialized database for that
+- Historical data user care about volume not recency, hence we can use a specialized database for that
+- The split minimizes cost and maximizes performance for batch and realtime data (replaying batch data as realtime introduces unnecessary cost and performance penalty on the system).
+- Collected realtime data can be treated as a batch job to insert into the historical database.
+- Realtime data sources usually have much slower schema evolution.
 
 
 # Streaming lane
 ## Major Components
 
 ### Category Schema
-In the domain of finance, we have two categories of external data the company is consuming and might want to consume. The first one is market data the second is economic event data. For market data, anything that is being traded on an exchange, has a unique code. For the apple stock is AAPL for the Crude oil future that expires in december 2026 its CLZ26. Also if we stream tick data, we know that that code will also have a price, timestamp, and trading size of the tick. So our first fundamental category of data is (source_system:String,symbol:String, timestamp:Time, price:Double, size:Double), anything that is being traded on a public exchange will satisfy this schema. The second type of market data is L2 or order book data which for assets or derivatives being traded on public exchanges satisfies (source_system:String,symbol:String, side:String, level:Int, price:Double, size:Double), where side can be 'bid' or 'ask' and level is some number up to the maximum level that is being tracked which depends on the exchange.
+A *Category Schema* is the maximal set of canonical field names for a type of external data. Any Category schema has meta fields for every field name it contains. These meta fields depend on "field_name" and are : "field_name"_dtype, "field_name"_unit, "field_name"_state.
 
-For numeric economic event data it will always satisfy (source_system,event_publisher,value,unit,description) for non numeric economic event data the same but the value is not numeric but a string instead.
+We say 'category row' for a row / tuple in the category schema.
 
-Important is that we do allow more fields to be present but these fields have to be present.
+Examples of external data types and respective field names:
 
-invariants
-- for every data there is at least one category schema which it can satisfy
+- **Market Tick Data** → (source_system, symbol, timestamp, price, size, Open Interest,...)  
+- **Order Book Data** → (source_system, symbol, side, level, price, size,...)  
+- **Economic Event Data (numeric)** → (source_system, event_publisher, value, unit, description,...)
+
+
+**Invariants**
+- Every data stream schema needs to be a subset of least one category schema.
+
+We are addressing the elephant in the room later: How can we design a *good* category schema?
 
 
 ### Connectors
 
 Definition:
-A piece of software that simply extracts realtime data from a data source and sends the data to the Buffer.
+A piece of software that simply extracts realtime data from a data source, maps the source fields to the category fields and fills out the meta category fields.
 
-invariants
-- selects all fields and renames them to the Category schema if they are present
-- sends these fields to the topic
+**invariants**
+- selects at least one category
+- Maps the source field names to category field names.
+- fills out the meta category fields.
+- Transforms the values to fit the category dtypes and units.
+- sends the data as a category row to the buffer.
+
 
 ### Buffer
 
 Definition:
-Persistent Storage that simply holds the raw data labeled with the category. 
+Persistent Storage that simply holds the category data / rows belonging to a category. 
 
 invariants
-- The data is raw and labeled with a correct category
-- All data have at least the fields of the category schema
-- data is stored persistent for at least the runtime of the streaming pipeline
+- The category data satisfies the category schema
+- data is stored persistent for at least the entire runtime of the streaming pipeline
+- provides at-least-once-devlivery
 
 ### Processor 
 
 Definition:
-Gets the data from the buffer and prepares it for every destination. Sends data to each destination.
+Gets the category data from the buffer and prepares it for a destination. Sends data to that destination.
 
 
 invariants
-- all data from a category is processed
-- all destinations receive data from all topics they want
+- For every destination there is at least one processor
+- loads any category data the destination is interested in
+- prepares the data for the destination
+- sends data to destination
+- reprocessing the same data again is idempotent
 
 ### database
-The streaming database is one of the possible destinations of the data but the most frequently used. We store data from all topics in a dedicated ingestion table and then build a suitable data model from these ingestion tables.
+The streaming database is one of the possible destinations of the data but the most frequently used. We store data from all topics in a dedicated ingestion table and then build a suitable data model from these ingestion tables. We aim to make this database the central hub to consume realtime data.
 
 invariants
-- processed data from every topic is stored 
-- it is the only component that is in contact with users
+- holds all category data satisfying category schemas
+- it is the only component that is in direct contact with users
+- provides user interface and api access
+- provides roles as a means of managing users
+- provides tables where only the latest by timestamp category data is available (snapshots of current state)
 
 
 ## Discussion of streaming pipeline
 ### Strengths
-The pipeline is strongly decoupled, Every component depends on exactly its predecessor and every component has garantees from its predecessor. This allows us to scale each component individually and select technologies that are suited for exactly that component (since the compoenents are so clearly defined, we can choose technologies that have a more precise use case instead of selecting general purpose solutions). The pipeline also allows to deal with any source or destination as independant as possible. The pipeline is also simple, which means that its faster to implement, easier to test, easier to maintain, easier to monitor, easier to debug and easier to find maintainers.
+#### Decoupled and cohesive
+The pipeline is strongly decoupled, Every component depends on exactly its predecessor and every component has garantees from its predecessor (invariants). This allows us to scale, deploy, monitor and test each component individually and select technologies that are suited for exactly that component (since the compoenents are so clearly defined, we can choose technologies that have a more precise use case instead of selecting general purpose solutions). 
+
+#### Scalable
+The pipeline also allows to deal with any source or destination as independant as possible. Adding a source requires only creating a connector and the connector to satisfy the invariants. Then by design all the destinations that are interested in a category will receive the new source since its processed within a category. Adding a destination only requires adding a processor. Different workloads from the sources average out on the processor side since the processor work with categories and not sources.
+
+Lastly, if we are not happy with the choice of one component we can simply switch it out by something else that also satisfies the invariants.
+
+#### Simple
+Simplicity allows us to better maintain, understand, develop and debug the platform. 
+
+#### Restricted
+Users can only directly interact with the database (or the other destinations) but not with the other components, this gives us maximal control over the pipeline.
+
+#### Stability
+The last two points, simplicity and restrictivness make this pipeline stable.
+
+#### Flexible
+If particular team has very good reasons not to use the database, we can set up a new processor for a new destination. If speed is very important, we can set up the destination to directly consume data from the buffer which is already cleaned up and prepared to fit the category schema it belongs to.
+
+#### Requirements satisfied
+It provides a unified solution for all streaming sources and all consumer groups / destinations.
 
 ### Weaknesses
-primarily latency and storage cost and the number of topics. In fact keeping the topic numbers as low as possible is what makes this pipeline either great or mediocre.
+#### Latency
+Depends on implementation but if we use different machines or cluster of machines for each component, then Network latency will add up. Given the firms positioning as a midterm commodities trader and the fact that they became used to experiencing lags, as long as we can keep overall latency below 6 seconds, I'd consider it as 'good enough'.
+
+#### The creation of these Category schemas
+Right now we employed a bit of 'wishful thinking' concerning the actual design of the category schemas. In the real world, this step should be done with someone that has extensive domain knowledge of the business and its data which is one of the reasons why I choose these data sets for this project, since I have traded options and futures for several years. I will give the concrete category schemas at the very end of this document.
+
+#### Development time 
+If we want fault tolerance and scalability with respect to data throughput (not sources or destinations) then this will inherently take more time than just a single machine setup.
+
+#### Costly
+If we go with a cluster, then we will need to keep an eye on infrastructure cost. Notice however that we do not force that different components need to have different instances, in fact if something happens to satisfy the invariants of the buffer and the processor and we have enough scalability and fault tolerance, then its a good choice.
 
 
-# Batch Processing
+After talking to the stakeholders, most of them agree that if I am able to hold these invariants in prodcution then they can accept higher development times and latency. Cost and treatment of the fields is largely depandant on implementation we should not worry too much about it at this stage.
 
+
+# Batch Processing lane
 
 ## Major components
 
+### Category Schemas
+The same definition as the connector form the Streaming lane since the same reasoning applies here.
+
+
 ### Connectors
-The same reasoning applies here since our reasoning depended on source not data frequency.
+A connector loads  data form a source without transforming it or altering it into the data Lake. Either in its original file format or as json if it did not have a format (data from api).
+
+**invariants**
+- loads all the data we want from the source into a designated place in the data lake as is in its raw state
+
 
 ### Data Lake
-The data lake is the place where we store our raw data. 
+The data lake works as a simple persistent storage layer.
 
-Advantages:
-We have access to the raw data as a baseline for DataOps. It also decouples the source system from the pipeline, (if the source system is down we still have access to the last version of the raw data) which also allows us to conduct tests without needing the source systems.
+**invariants**
+- All data from any source is stored in raw foramt
+- For all sources and data there is a designeated storage place
+- All data is clearly distinguishable by source and type (market data, supplier data, ect)
 
-Disadvantages:
-storage cost and latency
+### Bronze layer
+Here we still store the table raw but as tables. These are included in the Data Catalogue and Data lineage
+
+**invariants**
+- All data from any source is stored as a raw string table
+- All data is clearly distinguishable by source and type (market data, supplier data, ect)
+- The data here comes from the lake and nowhere else
+
+### Silver layer
+The bronze layer holds the data fitting a category schema. These are included in the Data Catalogue and Data lineage
+
+**invariants**
+- Only Cateegory data is stored as tables with the category schemas and correctly casted types
+- The data stored here comes form the Bronze layer and nowhere else
+- Data that does not qualify for the gold layer is also stored in a designated place.
+
+### Gold layer
+The Gold layer holds data fitting the data model. Users can access this layer directly.
+These tables are included in the Data Catalogue and Data lineage
+
+**invariants**
+- Implements the data model with data from the silver layer
+
+### Data marts
+If a team has very good reasons not to use the data model then we prepare the data as they need in a designated place.
+
+**invariants**
+- Only The teams whose data mart this is , has access to it
+- Data can come from any layer but one layer at most
+- Data cannot come from the Gold layer
+
+
+## Discussion of Batch pipeline
+### Strengths
+#### Decoupled and cohesive
+The pipeline is strongly decoupled, Every component depends on exactly its predecessor and every component has garantees from its predecessor (invariants). This allows us to scale, deploy, monitor and test each component individually and select technologies that are suited for exactly that component (since the compoenents are so clearly defined, we can choose technologies that have a more precise use case instead of selecting general purpose solutions). 
+
+#### Scalable
+The pipeline also allows to deal with any source or destination as independant as possible. Adding a source requires only creating a connector and the connector to satisfy the invariants.
+However, if a team uses a data mart that pulls from the bronze layer, then we'd need to change their data mart if they are also interested in the new source. For all downstream consumers that start from the silver layer, this is handled automatically by the category schemas. 
+
+A new destination that is not well served by the data model can be implemented as a data mart
+
+Lastly, if we are not happy with the choice of one component we can simply switch it out by something else that also satisfies the invariants.
+
+#### Simple
+Simplicity allows us to better maintain, understand, develop and debug the platform. 
+
+#### Restricted
+Users can only directly interact with their data mart or the gold layer but not with the other components, this gives us maximal control over the pipeline.
+
+#### Stability
+The last two points, simplicity and restrictivness make this pipeline stable.
+
+#### Flexible
+If particular team has very good reasons not to use the database, we can set up a new data mart for a new destination.
+
+### Good foundation for DataOps and governance
+By involving Data cataloging and lineage into the conceptual design, makes it easier to implement. Seperating the data that did not qualify for the next layer and storing these values, will make debugging and quality controls very easy.
+
+#### Requirements satisfied
+It provides a unified solution for all batch sources and all consumer groups / destinations.
+
+### Weaknesses
+### Data Model
+Whether this devolves into lots of data marts that simply filter the source systems the particular teams are using right now or if this creates a strong simplification of all the data involved in the company is largely dependant on a very very good data model.
+
+On the one hand it needs to be simple enough for people to understand but it also needs to be performant enough for peoples queries to finish in time. 
+
+But it also needs to be flexible enough to adapt to schema evolution which will be a much bigger problem than with realtime data.
+
+### Storage
+In the worst case we are increasing storage cost by a factor of three or four. In the age of "cheap storage" this might not be a problem but it can become one if storage costs change significantly. In that case adapting the architecture will be very difficult since "cheap storage" is the axiom every module uses here and the entire pipeline is built on.
+
+## What about schema evolution, governance policies, security, user management?
+
+I consider these to be technical questions and thus they are discussed at the end of the Technical Architecture section.
+
+# Technical Architecture
+Now that we have a conceptual understand of what our data platform is and what properties the different parts need to exhibit we start looking for sutiable instances of these Abstractions.
+
+## General thoughts on Technology selection
+In general, a good piece of technology should satisfy the following constraints.
+
+- It needs to have active maintenance (especially if open source)
+- It needs to be well documented (especially if propriatery)
+- It needs to be testable on small scale (for prototyping or proof of concept)
+- It needs to be transparent in cost
+- It should be widly used (easy to onboard new people)
+- It should describe the main use cases it was built for
+- It should be open about vulnerabilities and short commings
+
+## Platform as Software
+We want to treat our platform as a single piece of software. That is we want one code repository, one CI pipeline, one Test suite for the whole thing. This will make our life easier as a maintainer.
+
+## Control Plane
+The control plane is more a selection of practices and tools to make our life as platform developer as easy and pleasant as possible.
+
+### Azure Cloud loggin as the system database
+We want to have a system database that holds *all* metrics and logs from every single part of the platform. 
+
+### System Dashboard and Alerts
+From the system database (logging system) we can create alerts and dashboards for observability.
+
+### Azure Container Registry
+will hold *all* of our app images that need to be deployed somewhere.
+
+### Azure Key Vault
+*All* secrets are stored in a dedicated secrets key vault and nowhere else. Secrets are only pulled at runtime and are not presistently stored by *our* applications (for example database users need to be stored somewhere...)
+
+### Kubernetes
+Kubernetes is our primary tool for (self) managing our cluster for the streaming lane. 
+
+### Docker
+For abstracting as much as possible from the host machine and managing dependancies.
+
+### Airflow
+Airflow works for as as an workflow orchestrator on the platform level. So for example if we want to automate and schedule an workflow that involves multiple technologies (lets say Helm,Terraform, Azure and Kubernetes) then Airflow does it. It is basically an automated version of a platform maintainer for anything that can be automated and scheduled.
+
+Important, it does not reinvent existing technologies or takes over their responsabilities!
+
+A rule of thumb will be : if a workflow can be fully implemented using one technology then we do it there, if it involves multiple technologies, we do it in airflow. An exception to this rule are workflows that even though can be done in one technology, they cannot be automated or scheduled in said technology (or I feel like its better to do in airflow).
+
+we want the airflow project to work as the single source of truth for infrastructure files (terraform, kubernetes) and platform files (category schemas, Kafka topic names, Ports, ect) for the Test and Production environment (dev is the problem of developers). This allows us to be 'DRY' on a system level. Another advantage of this, is that we can gitignore security critical files since we can generate them at will with the latest values for the platform and secrets from the key vault.
+
+Lastly, these platform config files will be available to all services working on the platform.
+
+**invariants**
+- all airflow pipelines that are stateful, depend only on data that is stored in the system database
+- No data form data sources is stored on the airflow instance of its meta data database
+- No computations are performed on the airflow intance, not even lightweight batch processing jobs.
+- Only it creates all infrastructure and platform level files for the environemnts test and prod and nothing else
+- Every service has access to the platform config files
+
+### Environments & CI
+We distinguish the following environments
+
+- (local) dev, minikube or kind for quick and lightweight platform testing
+- test, deployment on a real but seperate test cluster together with seperate test system DB, seperate test Azure Container registry and the cluster size is non trivial and we conduct stresstesting
+- prod, deployment to the real cluster that actually processes real data and serves real users. Container images from the test Azure Container registry are moved to the production Azure Container registry
+
+It goes without saying that only code, configuration or app images that passes dev (unit tests software integration tests, ect) will be moved and tested on test environemnt. And only what passes the test environment will be pushed to production. The core idea is to design the test environemnt such that in 99.999% of cases it also passes the production environment.
+
+If possible we first use github CI tools and then Azure CI tools.
+
+### Monorepo of services
+The base repository on github is an airflow app. Then there are two folders: services_streaming lane and services_batch_lane. Each of those folders contains subfolders for the respective services, they are set up in such a way that any service is developed in a devcontainer that mirrors the same Docker container that will be used in test and production as close as possible. Devcontainers are especially useful with IDE's like VScode where one can open the IDE inside the devcontainer and develop as if it were an app on the host machine. On top of that git works from the devcontainer as well and has the same build context as the docker file. 
+
+Each of these Service folders contains a folder called 'infra_dev' which holds all infrastructure files that are not generated by airflow and can thus be modified for the developers needs.
+
+**this gives**
+- single source of truth
+- consistency and dynamic dependencies of paltform variables / config via airflow
+- possible to work on single services as 'independant' apps
+- config files generating logic encodes platform level invariants
+
+**things to be aware of**
+one side effect of this approach (because apparently git does not work otherwise) is that the devcontainer has access to every file in the monorepo whereas the actual app image that goes to test and prod does not have (only platform config files). But the working dir of the devcontainer should be the same working dir as the test / prod app image so one notices this only by using the command line inside the devcontainer.
+
+### CD
+continous delivery is now a consequence of the structure of the platform, if we change services, or configuration (where configuration files are generatd by airflow) then these changes , if they are non breaking, will be applied *in the next run* of the pipeines.
+
+We can add backdoors for cases where changes need to be applied to production immediately.
 
 
 
-Advantage:
-This achieves the goal of landing the data in persistent storage as fast as possible, since kafka stores the data as logs in the filesystem and the data can be consumed multiple times by consumers if they want to. Another advantage is that the computations in the connector are very light thus the risk of backpressure is minimal. Finally onboarding a new data source is also minimal and as light as possible.
+## Streaming lane
+### Hetzner as cluster provider
+Yes, its probably far easier to use Azure kubernetes services, but because budget is tight and we really want to run a non trivial cluster somewhat regurarly and I dont mind learning how to self manage a kubernetes cluster, this is the optimal solution.
 
-Disadvantage:
-Every Source needs a unique connector
+### Ib connector
+Handles the very unpleasant but extremely cheap realtime data source of interactive brokers which they call 'web' api.
+
+**invariants**
+- keeps Sockets for streaming alive
+- keeps the client portal alive a
+- automates start and authentication of the client portal
+- processes the data and prepares it to be send to a kafka topic.
+- sends data to the correct kafka topic.
+
+### Kafka message broker + strimzi cluster operator
+We use kafka as our buffer, for one because it satisfies our conceptual invariants and because its easy to ensure fault tolerance and scalability wiht it. Strimzi is for convenience when working with kubernetes and kafka.
+
+**invariants**
+- implements topics as category schemas 
+- data is stored persistent for at least the entire runtime of the streaming pipeline
+- provides at-least-once-devlivery
+
+### Kafka as processor for Clickhouse
+We can ingest directly from kafka topics into clickhouse, this works since we design the ingestion tables in clickhouse to be the category schemas and by the invariants of any connector, the data will already be ready for ingestion.
+
+**invariants**
+- dumps all of the data per topic into a designated ingestion table that implements the category schemas that topic represents
+
+### Spark as processor for redis
+as per 'Business_use_case_evolution.md' we need a high performance distributed computing engine to do the heavy computations fast enough.
+Every Team can submit the computations that need to be performed and stored in redis. The engineering teams implements these formulas as spark jobs that will be executed by a set of executor pods on the streaming lane cluster. The spark executor pods read the necessary data from kafka directly instead from clickhouse, to keep latency minimal.
+
+**invariants**
+- each spark job corresponds to one computation request of a team
+- the results of the computation are stored in redis (new destination)
+
+### Clickhouse as distributed OLAP realtime store
+Clickhouse is extremely well documented and the only distributed database I could find that has impressive performance metrics and seems to be suitable for time series data. It also provides fault tolerance and scaling capabilities. So no matter how much data is generated by all sources we can answer with more machines.
+
+**invariants**
+- for each topic there is an ingestion table whose scheam coincides with the category schema
+- provides materialized views for snapshots per source and symbol of latest category data 
+- Users do have access to this database
+- Data is only stored for a few days 
+
+### Redis as hot destination
+The results form the heavy computations perfomed by spark are stored in redis to serve the teams with the lowest possible latency.
+
+**invariants**
+- Only the teams that submitted a job request for spark, have access on it.
+- Only Spark can store data here.
+- Data is deleted after 60 minutes
+
+### Limitations of a Portfolio Project done by one single human
+"few days" here means actually "few hours" and "60 minutes" means "5 minutes" to keep costs of running this project at bay. But the overall goal is to run a cluster of total size between 6 and 15 machines for 2h to 4h monday until friday during U.S cash market open where markets are most interesting.
+
+## Batch lane
+### Serverless functions whenever possible with Azure Functions
+Serverless functions are very cheap and easy to manage. The only case where using them might be impossible is when accessing data sources that are behind a firewall and we need to deploy behind that firewall (with gitlab or github runners for example). Or if the function are computationally expensive and require lots of hardware ressources. But given my current understanding of the selected data sources, this is not the case.
+
+These serverless functions will also perform the transformations from the lake to bronze and from bronze to silver since at the lake and bronze stage we might deal with many files or tables (you dont want to use SQL with many tables).
+
+### Azure Data Lake Storage Gen2 as Data Lake
+
+### Transformations, modelling and dataOps with DBT
+
+### Azure Synapse for Data Warehousing
+All the layers (bronze, silver, gold , data marts) are implemented in Synapse, the distinction between these layers will be made by naming conventions. Note that the invariants are enforced by DBT or the serverless functions that move Lake to bronze or bronze to silver.
+
+### Microsoft Purview as our Data Catalogue, Governance and lineage tool
 
 
-Advantages:
-We have three key advantages, first it is the first point in time where data lands on persistent storage and is thus 'safe'. The other purpose is to act as buffer between the connectors that send data to the remaining part of the pipeline. Each connector sends that data at different rates which can cause downstream components to be overwhelmed or underwhelmed if not decoupled like this. It also allows the control panel to 'react' since logs and metric from the connectors indicate future load before they actually happen. The third use case is to categorize the data according to the transformations it needs, a topic defines a topic mapping, which defines how the datais transformed later. The topic schema is there to enforce rules about what fields the topic data must have. Topic mapping defines what happens to these fields.
+## Discussion
 
-Disadvantages:
-Introduces latency and overhead of managing these topics, topic schemas and topic mappings. Also the builder of the connector needs to choose the correct topic and we cannot enforce this behaviour from code alone. Finally, we could end up with lots of topics which is undesirable for a simple architecture.
+### security
 
+### DevOps
 
-Advantages:
-The advantage here is that we decouple source from destination since Transformations depend on the topic, not the source or the destination. Also we keep the pipeline dry since multiple streams that requrie the same transformation dont need to be implemented multple times.
+### DataOps
 
-Disadvantages:
-The processor also needs to know what the concrete mappings are for the topics. Latency is also greater compared to direct ingestion.
+### Failure Matrix
+Wich failures should we expect and how are they handled?
 
-Advantages:
-One central place for all steraming data allows to enforce policies and quality and enables each team to access data from every source. By restricting users access to only this database, we direct user traffic to one place which makes loadbalancing of the remaining parts of the pipeline easier.
+### Adaption Matrix
+What changes should we expect and how are they handled?
 
-Disadvantages:
-Unnecessary storage costs if same data lands in different destination.
+### Cost estimation and Alternatives
 
-### Data Warehouse ingestion tables
-They store the raw data from the lake, as a string table where no transformations are applied.
+# Data Models and Category Schemas
 
-Advantages:
-We have raw data as tables which is more pleasant to work with. Also we can add these tables to the Data Catalogue and lineage to get a complete picture of the transformations applied to the data.
+## Category Schemas
 
-Disadvantages:
-storage cost and latency
 
