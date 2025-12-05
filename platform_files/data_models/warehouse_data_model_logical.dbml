@@ -1,0 +1,379 @@
+// ===================================================================
+// FABRIC LOGICAL DATA MODEL
+// ===================================================================
+// - Physical Fabric design: partition by (source_system_name, designated_timestamp_month)
+// - Physical ClickHouse design: partition by source_system_name only (3h window)
+// - 'glossar' (in control plane) defines all enum domains and semantics
+// - All timestamps: ISO 8601:2004, UTC+0
+// - Designated timestamp is always included in the main index
+// ===================================================================
+
+
+// ===================================================================
+// SILVER LAYER  (INGESTION / CONSOLIDATED CATEGORY DATA)
+// ===================================================================
+
+// Base futures/options tick data (one row per tick)
+Table derivatives_tick_market_data {
+  source_system_name enum [not null] 
+  component_instance_name enum [not null]
+  ingestion_time timestamp [not null]               // connector → buffer
+  ingestion_time_realtime_store timestamp           // buffer → CH, can be null
+  ingestion_time_historical_store timestamp [not null] // CH → Fabric
+  exchange_code enum [not null]
+  symbol_code enum [not null]
+  symbol_type enum [not null]
+  price double [not null]
+  price_unit enum [not null]
+  size double [not null]
+  size_unit enum [not null]
+  tick_time timestamp [not null]                    // designated timestamp
+  open_interest int
+  open_interest_unit enum
+
+  Indexes {
+    (source_system_name, symbol_code, tick_time) [pk, unique]
+  }
+
+  Note: 'Silver: canonical tick-level derivatives data (futures/options) from all sources.'
+}
+
+// Base futures/options L2 orderbook data (one row per side/level/event)
+Table derivatives_l2_market_data {
+  source_system_name enum [not null]
+  component_instance_name enum [not null]
+  ingestion_time timestamp [not null]
+  ingestion_time_realtime_store timestamp 
+  ingestion_time_historical_store timestamp [not null] // CH → Fabric
+  exchange_code enum [not null]
+  symbol_code enum [not null]
+  symbol_type enum [not null]
+  price double [not null]
+  price_unit enum [not null]
+  side enum [not null]          // 'bid' | 'ask'
+  level int [not null]          // level in book
+  max_level int [not null]      // max streamed level at that time
+  l2_time timestamp [not null]  // designated timestamp
+  open_interest long
+  open_interest_unit enum
+
+  Indexes {
+    (source_system_name, symbol_code, l2_time) [pk, unique]
+  }
+
+  Note: 'Silver: canonical L2 book events for derivatives (per side/level).'
+}
+
+// Base numeric macro-economic data (one row per field in a release)
+Table numeric_economic_data {
+  source_system_name enum [not null]
+  component_instance_name enum [not null]
+  ingestion_time timestamp [not null]
+  ingestion_time_realtime_store timestamp
+  ingestion_time_historical_store timestamp [not null]
+  publisher_code enum [not null]
+  release_time timestamp [not null]                  // designated timestamp
+  release_field string [not null]
+  release_field_value double [not null]
+  release_field_value_unit enum [not null]
+
+  Indexes {
+    (source_system_name, publisher_code, release_time, release_field) [pk, unique]
+  }
+
+  Note: 'Silver: numeric macro fields per release, one row per (publisher, release_time, field).'
+}
+
+// Base indicators (formula/model outputs) on top of market events
+Table indicators_market_data {
+  source_system_name enum [not null]
+  component_instance_name enum [not null]
+  ingestion_time timestamp [not null]
+  ingestion_time_realtime_store timestamp
+  ingestion_time_historical_store timestamp [not null] // CH → Fabric
+  market_event_time timestamp [not null]               // tick_time / l2_time / release_time
+  symbol_code enum [not null]
+  indicator_scope enum [not null] // 'tick','l2','release'
+  indicator_name string [not null]
+  indicator_value double [not null]
+  indicator_value_unit enum [not null]
+
+  Indexes {
+    (source_system_name, symbol_code, market_event_time, indicator_scope, indicator_name)
+  }
+
+  Note: 'Silver: generic indicator fact; 1:N indicators per underlying market event.'
+}
+
+// Symbol reference / contract specs for derivatives (very slowly changing)
+Table derivative_symbols {
+  source_system_name enum [not null]
+  component_instance_name enum [not null]
+  ingestion_time timestamp [not null]
+  symbol_code enum [not null]
+  tick_size double [not null]
+  underlying enum [not null]
+  price_unit enum [not null]
+  contract_unit enum [not null]
+
+  Indexes {
+    (source_system_name, symbol_code) [pk, unique]
+  }
+
+  Note: 'Silver: slowly changing symbol reference for derivatives (tick_size, contract size, underlying, units).'
+}
+
+// Macro release reference / metadata (very slowly changing)
+Table economic_data_releases {
+  source_system_name enum [not null]
+  component_instance_name enum [not null]
+  ingestion_time timestamp [not null]
+  publisher_code enum [not null]
+  release_code enum [not null]
+  release_frequency enum [not null]
+  release_time timestamp                // planned or last known release time
+  release_content enum [not null]
+
+  Indexes {
+    (source_system_name, publisher_code, release_code) [pk, unique]
+  }
+
+  Note: 'Silver: slowly changing reference for macro releases (frequency, code, content).'
+}
+
+// ---------------------- SILVER REFERENCES -------------------------
+
+// L2 events refer to same symbol universe as tick events
+Ref: derivatives_l2_market_data.(source_system_name, symbol_code)
+  > derivatives_tick_market_data.(source_system_name, symbol_code)
+
+// Tick events bound to symbol metadata
+Ref: derivatives_tick_market_data.(source_system_name, symbol_code)
+  > derivative_symbols.(source_system_name, symbol_code)
+
+// Indicators bound to tick symbol universe
+Ref: indicators_market_data.(source_system_name, symbol_code)
+  > derivatives_tick_market_data.(source_system_name, symbol_code)
+
+// Macro numeric data to macro release metadata (coarse, via publisher)
+Ref: numeric_economic_data.(source_system_name, publisher_code)
+  > economic_data_releases.(source_system_name, publisher_code)
+
+// indicators.market_event_time refers to either tick_time or l2_time
+Ref: indicators_market_data.(source_system_name, symbol_code, market_event_time)
+  > derivatives_tick_market_data.(source_system_name, symbol_code, tick_time)
+
+Ref: indicators_market_data.(source_system_name, symbol_code, market_event_time)
+  > derivatives_l2_market_data.(source_system_name, symbol_code, l2_time)
+
+
+
+// ===================================================================
+// GOLD LAYER  (CONSUMPTION MODEL – FACTS & DIMENSIONS)
+// ===================================================================
+
+// ---------------------- DIMENSIONS ---------------------------------
+
+// Date dimension for calendar-based grouping
+Table dim_date {
+  date_key int [pk, not null]        // yyyymmdd
+  date date [not null]
+  year int [not null]
+  month int [not null]
+  day int [not null]
+  day_of_week int [not null]
+
+  Note: 'Gold Dim: calendar dimension for grouping and filtering by date.'
+}
+
+// Instrument dimension for derivatives (contract-level)
+Table dim_instrument {
+  instrument_key int [pk, not null]
+  source_system_name enum [not null]
+  symbol_code enum [not null]
+  symbol_type enum [not null]
+  underlying enum [not null]
+  tick_size double [not null]
+  price_unit enum [not null]
+  contract_unit enum [not null]
+
+  Indexes {
+    (source_system_name, symbol_code) [unique]
+  }
+
+  Note: 'Gold Dim: conformed instrument dimension derived from derivative_symbols.'
+}
+
+// Source system dimension
+Table dim_source_system {
+  source_system_key int [pk, not null]
+  source_system_name enum [not null]
+
+  Indexes {
+    (source_system_name) [unique]
+  }
+
+  Note: 'Gold Dim: maps source_system_name to a small surrogate key.'
+}
+
+// Macro release dimension (release-level metadata)
+Table dim_release {
+  release_key int [pk, not null]
+  source_system_name enum [not null]
+  publisher_code enum [not null]
+  release_code enum [not null]
+  release_frequency enum [not null]
+  release_content enum [not null]
+
+  Indexes {
+    (source_system_name, publisher_code, release_code) [unique]
+  }
+
+  Note: 'Gold Dim: macro release metadata dimension derived from economic_data_releases.'
+}
+
+// Interval dimension used to parameterize candle aggregations
+Table dim_interval {
+  interval_key int [pk, not null]
+  interval_value int [not null]      // 1,5,10,...
+  interval_unit enum [not null]      // 'second','minute','hour'
+  duration_seconds int [not null]    // normalized duration
+
+  Indexes {
+    (interval_value, interval_unit) [unique]
+  }
+
+  Note: 'Gold Dim: defines standard time-bucket intervals for candlesticks and aggregations.'
+}
+
+// ---------------------- FACTS --------------------------------------
+
+// Fact table for tick-level trades
+Table fact_derivatives_tick {
+  date_key int [not null]
+  instrument_key int [not null]
+  source_system_key int [not null]
+  tick_time timestamp [not null]
+  price double [not null]
+  size double [not null]
+  open_interest long
+
+  Indexes {
+    (instrument_key, tick_time)
+  }
+
+  Note: 'Gold Fact: tick-level trade fact derived from silver derivatives_tick_market_data.'
+}
+
+// Fact table for L2 orderbook events
+Table fact_derivatives_l2 {
+  date_key int [not null]
+  instrument_key int [not null]
+  source_system_key int [not null]
+  l2_time timestamp [not null]
+  side enum [not null]
+  level int [not null]
+  price double [not null]
+  size double [not null]
+  open_interest long
+
+  Indexes {
+    (instrument_key, l2_time, side, level)
+  }
+
+  Note: 'Gold Fact: L2 orderbook fact derived from silver derivatives_l2_market_data.'
+}
+
+// Fact table for macro-economic releases
+Table fact_economic_release {
+  date_key int [not null]
+  source_system_key int [not null]
+  release_key int [not null]
+  release_time timestamp [not null]
+  release_field string [not null]
+  release_field_value double [not null]
+  release_field_value_unit enum [not null]
+
+  Indexes {
+    (release_key, release_time, release_field)
+  }
+
+  Note: 'Gold Fact: macro field fact, one row per (release, time, field).'
+}
+
+// Generic candlestick fact table parameterized by interval_key
+Table fact_candles {
+  date_key int [not null]
+  instrument_key int [not null]
+  source_system_key int [not null]
+  interval_key int [not null]
+  candle_end_time timestamp [not null]
+  open double [not null]
+  high double [not null]
+  low double [not null]
+  close double [not null]
+  volume long [not null]
+  open_interest long
+
+  Indexes {
+    (instrument_key, interval_key, candle_end_time)
+  }
+
+  Note: 'Gold Fact: precomputed candlesticks for arbitrary intervals defined in dim_interval.'
+}
+
+// ---------------------- GOLD REFERENCES ----------------------------
+
+Ref: fact_derivatives_tick.date_key > dim_date.date_key
+Ref: fact_derivatives_tick.instrument_key > dim_instrument.instrument_key
+Ref: fact_derivatives_tick.source_system_key > dim_source_system.source_system_key
+
+Ref: fact_derivatives_l2.date_key > dim_date.date_key
+Ref: fact_derivatives_l2.instrument_key > dim_instrument.instrument_key
+Ref: fact_derivatives_l2.source_system_key > dim_source_system.source_system_key
+
+Ref: fact_economic_release.date_key > dim_date.date_key
+Ref: fact_economic_release.source_system_key > dim_source_system.source_system_key
+Ref: fact_economic_release.release_key > dim_release.release_key
+
+Ref: fact_candles.date_key > dim_date.date_key
+Ref: fact_candles.instrument_key > dim_instrument.instrument_key
+Ref: fact_candles.source_system_key > dim_source_system.source_system_key
+Ref: fact_candles.interval_key > dim_interval.interval_key
+
+
+
+// ===================================================================
+// DATA MART: INTERACTIVE BROKERS, 5-MINUTE AGGREGATES
+// ===================================================================
+
+// Data mart for analysts focusing on IB Web API streaming data,
+// with standardized 5-minute candlesticks.
+// This is conceptually a filtered view of fact_candles where:
+//   - source_system_name = 'interactive_brokers_web_api_web_socket_streaming'
+//   - interval_value = 5, interval_unit = 'minute'
+
+Table dm_ib_5m_candles {
+  date_key int [not null]
+  instrument_key int [not null]
+  candle_end_time timestamp [not null]
+  open double [not null]
+  high double [not null]
+  low double [not null]
+  close double [not null]
+  volume long [not null]
+  open_interest long
+
+  -- resolved from dim_interval, but we materialize the label for convenience
+  interval_label string [not null] // always '5_minute' in this mart
+
+  Indexes {
+    (instrument_key, candle_end_time)
+  }
+
+  Note: 'Gold Data Mart: 5-minute candles for Interactive Brokers Web API streaming data.'
+}
+
+// Data mart references back to core dims/facts (conceptually)
+Ref: dm_ib_5m_candles.date_key > dim_date.date_key
+Ref: dm_ib_5m_candles.instrument_key > dim_instrument.instrument_key
