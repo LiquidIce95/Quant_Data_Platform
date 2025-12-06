@@ -7,126 +7,126 @@ After releasing the first iteration of the Quant Data Platform, the organization
 - Realtime market data is delivered through ClickHouse with minimal latency.  
 - Macro data lands automatically in the warehouse.  
 - Data governance, lineage, and access control are centralized and reliable.  
-- All realtime sources follow unified Category Schemas, eliminating naming inconsistencies.  
+- All realtime sources follow unified Category Schemas.  
 - Analysts consume data through a single OLAP interface without juggling multiple tools.
 
-This greatly improved reliability and reduced duplicated work. Most analyst teams migrated their workflows to the platform.
+Reliability increased, duplication vanished, and most analyst teams standardized on the platform.
 
-And for some time, all was good.
+For a while, the system met all demands.
 
-Because the analysts now have access to lots of clean data they started to develop more advanced and complex models and algorithms. These advanced models started to perform more and more complicated computations. The streaming Database started to experience lags and if the team ran the computations on own hardware it still was too slow. Due to the financial gains driven by the platform, management has decided to further invest into the platform to solve this issue.
-
-These new requirements exceed the computational capabilities of ClickHouse and cannot be handled efficiently within an OLAP engine.
+As clean data became abundant, analysts developed increasingly complex quantitative models. These models introduced heavy computational patterns, significantly exceeding what the streaming database or analyst desktops could handle. Despite optimizations, execution remained too slow. Given the financial value unlocked by the platform, management approved investment to address this bottleneck.
 
 ---
 
 # New Problem: Advanced Quant Modeling Bottlenecks
 
 ## Summary  
-A specific team within the firm has begun developing advanced quantitative models that require computational patterns unavailable or impractical in ClickHouse. These include:
+A specific team developed advanced models requiring computational patterns that ClickHouse is not suited for:
 
 1. **Iterative algorithms**  
-   - Fixed-point methods  
-   - Newton–Raphson style optimizers  
-   - Monte Carlo path simulations  
+   - Fixed-point iterations  
+   - Newton–Raphson optimizers  
+   - Monte Carlo simulations  
    - Nonlinear factor models  
 
 2. **Large cross-instrument analytical joins**  
-   - Multi-symbol volatility surface construction  
+   - Volatility surface construction  
    - Cross-contract correlation matrices  
-   - Intraday synthetic index creation across 50–200 symbols  
+   - Intraday synthetic index construction  
 
 3. **Heavy rolling-window computations**  
-   - Multi-window regressions (5min, 1h, 1d simultaneously)  
-   - Cross-sectional factor estimators  
-   - PCA-based features on thousands of points  
+   - Multi-window regressions  
+   - Cross-sectional factor estimation  
+   - PCA-based features on dense time-series  
 
 4. **Hybrid workloads (historical + realtime)**  
-   - Compute features over 5+ years of historical data  
-   - Update them every few seconds as new ticks arrive  
-   - Persist updated factors for downstream ML pipelines  
+   - Compute features over multiple years  
+   - Update them continuously as new ticks arrive  
+   - Persist updated features for downstream ML pipelines  
 
 5. **Distributed memory requirements**  
-   Because the models need to scan large historical periods and recompute stateful metrics, single-machine OLAP execution is insufficient.
+   These models require multi-pass scans over large historical datasets, exceeding what a single-node OLAP engine is designed to do.
 
 ---
 
 # Why ClickHouse Alone Cannot Solve This
 
-Although ClickHouse excels in:
+ClickHouse is designed for:
 
-- low-latency writes,  
-- high-throughput OLAP queries,  
-- time-series analytics,
+- high-throughput columnar analytics,  
+- low-latency ingestion,  
+- time-series OLAP.
 
-it is **not** designed for:
+It is **not** designed for:
 
 - iterative algorithms,  
-- multi-pass computations,  
-- cross-table joins at TB scale,  
-- computation graphs or DAGs,  
-- long-running stateful model updates.
+- multi-pass DAG computations,  
+- large distributed joins requiring shuffle,  
+- long-running analytical tasks,  
+- continuous model recomputation across years of data.
 
-Several POCs confirmed that these workloads either:
+POCs confirmed that such workloads either:
 
-- exceed the memory of a single node,  
-- cause unreasonably large temporary tables,  
-- or run for minutes to hours — unacceptable for the modeling team.
+- exceed available memory,  
+- require excessive temporary tables,  
+- or run for minutes to hours — too slow for production.
 
-The business impact: the most promising quant models cannot be deployed.
+The bottleneck is computation, not data access.
 
 ---
 
 # New Requirement: Distributed Analytical Compute
 
-The Chief Strategist and the Head of Trading concluded:
+Leadership concluded:
 
-> “If these new models cannot run in production, the firm loses a major competitive advantage.”
+> “If these new models cannot run at scale, we lose a major competitive advantage.”
 
-This introduces a **new non-functional requirement** for the platform:
+Thus a new platform requirement emerges:
 
-**R1: Provide a scalable distributed compute layer capable of iterative, cross-instrument, and large-window analytics.**
+**R1: Provide a scalable distributed compute layer for iterative, cross-instrument, and large-window analytics.**
 
-No existing platform component satisfies this.
+No existing component satisfies this.
 
 ---
 
 # Solution: Introduce a Spark-Based Analytical Processor
 
-To meet the new modeling requirements **without disturbing the core pipeline**, we extend the architecture by simply introducing a new processor and desination:
+To meet these requirements **without modifying or overloading the core ingestion/OLAP pipeline**, we extend the architecture by introducing:
 
 ### Spark Analytical Processor (new component)
+
 - Consumes cleaned Category Schema data directly from Kafka (Buffer).  
-- Performs heavy distributed computations using Spark (batch, micro-batch, or structured streaming).  
-- Produces model outputs as structured, low-latency key-value facts.  
-- Writes results into **Redis** as a new destination for low-latency analytical consumption.
+- Executes heavy distributed computations in Spark (batch, micro-batch, or structured streaming).  
+- Produces model outputs as structured analytical facts.  
+- Writes these results **back into ClickHouse** as a dedicated analytical table family.
 
-This yields:
+This provides:
 
-- A **distributed execution engine** for heavy quant workloads.  
-- Near-realtime model outputs for analysts.  
-- No load impact on ClickHouse ingestion or queries.  
-- Independent scaling and reliability.  
-- Seamless fit into the existing conceptual architecture (just another Processor + Destination).
+- A distributed compute engine for heavy quant workloads.  
+- A unified serving layer: **ClickHouse remains the single analytical source of truth**.  
+- No additional operational overhead from introducing new storage systems.  
+- No load impact on the existing ingestion or OLAP queries.  
+- Fully modular extension: Spark is simply another Processor writing to the existing Destination.
 
 ---
 
 # Business Impact
 
-- The new quant models can run at production-scale.  
-- Redis-backed model features are available to analysts with sub-millisecond read latency.  
-- Spark jobs leverage Kafka’s category-cleaned data directly — no duplication and no re-engineering of ingestion.  
-- The platform supports new high-value analytical use cases without altering the core OLAP path.
+- Advanced quant models run at production scale.  
+- Model features become immediately available via ClickHouse with consistent semantics and existing tooling.  
+- The serving layer remains simple — no Redis, no additional infra.  
+- Kafka + Category Schemas ensure there is no duplicated or re-engineered ingestion path.  
+- The platform supports new high-value analytical use cases with minimal architectural expansion.
 
 ---
 
 # Conclusion
 
-The platform evolution is driven by genuine business demand:
+The platform evolves due to genuine business needs:
 
-- The original architecture covers 90% of analytics.  
+- The original architecture supports the majority of analytics.  
 - A small but crucial segment requires **distributed compute beyond OLAP**.  
-- Spark is the natural and industry-standard solution for this gap.  
-- Redis provides a fast serving layer for model outputs.  
+- Spark fills this gap naturally and industry-proven.  
+- ClickHouse remains the unified serving destination, keeping the stack lean and avoiding unnecessary technologies.
 
-This evolution keeps the system clean, modular, cost-efficient, and aligned with real quant workflows — while providing the perfect opportunity to use Spark extensively and legitimately.
+This evolution preserves architectural cleanliness, reduces operational overhead, and provides the necessary computational power for next-generation quant workflows — while avoiding the introduction of Redis and keeping implementation straightforward.

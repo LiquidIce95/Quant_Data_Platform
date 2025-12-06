@@ -6,6 +6,8 @@ We do this by defining **components** which can be viewed as entities that perfo
 
 Then tech selection boils down to selecting the tools that satisfy the definitions of our components, because then they satisfy the inferred relationships which compose the platform. The data platform is thus an instantiation of the conceptual architecture via the instances of the components that are given by concrete technologies.
 
+We will implictly assume that components themselves do not fail but that communication between them can. In reality we try to realize this property of components by using distributed solutions that provide scaling and fault tolerance.
+
 # Major Design decision
 
 ## Lambda Architecture
@@ -49,6 +51,7 @@ Examples of data types and respective field names:
 
 **Invariant**  
 - Every source schema needs to be related to a subset of fields of at least one category schema.
+- Every category schema defines a designated timestamp
 
 Note: Category schemas are **conceptual**. Physical schemas must at least cover all the category fields, but may add additional technical fields (for example multiple ingestion timestamps) without breaking the category contract. Ideally we want the category schema to preserve or even enhance information from the relation between the source fields and category fields. Together with a **Glossar** which defines the domains of the category fields, this can also greatly enhance data discovery and understanding.
 
@@ -66,6 +69,11 @@ A piece of software that simply extracts real-time data from a data source, maps
 - Can resend data if the buffer wants to  
 - Only connectors can access source systems  
 - Each source system is managed by at least one connector  
+- The connector preserves the order by the designated timestamp of the category schema
+- If data from the source system does not provide data relatable to the designated timestamp, then the connector fabricates a timestamp to use. 
+
+Important to realize is that if we disallow connectors to communicate with each other, then no connector can ensure ordering of the data across source systems. If we do allow communication between different connectors then we introduce high coupling and overheat. We choose connectors to be isolated and have faith that ordering within a single source system is good enogh for downstream components.
+
 
 ### Buffer
 
@@ -77,7 +85,8 @@ Persistent storage that simply holds the category data / rows belonging to a cat
 - The category data satisfies the category schema  
 - Data is stored persistent for at least the entire runtime of the streaming pipeline  
 - Provides at-least-once-delivery  
-- Provides redelivery of data if the consumer wants to  
+- Provides redelivery of data if lost or corrupted during transmission
+- Provides redelivery of data if the processor failed
 
 ### Processor
 
@@ -92,9 +101,9 @@ Gets the category data from the buffer and prepares it for a destination. Sends 
 - Reprocessing the same data for the same destination again is idempotent  
 - The processor must be able to reprocess lost or corrupted data  
 
-### Database
+### realtime store
 
-The streaming database is one of the possible destinations of the data but the most frequently used. We store data from all topics in a dedicated ingestion table and then build a suitable data model from these ingestion tables. We aim to make this database the central hub to consume real-time data.
+The realtime store is the default destination of realtime data. We store data from all topics in a dedicated ingestion table and then build materialized views for users to get the latest snapshot of data. With materialized view here we mean a physical table that is automatically updated if its source table in the store changes.
 
 **Invariants**
 
@@ -102,6 +111,7 @@ The streaming database is one of the possible destinations of the data but the m
 - It is the only component that is in direct contact with users  
 - Provides user interface, API access and SQL use  
 - Provides roles as a means of managing users  
+- Provides users with access to materialized views that present the most recent data.
 
 ## Discussion of streaming pipeline
 
@@ -135,7 +145,7 @@ If a particular team has very good reasons not to use the database, we can set u
 
 #### Requirements satisfied
 
-It provides a unified solution for all streaming sources and all consumer groups / destinations.
+It provides a unified solution for all streaming sources and all consumer groups / destinations. In particular the realtime store provides users with access to the latest data.
 
 ### Weaknesses
 
@@ -253,6 +263,13 @@ If a team has very good reasons not to use the data model then we prepare the da
 - Only the teams whose data mart this is has access to it  
 - Data can come from any layer but one layer at most (it cannot come from different layers)  
 
+### Historical store
+Or We may call it warehouse since it will be also the hub for non market data.
+
+**invariants**
+- Users have only access to this compoenent
+- It contains only the gold layer and data marts
+
 ## Discussion of Batch pipeline
 
 ### Strengths
@@ -328,29 +345,31 @@ In general, a good piece of technology should satisfy the following constraints.
 - It should describe the main use cases it was built for  
 - It should be open about vulnerabilities and shortcomings  
 
+In addition to that we need the components to be as reliable as possible since we implicitly assumed them not to crash or fail. So we need technologies that run on multiple machines, scale and provide fault tolerance.
+
 ## Platform as Software
 
 We want to treat our platform as a single piece of software. That is we want one code repository, one CI pipeline, one test suite for the whole thing. This will make our life easier as a maintainer.
 
 ## Control Plane
 
-The control plane is more a selection of practices and tools to make our life as platform developer as easy and pleasant as possible.
+The control plane is a selection of practices and tools to make our life as platform developer as easy and pleasant as possible.
 
-### Azure Cloud logging as the system database
+### Azure Monitor for logging and metrics
 
-We want to have a system database that holds **all** metrics and logs from every single part of the platform.
+We want persistent and accesible storage that holds **all** metrics and logs from every single part of the platform.
 
 ### System Dashboard and Alerts
 
-From the system database (logging system) we can create alerts and dashboards for observability.
+From the Azure monitoring we can create alerts and dashboards for observability. The specific events we are interested in observing are covered in the failure, adaption and incident matrix.
 
 ### Azure Container Registry
 
-Will hold **all** of our app images that need to be deployed somewhere.
+Will hold **all** of our app images that need to be deployed in a registry. We will distinguish between a 'test' and 'prod' registry, how the images move between the registries is explained in the CI section.
 
 ### Azure Key Vault
 
-**All** secrets are stored in a dedicated secrets key vault and nowhere else. Secrets are only pulled at runtime and are not persistently stored by **our** applications (for example database users need to be stored somewhere…).
+**All** secrets are stored in a dedicated secrets key vault and nowhere else. Secrets are only pulled at runtime and are not persistently stored by **our** applications.
 
 ### Kubernetes
 
@@ -359,6 +378,12 @@ Kubernetes is our primary tool for (self) managing our cluster for the streaming
 ### Docker
 
 For abstracting as much as possible from the host machine and managing dependencies.
+
+### Platform configuration files
+The provide a unified and simple way of defining properties of infrastructure and components. They will be provided as inputs for the templating engines to handle tool specific formats and language. The platform files also serve as source of truth for all components and infrastructure on the platform, this allows us to *force* invariants and constraints.
+
+### Templating engines
+Instead of writing configuration files by hand we try to parametrize them with the variables that matter on a platform level, the engine the produces the correctly formatted files with the values we actually care about. This allows us to decouple system level configuration from tool specific configuration. For example a service developer only wants to specify start size of the cluster, namespace, number of pods and just minimal rbac and permissions. He provides that information via a dedicated config file that implements our platform logic and contract which also prevents him to change stuff he should not.
 
 ### Airflow
 
@@ -372,11 +397,11 @@ We want the Airflow project to work as the single source of truth for infrastruc
 
 Airflow itself will not “handwrite” all files. It will orchestrate the tools / templating engines that are best suited for a given file type (for example Helm / K8s templating, Terraform tooling, etc.) and provide them with parameters (number of nodes, replica count, service names, ports, etc.). In other words: it does the same thing a human would do by hand, but reliably, automatically and testable.
 
-Lastly, these platform config files will be available to all services working on the platform. Some might say that this introduces strong coupling between the control plane and the environments and individual services. The developer of individual services should not concern himself with infrastructure since that is mostly determined by the actual data (throughput and frequency). And if specific services require specific infrastructure settings, then these can be applied via the control plane. Additionally the control plane will handle mostly files that are coupled anyways like category schemas, data models, ports, etc. so whether you create these files by hand or programmatically does not change the fact that they are coupled.
+Lastly, these platform config files will be available to all services working on the platform. Some might say that this introduces strong coupling between the control plane and the environments and individual services. The developer of individual services should not concern himself with infrastructure since that is mostly determined by the actual data (throughput and frequency). And if specific services require specific infrastructure settings, then these can be applied via platform level config files. Additionally the control plane will handle mostly files that are coupled anyways like category schemas, data models, ports, etc. so whether you create these files by hand or programmatically does not change the fact that they are coupled.
 
 **Invariants**
 
-- All Airflow pipelines that are stateful depend only on data that is stored in the system database  
+- All Airflow pipelines that are stateful depend only on data that is stored in Azure monitoring 
 - No data from data sources is stored on the Airflow instance or its metadata database  
 - No computations are performed on the Airflow instance, not even lightweight batch processing jobs  
 - It creates all infrastructure and platform level files for the environments test and prod and nothing else  
@@ -417,73 +442,115 @@ Continuous delivery is now a consequence of the structure of the platform, if we
 
 We can add backdoors for cases where changes need to be applied to production immediately.
 
+### Discussion
+The control plane might look like overkill and unncecessary bureaucraty, but if you really think about it, it *automates* and *formalizes* tasks you would do anyways just reliable. And for greenfield projects like this, especially with real users, change is garanteed to happen, the control plane makes sure that these changes happen within our developed architecture to ensure the necessary relationships. The following is just a narrow catalogue of problems it avoids.
+
+- Test environment runs fail immediately because kubernetes or terraform config files have syntax errors.
+- A connector uses the wrong buffer port, wrong ingestion table.
+- A component is deployed as a single machine instance, our reliability assumptions are under threat.
+- A connector deos not know the category schemas or uses an outdated version of it, buffer invariants are possibly violated.
+- Everyone just needs to understand the platform specific config language and not ten different versions of config languages.
+- job schedulings are not spread across different technologies.
+- Debugging does not devolve into hopping across machines and tools, all the relevant info for debuggin is in the monitoring solution.
+- Common failures, adaptions and incidents covered by the respective matrices can be automated or easier handled.
+
+As a last remark I want to mention that the control plane is something that is very slowly changing since its far away from the users and in our full control.
+
 ## Streaming lane
 
 ### Hetzner as cluster provider
 
-Yes, it is probably far easier to use Azure Kubernetes Services, but because budget is tight and we really want to run a non trivial cluster somewhat regularly and I don’t mind learning how to self manage a Kubernetes cluster, this is the optimal solution.
+Yes, it is probably far easier to use Azure Kubernetes Services, but because budget is tight and we really want to run a non trivial cluster somewhat regularly and I don’t mind learning how to self manage a Kubernetes cluster, this is the optimal solution. Hetzner is not only cheap but also has positive reviews and a well documented REST api for managing clusters. And I love the idea of spending less money on microsoft so there's that.
+
+### Instances
+
+Ib connector is a connector for our source system of interactive brokers web api websocket streaming data.
+kafka is the buffer where kafka topics represent data conforming to a particular category schema. So the number of topics coincides with the number of category schemas. Spark is a processor for heavy computations that are unfeasible in the realtime store. The realtime store is given by clickhouse. As long as access to clickhouse is not a problem (latency or performance wise) we will always use clickhouse as destination.
 
 ### Ib connector
 
-Handles the very unpleasant but extremely cheap realtime data source of Interactive Brokers which they call “web” API.
+Handles the very unpleasant but extremely cheap realtime data source of Interactive Brokers which they call “web” API. We call *symbols* the trading futures, stocks or option identifiers that we are streaming data from. Recall that **kafka** will **instantiate** the **buffer** component and kafka **topics** represent data conforming to a **category schema**.
 
 **Invariants**
-
+- Is a 'connector' component
+- handles data comming form interative brokers web api wesocket and nothing else
 - Keeps sockets for streaming alive  
 - Keeps the client portal alive  
 - Automates start and authentication of the client portal  
 - Processes the data and prepares it to be sent to a Kafka topic  
-- Sends data to the correct Kafka topic  
+- Sends data to the correct Kafka topic via the kafka producer api, waits for acknowledgements, resends otherwise 
+- Implements scaling via symbol sharding 
+- Each symbol is landing on exactly one kafka topic partition to preserve symbol ordering within a source system
+
+Important to note is that due to time constraints we are *not* streaming l2/order book data and we have *not* built in fault tolerance. Fault tolerance can be achieved the same way as we implemetned scaling, via the kubernetes api. For given replication factor, select peers of the ib connector namespace to create replicas of the data. In the context of streaming this means that these replica pods will also stream the same symbols. This will create duplicates (ignoring metadata) equal in number to the replication factor. This has two important consequences.
+
+- we cannot achieve a per symbol ordering because we cannot control if the duplicates will land at the same time in the buffer
+ - unless you funnel it through a single instance which defeats the entire 'fault tolerance' idea.
+- We need to decide how to handle these duplicates downstream.
+
+In this setting, since we are using clickhouse which deduplicates the data per default, this would be already taken care of. The scaling also provides a 'weak fault tolerance', if a pod crashes then in the next connections life cycle (that we can set to happen every x milliseconds) the symbols will be redistributed on the remaining pods and they will restart the streams for those symbols. So the maximum time intervall of data we can loose is given by computation time + latency + life cycle intervall.
+
+If we are streaming from just one source then the ordering garuantee should avoid sorting the batch before ingesting into clickhouse which greatly improves ingestion performance. If we are streaming from multiple sources then the ordering on a given kafka partition of a topic may contain data from a source that was generated sooner but arrived later. Nevertheless partial order (within source system **and** symbol by designated timestamp) should enable us to gain performance boosts downstream.
+
 
 ### Kafka message broker + Strimzi cluster operator
 
 We use Kafka as our buffer, for one because it satisfies our conceptual invariants and because it is easy to ensure fault tolerance and scalability with it. Strimzi is for convenience when working with Kubernetes and Kafka.
 
 **Invariants**
-
-- Implements topics as category schemas  
+- Is an instance of a buffer
+- Each topic relates to exactly one category schema  
 - Data is stored persistent for at least the entire runtime of the streaming pipeline  
 - Provides at-least-once-delivery  
+- during runtime, provides an arbitrary number of redeliveries
+- Sends acknowledgements to the connector to indicate successfull receival of data
+
+As long as the connector does not fail (which can be made less likely with fault tolerance as discussed with the ib connector example) then data is garuanteed to arrive in the buffer and processors can reprocess the data as many times as they want, since its persistent for the entire runtime of the pipeline and kafka enables resending of already send data. Because data is very important to the core business, any loss of it is a direct loss in value.
+
+Another neat property is that by holding the data for the entire runtime in the buffer, if downstream components somehow fail permanently, we can pull the data from thekafka topics directly and reprocess the data as a batch job. Kafka further enhances this data arrival garuantee by providing fault tolerance and scaling. 
 
 ### Kafka as processor for ClickHouse
 
-We can ingest directly from Kafka topics into ClickHouse, this works since we design the ingestion tables in ClickHouse to be the category schemas and by the invariants of any connector, the data will already be ready for ingestion.
+We can ingest directly from Kafka topics into ClickHouse, this works since we design the ingestion tables in ClickHouse to be implementations of category schemas and by the invariants of any connector, the data will be ready for ingestion.
 
 **Invariants**
+- is an instance of a processor
+- Dumps all of the data per topic into a designated ingestion table that implements the category schemas that topic represents 
+- Waits for acknowledgements from clickhouse, resends data otherwise 
 
-- Dumps all of the data per topic into a designated ingestion table that implements the category schemas that topic represents  
+### Spark as processor for Clickhouse
 
-### Spark as processor for Redis
-
-As per `Business_use_case_evolution.md` we need a high performance distributed computing engine to do the heavy computations fast enough. Every team can submit the computations that need to be performed and stored in Redis. The engineering teams implement these formulas as Spark jobs that will be executed by a set of executor pods on the streaming lane cluster. The Spark executor pods read the necessary data from Kafka directly instead from ClickHouse, to keep latency minimal.
+As per `Business_use_case_evolution.md` we need a high performance distributed computing engine to do the heavy computations fast enough. Every team can submit the computations that need to be performed and stored in clickhouse. The engineering teams implement these formulas as Spark jobs that will be executed by a set of executor pods on the streaming lane cluster. The Spark executor pods read the necessary data from Kafka directly instead from ClickHouse, to keep latency minimal.
 
 **Invariants**
-
+- is an instance of a processor
 - Each Spark job corresponds to one computation request of a team  
-- The results of the computation are stored in Redis (new destination)  
+- The results of the computation are stored in designated ingestion tables in clickhosue 
+
+This is one of the *main* use cases of spark.
 
 ### ClickHouse as distributed OLAP realtime store
 
-ClickHouse is extremely well documented and the only distributed database I could find that has impressive performance metrics and seems to be suitable for time series data. It also provides fault tolerance and scaling capabilities. Because of performance implications we heavily restrict our users to only read permissions since the main purpose of ClickHouse is to provide the latest timestamps of the data collected from the realtime sources. Analysts primarily feed the data from ClickHouse via client libraries into their models and algorithms or dashboard solutions on the infrastructure dedicated to their team. On request we can create data marts for individual teams.
+ClickHouse is extremely well documented and the only distributed OLAP database I could find that has impressive performance metrics and seems to be suitable for time series data. It also provides fault tolerance and scaling capabilities. Because of performance implications we heavily restrict our users to only read permissions since the main purpose of ClickHouse is to provide the latest timestamps of the data collected from the realtime sources. Analysts primarily feed the data from ClickHouse via client libraries into their models and algorithms or dashboard solutions on the infrastructure dedicated to their team. On request we can create data marts for individual teams.
 
 **Invariants**
-
-- For each topic there is an ingestion table whose schema coincides with the category schema  
+- is an instance of a realtime store
+- For each topic there is an ingestion table whose schema implements the category schema of the topic
 - Provides materialized views for snapshots per source and symbol of latest category data  
 - Users have access to this database  
 - Data is only stored for a few days  
 - Users have **read-only** permissions in ClickHouse  
+- For every processor that ingests into clickhouse there are designated ingestion tables and the processor has only write permissions on these tables
 
-### Redis as hot destination
+### discussion of streaming lane
+We have two main requirements to satisfy for the streaming lane, access to realtime data from the source systems and results of heavy computations that cannot be done elsewhere. We have already proven that if the connector does not fail, data will land in kafka and by the invariants of a connector the data is fitting to a category schema. If the connector does fail then we loose data for a time intervall. Data that has landed in kafka, can be reprocessed an 'infinite' times during runtime of the pipeline. Thus if a processor fails, data is lost or corrupted during transmission to any destination, then after restarting the processor it can reprocess the data. Since the processor is idempotent the resulting state is consistent with that if the processor was successfull the first time. So the data lands in a consistent way in the realtime store clickhouse. By the properties of the realtime store of which clickhouse is an instance of, we conclude that the data not only lands in the realtime store but also is available ordered by the latest value of the designated timestamp to users via materialized views.
 
-The results from the heavy computations performed by Spark are stored in Redis to serve the teams with the lowest possible latency.
 
-**Invariants**
+As mentionned the ordering garuantess within a source system are there to improve performance, this will be discussed in depth in the section about data models and category schemas. But the main idea is to partition by source_system, then sort and index by source_system and symbol and designeated timestamp. The core idea is that queries of analysts usually involve few symbols and the designated timestamp so these queries should be very fast even if involving joins, as long as these joins are done via source system, symbol or designated timestamp since clickhouse can use merge join that runs in O(n+m) where n,m are the number of rows of the tables to be joined.  
 
-- Only the teams that submitted a job request for Spark have access to it  
-- Only Spark can store data here  
-- Data is deleted after 60 minutes  
-- Users have only read permissions  
+For data different than market data (economic releases) we simply choose release_code or something equivalent to replace "symbol". This core idea will also be used for historical data stored in the historical store.
+
+Whenever working with multiple machines and technologies and strong contracts and design, development time and latency will always suffer. Latency in particular could break the architecture because if users experience lags in the realtime store they will stop using it which is why I restrict them to read only permissions. We *need* to optimize latency by keeping network traffic within the datacenter. But also by using more performant languages like scala instead of python and keeping computations somewhat efficient. Of course there is always the option of using 'stronger' machines. To mitigate development time we produce a proof of concept first that is the streaming lane with just interactive brokers as source, clickhouse as destination and no spark heavy computations.
 
 ### Limitations of a Portfolio Project done by one single human
 
@@ -498,7 +565,7 @@ Serverless functions are very cheap and easy to manage. The only case where usin
 These serverless functions will also perform the transformations from the lake to bronze and from bronze to silver since at the lake and bronze stage we might deal with many files or tables (you don’t want to use SQL with many tables).
 
 **Invariants**
-
+- Are instances of either extractor or connectors
 - Transformed data satisfies the invariants of the destination layer (bronze, silver, gold, data marts) and adds the necessary metadata  
 - Data going from data lake or bronze to silver is transformed by serverless Python functions  
 
@@ -520,7 +587,7 @@ We avoid a data swamp by using a container / directory structure to distinguish 
 For transforms starting at the silver layer, where we should have just a few tables, we use dbt.
 
 **Invariants**
-
+- is an instance of a transformer
 - Transformed data satisfies the invariants of the destination layer (silver, gold, data marts) and adds the necessary metadata  
 - Data going from silver to gold or data marts is only transformed in dbt  
 
@@ -545,6 +612,13 @@ The last invariant will greatly enhance ease of use and data discovery and will 
 - Every table from bronze, silver, gold and all data marts is in the data catalogue and lineage tool  
 - But users only see the data they have access to  
 
+### Discussion of Batch pipeline
+One key distinction between realtime and batch data, is that batch data usually is persisted on the source system. So on failure we can simply rerun the Batch pipeline since extractors, connectors and transformers are all idempotent. If a source system does not persist the complete batch data then the probability of loosing data is very low because extractors are extremely lightweight and thus will finish fast, resulting the data being stored in the Lake or already in the bronze layer. With backup mechanisms of the cloud environment loosing data due to failed extractors, connectors or transformers becomes very unlikely. This justifies deploying them as serverless functions on single instances. So the data arrvies in the historical store and is modelled according to the user's needs. Requirements that cannot be satisfied in the gold layer are always satisfiable with a dedicated data mart.
+
+Latency and peformance of the extractors, connectors and transformers is neglible since data processed here needs to be updated only daily or hourly at most. Performance in the gold layer and the marts does however matter since analysts should not be forced to write queries that perform poorly to satisfy their needs. So the modelling aspect is crucial here, more so than on the streaming lane.
+
+
+## Operations
 ### Access and User management
 
 Fortunately for us this is a problem that has been already solved for us. We copy the same access management processes that the IT of the firm is using. Usually this boils down to:
@@ -623,38 +697,48 @@ Also for our current data sources it does not appear to make sense to store thei
 
 In the real world it would be imperative to have at least one responsible person per source system that either contacts the source system maintainer to solve data quality issues or if the data is user generated then to fix the data in the source system.
 
-## Failure Matrix
+### Failure Matrix
 
 Which failures should we expect and how are they handled?
 
-### A pod in the streaming lane crashes
+#### A pod in the streaming lane crashes
 
 We can configure Kubernetes to automatically restart a node. Depending on the system logs, the failure might have occurred due to higher demand on the system in which case we need to scale vertically or horizontally, this needs to be implemented in the various components directly. For instance for the IB connector we have to scale vertically since we cannot run more than two pods (restriction from their “web” API). There is no realistic risk of data loss in case of Kafka, Spark or ClickHouse due to fault tolerance and idempotency. If an IB connector node fails then we lose data for the interval where the remaining symbols are assigned and subscribed to by the remaining pod, but this cannot be avoided. If it were a really important data source then we can set the lifecycle intervals very short (200 ms) or implement some kind of fault tolerance by streaming the same trading symbol from multiple pods. This would increase the storage needed on Kafka by the replication factor however ClickHouse deduplicates data by default so there it would not be a problem. The real issue would be with L2 data where there is no “event time” from Interactive Brokers so each machine that is a replica might have a different ingestion time so spotting duplicates in this case would be very difficult.
 
-### Teardown or setup of the streaming lane fails
+#### Teardown or setup of the streaming lane fails
 
 If Airflow struggles for some reason to setup or teardown the streaming lane, then this most likely requires manual intervention. The Airflow tasks would fail in which case we send a log to the system db where we can configure an alert for these kinds of logs with an automatic email.
 
-### Hetzner cluster is not responding or unavailable
+#### Kafka or clickhouse pods all failed
+In this case we lost data and we cannot recover it (except via the source system). Our observability solution needs to monitor the lowest number of replicas left across all partitions or table shards. Then we can devise a backup policy like the following:
+
+- if replica count drops to 2, trigger a batch job to pull all of the data into our data lake.
+- As long as this condition persists, keep pulling the data every few seconds.
+
+We must be aware that kafka is "more important" than clickhouse because if the latter fails but kafka is still running we did not loose data. But as soon kafka fails the data is also lost for all downstream components.
+
+If the source system supports historical data and the lost streaming data is available there then we also can pull from the source system directly via a batch job. This is much more feasible for historical market data.
+
+#### Hetzner cluster is not responding or unavailable
 
 For this portfolio project: well, bad luck I guess.  
 In the real world: emergency migration plan to redeploy on AKS or other alternative, it goes without saying that this emergency plan needs to be tested periodically (every 4 months or so).
 
-### Azure / Fabric is unresponsive or unavailable
+#### Azure / Fabric is unresponsive or unavailable
 
 We trust Microsoft that backups are reliable on the cloud and that the data will be available eventually. For really important data we can do periodic backups into a different zone with cheap cold long term storage which would be somewhat costly in the event of accessing that data. From that data we can either scale up ClickHouse to also hold the historical data or ingest that data into a different cloud solution (Google BigQuery). Since we still have the backup from cold storage, we can simply delete the data in BigQuery to avoid egress costs as soon as Fabric is available.
 
 In the meantime we do not teardown ClickHouse but let it run to keep the historical data.
 
-### Batch serverless job or DBT job fails
+#### Batch serverless job or DBT job fails
 
 Send a log to system db, set up alerts for this type with automatic email then manual intervention (debugging and pushing the fix to prod).
 
-### Data Quality deteriorates
+#### Data Quality deteriorates
 
 Investigation via the DataOps dashboard and the `_unqualified` tables, taking action with the source system owners / responsibles.
 
-### Components in Streaming lane fail during runtime
+#### Components in Streaming lane fail during runtime
 
 If ClickHouse (very unlikely) failed:
 
@@ -682,38 +766,38 @@ If Kubernetes (control plane) fails:
 
 - Manual intervention  
 
-### Platform experiences lags and performance issues
+#### Platform experiences lags and performance issues
 
 - If unusual data throughput is the likely cause, we add nodes or we use more powerful nodes, we then need to re-evaluate scaling rules and assumptions in the control plane  
 - Otherwise manual intervention is needed  
 
-### Users have problems accessing the platform resources
+#### Users have problems accessing the platform resources
 
 - This most likely requires manual investigation  
 
-## Adaptation Matrix
+### Adaptation Matrix
 
 What changes should we expect and how are they handled?
 
-### New data source needs to be handled for streaming lane
+#### New data source needs to be handled for streaming lane
 
 - Develop connector for that source that satisfies invariants  
 - Push service, develop until it passed the test environment  
 - If passing the test environment is impossible because category schemas are not wide enough proceed with “category schema needs to be modified”  
 
-### New data source needs to be handled for batch processing
+#### New data source needs to be handled for batch processing
 
 - Push service, develop until it passed the test environment  
 - Done, connectors do not transform at all and are not in contact with category schemas on the batch processing lane  
 
-### New destination needs to be handled for streaming lane
+#### New destination needs to be handled for streaming lane
 
 - Discussion with stakeholders about constraints and requirement  
 - Development of processor (or reuse) and destination (or reuse) until test environment is passed  
 - Destinations should not have impact on category schemas  
 - But they might have on data models so we need to re-evaluate the data models  
 
-### Category schema needs to be modified
+#### Category schema needs to be modified
 
 If it should shrink then we only shrink it after some countdown (6 months) to avoid unnecessary changes to the schema. After countdown if the field is still unused by all our data sources, we start a change period (6 months).
 
@@ -731,7 +815,7 @@ If it needs to grow we then define a canonical name for the fields and add them 
 - If data marts use `select *` on unions or processors do something similar this might be breaking, so we simply forbid anyone from using constructs like these  
 - On the silver layer in Fabric, Airflow performs the changes to the schemas since automatically since it should be non breaking  
 
-### Source schema from batch processing evolves
+#### Source schema from batch processing evolves
 
 If the schema expanded then we have the new fields in the lake and bronze layer automatically by design and thus in the data catalogue (discoverable).
 
@@ -747,20 +831,23 @@ If the schema shrank then silver and gold won’t experience problems due to the
 - If it was impossible to foresee this change then there is not much we can do  
 - If it was possible to foresee this change then we need to adapt our processes  
 
-### Analyst leaves the company, new analyst joins company
+#### Analyst leaves the company, new analyst joins company
 
 - Delete or create the user on ClickHouse, Redis, Fabric (any destination the user was present)  
 - Start process to evaluate access rights (usually it should be clear by role)  
 
-### Source schema from stream processing evolves
+#### Source schema from stream processing evolves
 
 - Only the connectors might experience problems if their treatment of the schema was careless (`select *` in unions)  
 - The connector maintainer needs to provide a quick fix if it broke due to an expanding schema (which should be easy to avoid). This might cause an expansion of category schemas which we covered above.  
 - If the schema shrank then we need to immediately notify downstream users. If the connector already adapted, there should be nothing left for us to do since category schemas remain stable.  
 
+### Incidence matrix
+Here we cover the security incidents we might expect and how to handle them.
+
 ### Cost estimation and Alternatives
 
-(Still to be detailed if needed.)
+
 
 ### Final remarks
 
