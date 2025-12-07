@@ -1,21 +1,33 @@
-// Note that for the physical design we will partition by source system and the designated timestamp by month in fabric
-// on clickhouse only partition by source_system since we will run the pipeline only for 3h at most
-// the 'glossar' defines the possible values for all enum datatypes and is defined in the control plane
-// all timestamps are in ISO 8601:2004 and UTC+0
+///////////////////////////////////////////////////////////////
+// REALTIME STORE DATA MODEL (CLICKHOUSE)
+//
+// - Physical ClickHouse design: partition by source_system_name
+//   (3h window); Fabric/Historical uses designated_timestamp_month.
+// - All timestamps: ISO 8601:2004, UTC+0.
+// - Designated identifier / timestamp are explicitly marked per table.
+// - Enums are implemented as expanding vocabularies; they are safe
+//   for database engines as long as we only *add* new values and
+//   never change or delete existing ones.
+// - 'glossar' (in control plane) defines the domains for all enums.
+///////////////////////////////////////////////////////////////
 
+
+// Ingestion table: tick-level derivatives data (category schema instance)
+// designated_identifier = symbol_code
+// designated_timestamp  = tick_time
 Table derivatives_tick_market_data {
-  source_system_name enum [not null] 
+  source_system_name enum [not null]
   component_instance_name enum [not null]
-  ingestion_time timestamp [not null]               // connector → buffer
-  ingestion_time_realtime_store timestamp [not null]// buffer → CH
+  ingestion_time timestamp [not null]                // connector → buffer
+  ingestion_time_realtime_store timestamp [not null] // buffer → CH
   exchange_code enum [not null]
-  symbol_code enum [not null]
+  symbol_code enum [not null]                        // designated identifier
   symbol_type enum [not null]
   price double [not null]
   price_unit enum [not null]
   size double [not null]
   size_unit enum [not null]
-  tick_time timestamp [not null]
+  tick_time timestamp [not null]                     // designated timestamp
   open_interest int
   open_interest_unit enum
 
@@ -24,46 +36,62 @@ Table derivatives_tick_market_data {
   }
 }
 
+
+// Ingestion table: L2 book events (per side/level)
+// designated_identifier = symbol_code
+// designated_timestamp  = l2_time
 Table derivatives_l2_market_data {
   source_system_name enum [not null]
   component_instance_name enum [not null]
   ingestion_time timestamp [not null]
   ingestion_time_realtime_store timestamp [not null]
   exchange_code enum [not null]
-  symbol_code enum [not null]
+  symbol_code enum [not null]                        // designated identifier
   symbol_type enum [not null]
   price double [not null]
   price_unit enum [not null]
-  side enum [not null]
-  level int [not null]
-  max_level int [not null]
-  l2_time timestamp [not null]
+  side enum [not null]                               // 'bid' | 'ask'
+  level int [not null]                               // level in book
+  max_level int [not null]                           // max streamed level at that time
+  l2_time timestamp [not null]                       // designated timestamp
   open_interest long
   open_interest_unit enum
 
   Indexes {
-    (source_system_name, symbol_code, l2_time) [pk, unique]
+    (source_system_name, symbol_code, side, level, l2_time) [pk, unique]
   }
 }
 
+
+// Ingestion table: indicators on top of market events
+// designated_identifier = symbol_code
+// designated_timestamp  = market_event_time
 Table indicators_market_data {
   source_system_name enum [not null]
   component_instance_name enum [not null]
   ingestion_time timestamp [not null]
   ingestion_time_realtime_store timestamp [not null]
-  market_event_time timestamp [not null]
-  symbol_code enum [not null]
-  indicator_scope enum [not null] // 'tick','l2','release'
+  market_event_time timestamp [not null]             // tick_time / l2_time / release_time
+  symbol_code enum [not null]                        // designated identifier
+  indicator_scope enum [not null]                    // 'tick','l2','release'
   indicator_name string [not null]
   indicator_value double [not null]
   indicator_value_unit enum [not null]
+
+  Indexes {
+    (source_system_name, symbol_code, market_event_time, indicator_scope, indicator_name) [pk, unique]
+  }
 }
 
+
+// Latest trade per (source, symbol) — snapshot view
+// designated_identifier = symbol_code
+// designated_timestamp  = tick_time
 Table market_trades_latest {
   source_system_name enum [not null]
   ingestion_time timestamp [not null]
-  tick_time timestamp
-  symbol_code enum [not null]
+  tick_time timestamp [not null]                     // designated timestamp
+  symbol_code enum [not null]                        // designated identifier
   price double [not null]
   price_unit enum [not null]
   size long [not null]
@@ -74,11 +102,15 @@ Table market_trades_latest {
   }
 }
 
+
+// Latest book snapshot per (source, symbol, side, level)
+// designated_identifier = symbol_code
+// designated_timestamp  = ingestion_time
 Table book_latest {
   source_system_name enum [not null]
-  ingestion_time timestamp [not null]
-  symbol_code enum [not null]
-  side symbol [not null]
+  ingestion_time timestamp [not null]                // designated timestamp (snapshot time)
+  symbol_code enum [not null]                        // designated identifier
+  side enum [not null]
   level long [not null]
   max_level long [not null]
   price double [not null]
@@ -89,21 +121,25 @@ Table book_latest {
   open_interest_unit enum
 
   Indexes {
-    (source_system_name, symbol_code, ingestion_time_realtime_store) [pk, unique]
+    (source_system_name, symbol_code, side, level) [pk, unique]
   }
 }
 
+
+// 1-second bars per (source, symbol)
+// designated_identifier = symbol_code
+// designated_timestamp  = bar_end_time
 Table bars_1s {
   source_system_name enum [not null]
   ingestion_time timestamp [not null]
-  symbol_code enum [not null]
+  symbol_code enum [not null]                        // designated identifier
   open double [not null]
   high double [not null]
   low double [not null]
   close double [not null]
   volume long [not null]
   bar_start_time timestamp [not null]
-  bar_end_time timestamp [not null]
+  bar_end_time timestamp [not null]                  // designated timestamp
   open_interest long
   open_interest_unit enum
 
@@ -112,18 +148,22 @@ Table bars_1s {
   }
 }
 
+
+// 1-minute bars per (source, symbol)
+// designated_identifier = symbol_code
+// designated_timestamp  = bar_end_time
 Table bars_1m {
   source_system_name enum [not null]
   ingestion_time timestamp [not null]
   ingestion_time_realtime_store timestamp [not null]
-  symbol_code enum [not null]
+  symbol_code enum [not null]                        // designated identifier
   open double [not null]
   high double [not null]
   low double [not null]
   close double [not null]
   volume long [not null]
   bar_start_time timestamp [not null]
-  bar_end_time timestamp [not null]
+  bar_end_time timestamp [not null]                  // designated timestamp
   open_interest long
   open_interest_unit enum
 
@@ -132,18 +172,22 @@ Table bars_1m {
   }
 }
 
+
+// 1-hour bars per (source, symbol)
+// designated_identifier = symbol_code
+// designated_timestamp  = bar_end_time
 Table bars_1h {
   source_system_name enum [not null]
   ingestion_time timestamp [not null]
   ingestion_time_realtime_store timestamp [not null]
-  symbol_code enum [not null]
+  symbol_code enum [not null]                        // designated identifier
   open double [not null]
   high double [not null]
   low double [not null]
   close double [not null]
   volume long [not null]
   bar_start_time timestamp [not null]
-  bar_end_time timestamp [not null]
+  bar_end_time timestamp [not null]                  // designated timestamp
   open_interest long
   open_interest_unit enum
 
@@ -152,25 +196,29 @@ Table bars_1h {
   }
 }
 
-// Example denormalized twin: tick data with indicators flattened
+
+// Denormalized twin: tick data with indicators flattened
+// (Materialized join of derivatives_tick_market_data + indicators_market_data where indicator_scope = 'tick')
+// designated_identifier = symbol_code
+// designated_timestamp  = tick_time
 Table derivatives_tick_market_data_indicators {
   source_system_name enum [not null]
   component_instance_name enum [not null]
   ingestion_time timestamp [not null]
   ingestion_time_realtime_store timestamp [not null]
   exchange_code enum [not null]
-  symbol_code enum [not null]
+  symbol_code enum [not null]                        // designated identifier
   symbol_type enum [not null]
   price double [not null]
   price_unit enum [not null]
   size double [not null]
   size_unit enum [not null]
-  tick_time timestamp [not null]
+  tick_time timestamp [not null]                     // designated timestamp
   open_interest int
   open_interest_unit enum
 
-  -- indicator columns from source at same (source,symbol,tick_time):
-  indicator_scope enum [not null] // 'tick'
+  // Indicator columns from same (source,symbol,tick_time)
+  indicator_scope enum [not null]                    // 'tick'
   indicator_name string [not null]
   indicator_value double [not null]
   indicator_value_unit enum [not null]
@@ -182,16 +230,35 @@ Table derivatives_tick_market_data_indicators {
   Note: 'Materialized join of derivatives_tick_market_data + indicators_market_data where indicator_scope = tick.'
 }
 
-// References
-Ref: derivatives_l2_market_data.(source_system_name, symbol_code) > derivatives_tick_market_data.(source_system_name, symbol_code)
-Ref: indicators_market_data.(source_system_name, symbol_code) > derivatives_tick_market_data.(source_system_name, symbol_code)
-Ref: market_trades_latest.(source_system_name, symbol_code) > derivatives_tick_market_data.(source_system_name, symbol_code)
-Ref: book_latest.(source_system_name, symbol_code) > derivatives_tick_market_data.(source_system_name, symbol_code)
-Ref: bars_1s.(source_system_name, symbol_code) > derivatives_tick_market_data.(source_system_name, symbol_code)
-Ref: bars_1m.(source_system_name, symbol_code) > derivatives_tick_market_data.(source_system_name, symbol_code)
-Ref: bars_1h.(source_system_name, symbol_code) > derivatives_tick_market_data.(source_system_name, symbol_code)
-Ref: derivatives_tick_market_data_indicators.(source_system_name, symbol_code, tick_time) > derivatives_tick_market_data.(source_system_name, symbol_code, tick_time)
 
-// indicators.market_event_time refers to either tick_time or l2_time
-Ref: indicators_market_data.(source_system_name, symbol_code, market_event_time) > derivatives_tick_market_data.(source_system_name, symbol_code, tick_time)
-Ref: indicators_market_data.(source_system_name, symbol_code, market_event_time) > derivatives_l2_market_data.(source_system_name, symbol_code, l2_time)
+// ---------------------- REALTIME REFERENCES ------------------------
+
+// Coarse logical relationships (not all need to be enforced physically)
+
+// L2 events refer to same symbol universe as tick events
+Ref: derivatives_l2_market_data.(source_system_name, symbol_code)
+  > derivatives_tick_market_data.(source_system_name, symbol_code)
+
+// Indicators refer to tick-symbol universe (symbol scope)
+Ref: indicators_market_data.(source_system_name, symbol_code)
+  > derivatives_tick_market_data.(source_system_name, symbol_code)
+
+// Derived views / aggregates back to base tick data (symbol scope)
+Ref: market_trades_latest.(source_system_name, symbol_code)
+  > derivatives_tick_market_data.(source_system_name, symbol_code)
+
+Ref: book_latest.(source_system_name, symbol_code)
+  > derivatives_tick_market_data.(source_system_name, symbol_code)
+
+Ref: bars_1s.(source_system_name, symbol_code)
+  > derivatives_tick_market_data.(source_system_name, symbol_code)
+
+Ref: bars_1m.(source_system_name, symbol_code)
+  > derivatives_tick_market_data.(source_system_name, symbol_code)
+
+Ref: bars_1h.(source_system_name, symbol_code)
+  > derivatives_tick_market_data.(source_system_name, symbol_code)
+
+Ref: derivatives_tick_market_data_indicators.(source_system_name, symbol_code, tick_time)
+  > derivatives_tick_market_data.(source_system_name, symbol_code, tick_time)
+

@@ -2,11 +2,10 @@
 
 In this section we define the conceptual architecture which is completely technology agnostic and focuses on the key relationships that we need to build a good platform for this use case.
 
-We do this by defining **components** which can be viewed as entities that perform work. We do not care about what exactly these entities are, we only care about the properties they need to exhibit in order for the platform to achieve its goal.
+We do this by defining **components** which can be viewed as abstract entities. We do not care about what exactly these entities are, we only care about the properties they need to exhibit in order for the platform to achieve its goal.
 
 Then tech selection boils down to selecting the tools that satisfy the definitions of our components, because then they satisfy the inferred relationships which compose the platform. The data platform is thus an instantiation of the conceptual architecture via the instances of the components that are given by concrete technologies.
 
-We will implictly assume that components themselves do not fail but that communication between them can. In reality we try to realize this property of components by using distributed solutions that provide scaling and fault tolerance.
 
 # Major Design decision
 
@@ -37,21 +36,21 @@ The overall architecture resembles the **Lambda architecture**. The reasons why 
 
 ## Major Components
 
+We will assume that components themselves do not fail but that communication between them can. In reality we try to realize this property of components by using distributed solutions that provide scaling and fault tolerance. In the *technical* architecture we do consider that components can fail and cover these situations in a failure matrix, together with other things that we need to consider operationally like incidents and adaptions.
+
 ### Category Schema
 
 A **Category Schema** is a set of canonical field names for a type of data.
 
 We say **category row** for a row / tuple in the category schema. We call the schema of data from a source system **source schema**. We may say **source field** or **category field** to refer to fields from a source schema or category schema respectively.
 
-Examples of data types and respective field names:
-
-- **Market Tick Data** → (source_system, symbol, timestamp, price, size, open_interest, …)  
-- **Order Book Data** → (source_system, symbol, side, level, price, size, …)  
-- **Economic Event Data (numeric)** → (source_system, event_publisher, value, unit, description, …)
-
 **Invariant**  
 - Every source schema needs to be related to a subset of fields of at least one category schema.
-- Every category schema defines a designated timestamp
+- all category schemas have a field uniquely identifying the source system, we call that field "source_system_name"
+- Every category schema defines a designated timestamp and a designated identifier
+- the designated identifier needs to be unique within a source system
+- the designated timestamp needs to be unique within a source system and designated identifier
+- a category schema is ordered by (source_system_name,designated identifier, designated timestamp)
 
 Note: Category schemas are **conceptual**. Physical schemas must at least cover all the category fields, but may add additional technical fields (for example multiple ingestion timestamps) without breaking the category contract. Ideally we want the category schema to preserve or even enhance information from the relation between the source fields and category fields. Together with a **Glossar** which defines the domains of the category fields, this can also greatly enhance data discovery and understanding.
 
@@ -66,10 +65,10 @@ A piece of software that simply extracts real-time data from a data source, maps
 - Maps the source field names to category field names  
 - Transforms the values to fit the category fields dtypes/domains and units  
 - Sends the data as a category row to the buffer  
-- Can resend data if the buffer wants to  
+- Can resend data if lost or corrupted  
 - Only connectors can access source systems  
 - Each source system is managed by at least one connector  
-- The connector preserves the order by the designated timestamp of the category schema
+- The connector preserves the order by the designated timestamp of the category schema, within source system and designated identifier
 - If data from the source system does not provide data relatable to the designated timestamp, then the connector fabricates a timestamp to use. 
 
 Important to realize is that if we disallow connectors to communicate with each other, then no connector can ensure ordering of the data across source systems. If we do allow communication between different connectors then we introduce high coupling and overheat. We choose connectors to be isolated and have faith that ordering within a single source system is good enogh for downstream components.
@@ -82,11 +81,14 @@ Persistent storage that simply holds the category data / rows belonging to a cat
 
 **Invariants**
 
-- The category data satisfies the category schema  
+- The category data contains at least all the fields of the category schema 
+- The category data is formatted according to the category fields
+- The order by designated timestamp needs to be preserved within source_system
 - Data is stored persistent for at least the entire runtime of the streaming pipeline  
 - Provides at-least-once-delivery  
 - Provides redelivery of data if lost or corrupted during transmission
-- Provides redelivery of data if the processor failed
+- Only connectors can store data in the buffer
+- Only processors can access data from the buffer
 
 ### Processor
 
@@ -100,20 +102,45 @@ Gets the category data from the buffer and prepares it for a destination. Sends 
 - Loads the prepared category data to its destination  
 - Reprocessing the same data for the same destination again is idempotent  
 - The processor must be able to reprocess lost or corrupted data  
+- Preserves the order by designated timestamp, within source system and identifier
 
 ### realtime store
 
 The realtime store is the default destination of realtime data. We store data from all topics in a dedicated ingestion table and then build materialized views for users to get the latest snapshot of data. With materialized view here we mean a physical table that is automatically updated if its source table in the store changes.
 
 **Invariants**
-
-- Holds all category data from category schemas  
+- Implements category schemas as ingestion tables
+- These ingestion tables are partitioned by source_system_name and designated timestamp by month
+- These ingestion tables are ordered and indexed by designated identifier, designated timestamp within each partition
 - It is the only component that is in direct contact with users  
 - Provides user interface, API access and SQL use  
 - Provides roles as a means of managing users  
-- Provides users with access to materialized views that present the most recent data.
+- Provides users with access to materialized views that present the most recent data according to the designated timestamp, by source system and designated identifier.
+- Only processors can store data in the realtime store
+
+The idea is to lay foundations to maximize query and ingestion performance. The order by designated timestamp within a source system and designated identifier is preserved throughout the streaming pipeline. This results in better ingestion performance since the ingestion tables are ordered to take advantage of that. Finally, if we manage to design the category schemas well, we will choose the designated timestamp and identifier per category, such that the query performance for the most important ones is good. 
+
+If you continue reading you will notice that we are more strict here than with the historical store. This is to ensure performance of the realtime store which is more critical than for a historical store.
 
 ## Discussion of streaming pipeline
+
+### garuantees
+
+1. end-to-end at least once delivery of data generated at the source system
+2. ordering within source_system_name,designated identifier by designated timestamp
+3. availability of data by source_system_name , designated identifier  by latest designated timestamp
+4. Data can be ingested into partition of ingestion tables with maximum efficiency 
+5. Minimum latency within the realtime store for the materialized views
+
+The first one is achieved due to the assumption of the components not failing and idempotency on retries (lost or corrupted data)
+The second one is by design/ assumption
+The third one is an invariant of the realtime store
+The fourth one is achieved by first preserving order by timestamp within source system and designated identifier, then when a processor sends a batch of data to the realtime store, then for each row in that batch :
+
+1. The realtime store narrows down the search space to the partition corresponding to the source system (can be done in constant time)
+2. Within the parition we have a sparse index on (identifier, timestamp) and by the ordering garuantee the row we are inserting now is the last row of identifier,timestamp so we ingest with a delay that corresponds to the largest gap in the index which we can control with concrete database configuration.
+
+
 
 ### Strengths
 
@@ -167,13 +194,18 @@ If we go with a cluster, then we will need to keep an eye on infrastructure cost
 
 After talking to the stakeholders, most of them agree that if I am able to hold these invariants in production then they can accept higher development times and latency. Cost and treatment of the fields is largely dependent on implementation; we should not worry too much about it at this stage.
 
+#### Risk of backpressure of the connectors
+We need to monitor and react on backpressure by scaling vertically or horizontally which is possible by the invariants of connectors.
+
+
+
 # Batch Processing lane
 
 ## Major components
 
 ### Category Schemas
 
-The same definition as in the streaming lane since the same reasoning applies here.
+The same definition as in the streaming lane. In fact we will define one set of category schemas for both lanes.
 
 ### Extractors
 
@@ -182,7 +214,7 @@ An extractor loads data from a source without transforming it or altering it int
 
 **Invariants**
 
-- Loads all the data we want from the source into the Data Lake, or from Data Lake to Bronze, as-is in its raw state  
+- Loads data from the source into the Data Lake, or loads data from Data Lake to Bronze, as-is in its raw state  
 - No metadata is added by extractors to prevent accidental changes to the data  
 - Reprocessing the same data for the same destination is idempotent  
 - Extractors can reprocess the data if the destination data is lost, has failed or is corrupted  
@@ -193,7 +225,7 @@ A connector is more or less consistent with the notion of connectors we had in t
 
 **Invariants**
 
-- All data from the bronze layer is processed by connectors and connectors only  
+- processes data from the bronze layer  
 - There is at least one connector for each table in the bronze layer  
 - Selects for its source schema at least one category  
 - Maps the source fields to the category fields  
@@ -207,12 +239,12 @@ Transformers start from the silver layer and transform data into the gold layer 
 
 **Invariants**
 
-- All data from the silver layer is processed by transformers and transformers only  
+- Transforms data from the silver layer 
 - There is at least one transformer for each table in the silver layer  
 - Transforms the data from the silver layer to satisfy the invariants of the destination  
 - The destination is either the gold layer or a data mart  
 - Reprocessing the same data for the same destination is idempotent  
-- Transformers can reprocess the data if the destination data is lost, has failed or is corrupted  
+- Transformers can reprocess the data if the data is los or corrupted or the transformer failed.
 
 ### Data Lake
 
@@ -223,6 +255,7 @@ The data lake works as a simple persistent storage layer.
 - All data from any source is stored in raw format  
 - For all sources and data there is a designated storage place  
 - All data is clearly distinguishable by source_system and type (market data, supplier data, etc.)  
+- Only extractors can load into the Data Lake
 
 ### Bronze layer
 
@@ -233,6 +266,7 @@ Here we still store the data raw but as tables. These are included in the data c
 - All data from any source is stored as a raw string table  
 - All data is clearly distinguishable by source and type (market data, supplier data, etc.)  
 - The data here comes from the lake and nowhere else  
+- Only extractors can load into the bronze layer
 
 ### Silver layer
 
@@ -242,7 +276,8 @@ The silver layer holds the data fitting a category schema. These are included in
 
 - Only category data is stored as tables with the category schemas implemented  
 - The data stored here comes from the bronze layer and nowhere else  
-- Data that does not qualify for the gold layer is also stored in a designated place  
+- Data that does not qualify for the gold layer is also stored in a designated place 
+- Only connectors can load into the silver layer 
 
 We allow these implementations to add fields not present in the category schemas.
 
@@ -253,6 +288,7 @@ The gold layer holds data fitting the data model. Users can access this layer di
 **Invariants**
 
 - Implements the data model with data from the silver layer  
+- Only Transformers can load data into the gold layer
 
 ### Data marts
 
@@ -267,16 +303,18 @@ If a team has very good reasons not to use the data model then we prepare the da
 Or We may call it warehouse since it will be also the hub for non market data.
 
 **invariants**
-- Users have only access to this compoenent
+- Users have only access to this compoenent no other component otherwise
 - It contains only the gold layer and data marts
 
 ## Discussion of Batch pipeline
+
+Important to note is that the buffer and realtime store will be two source systems for batch processing.
 
 ### Strengths
 
 #### Decoupled and cohesive
 
-The pipeline is strongly decoupled. Every component depends on exactly its predecessor and every component has guarantees from its predecessor (invariants). This allows us to scale, deploy, monitor and test each component individually and select technologies that are suited for exactly that component (since the components are so clearly defined, we can choose technologies that have a more precise use case instead of selecting general purpose solutions).
+Same arguments as in the streaming lane.
 
 #### Scalable
 
@@ -288,7 +326,7 @@ Lastly, if we are not happy with the choice of one component we can simply switc
 
 #### Simple
 
-Simplicity allows us to better maintain, understand, develop and debug the platform.
+Same argumetns as in the streaming lane.
 
 #### Restricted
 
@@ -407,6 +445,8 @@ Lastly, these platform config files will be available to all services working on
 - It creates all infrastructure and platform level files for the environments test and prod and nothing else  
 - Every service has access to the platform config files  
 
+Ovious excpetion is the data stored in the metadatabase of airflow.
+
 ### Environments & CI
 
 We distinguish the following environments:
@@ -469,7 +509,9 @@ kafka is the buffer where kafka topics represent data conforming to a particular
 
 ### Ib connector
 
-Handles the very unpleasant but extremely cheap realtime data source of Interactive Brokers which they call “web” API. We call *symbols* the trading futures, stocks or option identifiers that we are streaming data from. Recall that **kafka** will **instantiate** the **buffer** component and kafka **topics** represent data conforming to a **category schema**.
+Handles the very unpleasant but extremely cheap realtime data source of Interactive Brokers which they call “web” API. We call *symbols* the trading futures, stocks or option identifiers that we are streaming data from. Recall that **kafka** will **instantiate** the **buffer** component and kafka **topics** represent data conforming to a **category schema**. 
+
+The designated identifier of the category schemas the ib connector sends to is called 'symbol' referreing to the trading symbols that we want to stream from interactive brokers.
 
 **Invariants**
 - Is a 'connector' component
@@ -477,16 +519,19 @@ Handles the very unpleasant but extremely cheap realtime data source of Interact
 - Keeps sockets for streaming alive  
 - Keeps the client portal alive  
 - Automates start and authentication of the client portal  
-- Processes the data and prepares it to be sent to a Kafka topic  
+- Processes the data and prepares it to be sent the Kafka topic of the category scheam 
+- Sends the raw data to the designated topic of the corresponding category schema  
 - Sends data to the correct Kafka topic via the kafka producer api, waits for acknowledgements, resends otherwise 
 - Implements scaling via symbol sharding 
-- Each symbol is landing on exactly one kafka topic partition to preserve symbol ordering within a source system
+- Each symbol is landing on exactly one kafka topic partition to preserve symbol ordering by designated timestamp within a source system
 
-Important to note is that due to time constraints we are *not* streaming l2/order book data and we have *not* built in fault tolerance. Fault tolerance can be achieved the same way as we implemetned scaling, via the kubernetes api. For given replication factor, select peers of the ib connector namespace to create replicas of the data. In the context of streaming this means that these replica pods will also stream the same symbols. This will create duplicates (ignoring metadata) equal in number to the replication factor. This has two important consequences.
+Important to note is that due to time constraints we are *not* streaming l2/order book data.Also we have *not* built in fault tolerance. Fault tolerance can be achieved the same way as we implemetned scaling, via the kubernetes api. For given replication factor, select peers of the ib connector namespace to create replicas of the data. In the context of streaming this means that these replica pods will also stream the same symbols. This will create duplicates (ignoring metadata) equal in number to the replication factor. This has two important consequences.
 
-- we cannot achieve a per symbol ordering because we cannot control if the duplicates will land at the same time in the buffer
+- we cannot achieve a per symbol ordering within source system because we cannot control if the duplicates will land at the same time in the buffer
  - unless you funnel it through a single instance which defeats the entire 'fault tolerance' idea.
 - We need to decide how to handle these duplicates downstream.
+
+In any case such a connector would not satisfy the invariant of preserving order by designated timestamp and symbol within the source system.
 
 In this setting, since we are using clickhouse which deduplicates the data per default, this would be already taken care of. The scaling also provides a 'weak fault tolerance', if a pod crashes then in the next connections life cycle (that we can set to happen every x milliseconds) the symbols will be redistributed on the remaining pods and they will restart the streams for those symbols. So the maximum time intervall of data we can loose is given by computation time + latency + life cycle intervall.
 
@@ -499,7 +544,7 @@ We use Kafka as our buffer, for one because it satisfies our conceptual invarian
 
 **Invariants**
 - Is an instance of a buffer
-- Each topic relates to exactly one category schema  
+- For each category schema there are exactly two topics for it, one for the processed data one for the raw data
 - Data is stored persistent for at least the entire runtime of the streaming pipeline  
 - Provides at-least-once-delivery  
 - during runtime, provides an arbitrary number of redeliveries
@@ -509,7 +554,7 @@ As long as the connector does not fail (which can be made less likely with fault
 
 Another neat property is that by holding the data for the entire runtime in the buffer, if downstream components somehow fail permanently, we can pull the data from thekafka topics directly and reprocess the data as a batch job. Kafka further enhances this data arrival garuantee by providing fault tolerance and scaling. 
 
-### Kafka as processor for ClickHouse
+### Kafka as processor of category data for ClickHouse
 
 We can ingest directly from Kafka topics into ClickHouse, this works since we design the ingestion tables in ClickHouse to be implementations of category schemas and by the invariants of any connector, the data will be ready for ingestion.
 
@@ -518,7 +563,7 @@ We can ingest directly from Kafka topics into ClickHouse, this works since we de
 - Dumps all of the data per topic into a designated ingestion table that implements the category schemas that topic represents 
 - Waits for acknowledgements from clickhouse, resends data otherwise 
 
-### Spark as processor for Clickhouse
+### Spark as processor of heavy computations for Clickhouse
 
 As per `Business_use_case_evolution.md` we need a high performance distributed computing engine to do the heavy computations fast enough. Every team can submit the computations that need to be performed and stored in clickhouse. The engineering teams implement these formulas as Spark jobs that will be executed by a set of executor pods on the streaming lane cluster. The Spark executor pods read the necessary data from Kafka directly instead from ClickHouse, to keep latency minimal.
 
@@ -529,6 +574,16 @@ As per `Business_use_case_evolution.md` we need a high performance distributed c
 
 This is one of the *main* use cases of spark.
 
+### Spark as processor for the Data Lake
+Spark is going to push the raw data in kafka, the processed data in kafka, the processed data in clickhouse, into the Data Lake. We will use as large as possible batch sizes to minimize performance impact on the pipeline and keep file creation in the data lake minimal. The main use case of this will be apparent in the dataOps section.
+
+**invariants**
+- is an instance of a processor (streaming lane)
+- is an instance of an extractor (batch lane)
+- Only pushes data to a designated place in the Data Lake
+
+Yes spark in this case plays the role of a 'dumb loader' but its easy to deploy, plays nicely with kafka and clickhouse and has scaling and fault tolerance capabilities. 
+
 ### ClickHouse as distributed OLAP realtime store
 
 ClickHouse is extremely well documented and the only distributed OLAP database I could find that has impressive performance metrics and seems to be suitable for time series data. It also provides fault tolerance and scaling capabilities. Because of performance implications we heavily restrict our users to only read permissions since the main purpose of ClickHouse is to provide the latest timestamps of the data collected from the realtime sources. Analysts primarily feed the data from ClickHouse via client libraries into their models and algorithms or dashboard solutions on the infrastructure dedicated to their team. On request we can create data marts for individual teams.
@@ -537,7 +592,7 @@ ClickHouse is extremely well documented and the only distributed OLAP database I
 - is an instance of a realtime store
 - For each topic there is an ingestion table whose schema implements the category schema of the topic
 - Provides materialized views for snapshots per source and symbol of latest category data  
-- Users have access to this database  
+- Users have only access to this database  
 - Data is only stored for a few days  
 - Users have **read-only** permissions in ClickHouse  
 - For every processor that ingests into clickhouse there are designated ingestion tables and the processor has only write permissions on these tables
@@ -545,18 +600,21 @@ ClickHouse is extremely well documented and the only distributed OLAP database I
 ### discussion of streaming lane
 We have two main requirements to satisfy for the streaming lane, access to realtime data from the source systems and results of heavy computations that cannot be done elsewhere. We have already proven that if the connector does not fail, data will land in kafka and by the invariants of a connector the data is fitting to a category schema. If the connector does fail then we loose data for a time intervall. Data that has landed in kafka, can be reprocessed an 'infinite' times during runtime of the pipeline. Thus if a processor fails, data is lost or corrupted during transmission to any destination, then after restarting the processor it can reprocess the data. Since the processor is idempotent the resulting state is consistent with that if the processor was successfull the first time. So the data lands in a consistent way in the realtime store clickhouse. By the properties of the realtime store of which clickhouse is an instance of, we conclude that the data not only lands in the realtime store but also is available ordered by the latest value of the designated timestamp to users via materialized views.
 
+As mentionned the ordering garuantess within a source system are there to improve performance, this will be discussed in depth in the section about data models and category schemas. But the main idea is to partition by source_system, then sort and index by source_system, symbol and designated timestamp. The core idea is that queries of analysts usually involve few symbols and the designated timestamp so these queries should be very fast even if involving joins, as long as these joins are done via source system, symbol or designated timestamp since clickhouse can use merge join that runs in O(n+m) where n,m are the number of rows of the tables to be joined.  
 
-As mentionned the ordering garuantess within a source system are there to improve performance, this will be discussed in depth in the section about data models and category schemas. But the main idea is to partition by source_system, then sort and index by source_system and symbol and designeated timestamp. The core idea is that queries of analysts usually involve few symbols and the designated timestamp so these queries should be very fast even if involving joins, as long as these joins are done via source system, symbol or designated timestamp since clickhouse can use merge join that runs in O(n+m) where n,m are the number of rows of the tables to be joined.  
-
-For data different than market data (economic releases) we simply choose release_code or something equivalent to replace "symbol". This core idea will also be used for historical data stored in the historical store.
+For data different than market data (economic releases) we simply choose release_code or something equivalent to replace "symbol" as the designated identifier. This core idea will also be used for historical data stored in the historical store.
 
 Whenever working with multiple machines and technologies and strong contracts and design, development time and latency will always suffer. Latency in particular could break the architecture because if users experience lags in the realtime store they will stop using it which is why I restrict them to read only permissions. We *need* to optimize latency by keeping network traffic within the datacenter. But also by using more performant languages like scala instead of python and keeping computations somewhat efficient. Of course there is always the option of using 'stronger' machines. To mitigate development time we produce a proof of concept first that is the streaming lane with just interactive brokers as source, clickhouse as destination and no spark heavy computations.
+
+Finally, because we are storing the actual raw data in dedicated topics that relate to the category topics we can prove to stakeholders that the pipeline is healthy.
 
 ### Limitations of a Portfolio Project done by one single human
 
 “Few days” here means actually “few hours” and “60 minutes” means “5 minutes” to keep costs of running this project at bay. But the overall goal is to run a cluster of total size between 6 and 15 machines for 2h to 4h Monday until Friday during U.S. cash market open where markets are most interesting.
 
 ## Batch lane
+
+Recall that we will have kafka as one source system for the raw streaming data and clickhouse as another for the processed data. Spark is a processor (streaeming lane) and an extractor (batch lane).
 
 ### Serverless functions whenever possible with Azure Functions
 
@@ -636,9 +694,13 @@ Security is achieved if our platform does exactly what we want and nothing more.
 
 #### Firewalls
 
-We need a firewall surrounding the Hetzner cluster and blocking inbound traffic in such a way that we can authenticate as the admin (with a very strong and secure password) to access the cluster. We are only going to expose ClickHouse (and later Redis) to be accessible and every analyst that does have access will have a dedicated user.
+We need a firewall surrounding the Hetzner cluster and blocking inbound traffic in such a way that we can authenticate as the admin (with a very strong and secure password) to access the cluster. We are only going to expose ClickHouse to be accessible and every analyst that does have access will have a dedicated user.
 
 We also build a firewall around our cloud infrastructure, to only allow access via dedicated ports if necessary or with Microsoft user accounts.
+
+### Service accounts
+
+Each component instance has clearly associated service accounts that specify rights according to the invariants.
 
 #### User management ClickHouse
 
@@ -657,10 +719,10 @@ Access rights per user are either determined by IT processes or row level securi
 - Everything that belongs to the platform is surrounded by exactly one firewall that blocks “all” inbound traffic  
 - Every entry point needs authentication via some kind of user  
 - If we need to persist user secrets then we do so by hashing them  
-- Users only have access to gold layer, their data marts, ClickHouse and later Redis and nowhere else  
+- Users only have access to gold layer, their data marts, ClickHouse and nowhere else  
 - Users have only read permissions for gold layer  
 - Users have read and write permissions only in their data mart  
-- Users have read-only permissions in ClickHouse and Redis  
+- Users have read-only permissions in ClickHouse   
 
 In the real world we would also employ password rotation plans (probably every 6 months at least), 2FA and minimal password requirements to further enhance security. We would also need to periodically reassess the impact of compliance frameworks on our current governance policies. Also if the users were not analysts that are comfortable with SQL, then I would not give them write permissions anywhere, not even in their data mart because if they make a mess out of it, it is us that needs to clean after them.
 
@@ -684,7 +746,18 @@ Note: in a real setting we should also fix libraries and tools for Python and Sc
 
 Anytime data moves from one layer to the next, we store all data that did not qualify for the next layer in a separate table with equal name but suffix `_unqualified` with all fields from the source table. This allows us to investigate which rows did not qualify and will make it significantly easier to find out why.
 
-Also for our current data sources it does not appear to make sense to store their “history”. If CFTC or EIA notice a mistake in their data and correct it, we will download the entire reports and simply rewrite the old and wrong values on the next pipeline run. This is very pragmatic and easy for small data sources where we simply can load and overwrite the whole thing. The analysts don’t care what the old, possibly wrong values were; they just want the (correct) data. This also makes the pipelines idempotent which is nice.
+Also for our current data sources (not kafka or clickhosue) it does not appear to make sense to store their “history”. If CFTC or EIA notice a mistake in their data and correct it, we will download the entire reports and simply rewrite the old and wrong values on the next pipeline run. This is very pragmatic and easy for small data sources where we simply can load and overwrite the whole thing. The analysts don’t care what the old, possibly wrong values were; they just want the (correct) data. This also makes the pipelines idempotent which is nice.
+
+Special treatment is given to the raw streaming data and the processed streaming data. One nice observability solution or testing solution (for the test environment for example) is to run batch jobs on kafka to pull the raw data *and* the category data. Another batch job pulls data from clickhouse. Then we can analyze, during runtime of the streaming pipeline:
+
+- How much data is lost between raw and processed ? 
+- How much data is lost between processed in kafka and clickhouse?
+- What is the latency between ib connector and clickhouse (via metadata fields)?
+- What is the current throughput of the pipeline ?
+
+The answer to the first two questions should be zero, by design of the architecture. So in theory we dont need to track that, however , depending on the current trust level of the user base we might still track it in production.
+
+Surely there are other ways of answering these questions but by doing so we also backup the raw and processed data in the data lake during runtime!
 
 **Invariants**
 
@@ -833,7 +906,7 @@ If the schema shrank then silver and gold won’t experience problems due to the
 
 #### Analyst leaves the company, new analyst joins company
 
-- Delete or create the user on ClickHouse, Redis, Fabric (any destination the user was present)  
+- Delete or create the user on ClickHouse, Fabric (any destination the user was present)  
 - Start process to evaluate access rights (usually it should be clear by role)  
 
 #### Source schema from stream processing evolves
@@ -843,11 +916,26 @@ If the schema shrank then silver and gold won’t experience problems due to the
 - If the schema shrank then we need to immediately notify downstream users. If the connector already adapted, there should be nothing left for us to do since category schemas remain stable.  
 
 ### Incidence matrix
-Here we cover the security incidents we might expect and how to handle them.
+Here we cover the security incidents we might expect and how to handle them. There are main entry points an attacker might consider:
 
-### Cost estimation and Alternatives
+- Data Lake
+- Clickhouse
+- Airflow UI
+- Hetzner UI
+- Cloud UI
+
+Everything else blocks inbound connections (firewall). These four entrypoints can be made more secure by 
+
+- using non-standard usernames
+- using strong passwords
+- The need for that username and password to get through
+- in reality we would rotate passwords, here we do not
 
 
+
+### Hardware estimation, scaling rules, cost estimation and Alternatives
+
+comming soon.
 
 ### Final remarks
 
@@ -879,13 +967,13 @@ Category schema "derivatives_tick_market_data" {
   component_instance_name  NOT NULL
   ingestion_time           NOT NULL
   exchange_code            NOT NULL
-  symbol_code              NOT NULL
+  symbol_code              NOT NULL   // designated identifier
   symbol_type              NOT NULL   // futures, options, other derivatives
   price                    NOT NULL
   price_unit               NOT NULL
   size                     NOT NULL
   size_unit                NOT NULL
-  tick_time                NOT NULL
+  tick_time                NOT NULL   // designated timestamp
   open_interest
   open_interest_unit
 }
@@ -895,7 +983,7 @@ Category schema "derivatives_l2_market_data" {
   component_instance_name  NOT NULL
   ingestion_time           NOT NULL
   exchange_code
-  symbol_code              NOT NULL
+  symbol_code              NOT NULL   // designated identifier
   symbol_type
   price                    NOT NULL
   price_unit               NOT NULL
@@ -904,7 +992,7 @@ Category schema "derivatives_l2_market_data" {
   side                     NOT NULL   // ask or bid
   level                    NOT NULL   // 1 to n where n is the maximum streamed level
   max_level                NOT NULL   // this is n at the time of streaming
-  l2_time                  NOT NULL
+  l2_time                  NOT NULL   // designated timestamp
   open_interest
   open_interest_unit
 }
@@ -919,8 +1007,8 @@ Category schema "indicators_market_data" {
   source_system_name        NOT NULL
   component_instance_name   NOT NULL
   ingestion_time            NOT NULL
-  market_event_time         NOT NULL   // tick_time or l2_time or release_time
-  symbol_code               NOT NULL
+  market_event_time         NOT NULL   // tick_time or l2_time or release_time, designated timestamp
+  symbol_code               NOT NULL   // designated identifier
   indicator_scope           NOT NULL   // 'tick','l2','release'
   indicator_name            NOT NULL   // e.g. bollinger_bands_30_2
   indicator_value           NOT NULL
@@ -932,8 +1020,8 @@ Category schema "numeric_economic_data" {
   component_instance_name   NOT NULL
   ingestion_time            NOT NULL
   publisher_code            NOT NULL      // publisher is the institution who publishes the data
-  release_code              NOT NULL      // CFTC-COT-report, EIA-weekly-report, etc.
-  release_time              NOT NULL      // the time when the report was released
+  release_code              NOT NULL      // CFTC-COT-report, EIA-weekly-report, etc. designated identifier
+  release_time              NOT NULL      // the time when the report was released, designated timestamp
   release_field             NOT NULL      // which field of the release, 'Crude-Oil Stocks Forecast'
   release_field_value       NOT NULL
   release_field_value_unit  NOT NULL
