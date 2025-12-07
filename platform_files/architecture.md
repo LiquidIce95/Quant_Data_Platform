@@ -68,7 +68,6 @@ A piece of software that simply extracts real-time data from a data source, maps
 - Can resend data if lost or corrupted  
 - Only connectors can access source systems  
 - Each source system is managed by at least one connector  
-- The connector preserves the order by the designated timestamp of the category schema, within source system and designated identifier
 - If data from the source system does not provide data relatable to the designated timestamp, then the connector fabricates a timestamp to use. 
 
 Important to realize is that if we disallow connectors to communicate with each other, then no connector can ensure ordering of the data across source systems. If we do allow communication between different connectors then we introduce high coupling and overheat. We choose connectors to be isolated and have faith that ordering within a single source system is good enogh for downstream components.
@@ -83,7 +82,6 @@ Persistent storage that simply holds the category data / rows belonging to a cat
 
 - The category data contains at least all the fields of the category schema 
 - The category data is formatted according to the category fields
-- The order by designated timestamp needs to be preserved within source_system
 - Data is stored persistent for at least the entire runtime of the streaming pipeline  
 - Provides at-least-once-delivery  
 - Provides redelivery of data if lost or corrupted during transmission
@@ -102,7 +100,6 @@ Gets the category data from the buffer and prepares it for a destination. Sends 
 - Loads the prepared category data to its destination  
 - Reprocessing the same data for the same destination again is idempotent  
 - The processor must be able to reprocess lost or corrupted data  
-- Preserves the order by designated timestamp, within source system and identifier
 
 ### realtime store
 
@@ -118,31 +115,29 @@ The realtime store is the default destination of realtime data. We store data fr
 - Provides users with access to materialized views that present the most recent data according to the designated timestamp, by source system and designated identifier.
 - Only processors can store data in the realtime store
 
-The idea is to lay foundations to maximize query and ingestion performance. The order by designated timestamp within a source system and designated identifier is preserved throughout the streaming pipeline. This results in better ingestion performance since the ingestion tables are ordered to take advantage of that. Finally, if we manage to design the category schemas well, we will choose the designated timestamp and identifier per category, such that the query performance for the most important ones is good. 
+The idea is to lay foundations to maximize query and ingestion performance.  
 
 If you continue reading you will notice that we are more strict here than with the historical store. This is to ensure performance of the realtime store which is more critical than for a historical store.
 
 ## Discussion of streaming pipeline
 
-### garuantees
+### pipeline garuantees
 
 1. end-to-end at least once delivery of data generated at the source system
-2. ordering within source_system_name,designated identifier by designated timestamp
-3. availability of data by source_system_name , designated identifier  by latest designated timestamp
-4. Data can be ingested into partition of ingestion tables with maximum efficiency 
-5. Minimum latency within the realtime store for the materialized views
-
-The first one is achieved due to the assumption of the components not failing and idempotency on retries (lost or corrupted data)
-The second one is by design/ assumption
-The third one is an invariant of the realtime store
-The fourth one is achieved by first preserving order by timestamp within source system and designated identifier, then when a processor sends a batch of data to the realtime store, then for each row in that batch :
-
-1. The realtime store narrows down the search space to the partition corresponding to the source system (can be done in constant time)
-2. Within the parition we have a sparse index on (identifier, timestamp) and by the ordering garuantee the row we are inserting now is the last row of identifier,timestamp so we ingest with a delay that corresponds to the largest gap in the index which we can control with concrete database configuration.
-
+2. availability of data by source_system_name , designated identifier  by latest designated timestamp
+3. Transmission Failure isolation, a failure in transmission concerns at most two components
+4. schema normalization garuantee completely decouples source form remaining parts of pipeline
+5. information preservation, No loss of semantic information before the realtime store
+6. Replay / backfill guarantee, any destination can be rebuild from buffer
+7. Idempotency, reprocessing data from previous compoenent is idempotent
+8. Source, Destination independance, A change at source does not (necessarily) imply a change at destination and vice versa
 
 
 ### Strengths
+
+#### No ordering garuantee required
+
+Which makes out of order or late arrivals form source systems not a problem. Trying to impose order garuantees, especially in a many sources setting, is unrealistic anyways.
 
 #### Decoupled and cohesive
 
@@ -179,6 +174,9 @@ It provides a unified solution for all streaming sources and all consumer groups
 #### Latency
 
 Depends on implementation but if we use different machines or clusters of machines for each component, then network latency will add up. Given the firm’s positioning as a midterm commodities trader and the fact that they became used to experiencing lags, as long as we can keep overall latency below 6 seconds, I'd consider it as “good enough”.
+
+#### Performance of the realtime store
+Since the data is unordered we need to sort at least once the data in the realtime store, this presents a risk for performance.
 
 #### The creation of these Category schemas
 
@@ -308,6 +306,15 @@ Or We may call it warehouse since it will be also the hub for non market data.
 
 ## Discussion of Batch pipeline
 
+### Pipeline garuantees
+
+1. Raw data preservation, All data is available in its raw format
+2. Idempotency, Data from any layer and the data lake, can be reprocessed multiple times while the results being consistent.
+3. Lineage, all data in a layer or a data mart, came from exactly one layer.
+4. Category schema normalisation guarantee, silver layer implements the category schemas as a base line for downstream components.
+5. Restriction, Users can only access gold layer or data marts, each layer has a specific type of entity that can access it 
+6. Backfill, all layers and marts can be rebuild from the Data lake
+
 Important to note is that the buffer and realtime store will be two source systems for batch processing.
 
 ### Strengths
@@ -366,6 +373,16 @@ In the worst case we are increasing storage cost by a factor of three or four. I
 
 I consider these to be technical questions and thus they are discussed at the end of the Technical Architecture section.
 
+
+## Discussion of conceptual architecture
+
+Right now we have the following bets going:
+
+- We can create good category schemas
+- We can create good data models from these schemas
+- Ordering guarantees along pipelines do not matter (to us)
+- We can make components almost unfailable or failures of components can be handled
+- Performance will be good enough
 
 # Technical Architecture
 
@@ -523,19 +540,10 @@ The designated identifier of the category schemas the ib connector sends to is c
 - Sends the raw data to the designated topic of the corresponding category schema  
 - Sends data to the correct Kafka topic via the kafka producer api, waits for acknowledgements, resends otherwise 
 - Implements scaling via symbol sharding 
-- Each symbol is landing on exactly one kafka topic partition to preserve symbol ordering by designated timestamp within a source system
 
-Important to note is that due to time constraints we are *not* streaming l2/order book data.Also we have *not* built in fault tolerance. Fault tolerance can be achieved the same way as we implemetned scaling, via the kubernetes api. For given replication factor, select peers of the ib connector namespace to create replicas of the data. In the context of streaming this means that these replica pods will also stream the same symbols. This will create duplicates (ignoring metadata) equal in number to the replication factor. This has two important consequences.
-
-- we cannot achieve a per symbol ordering within source system because we cannot control if the duplicates will land at the same time in the buffer
- - unless you funnel it through a single instance which defeats the entire 'fault tolerance' idea.
-- We need to decide how to handle these duplicates downstream.
-
-In any case such a connector would not satisfy the invariant of preserving order by designated timestamp and symbol within the source system.
+Important to note is that due to time constraints we are *not* streaming l2/order book data and we have *not* built in fault tolerance. Fault tolerance can be achieved the same way as we implemetned scaling, via the kubernetes api. For given replication factor, select peers of the ib connector namespace to create replicas of the data. In the context of streaming this means that these replica pods will also stream the same symbols. This will create duplicates (ignoring metadata) equal in number to the replication factor. 
 
 In this setting, since we are using clickhouse which deduplicates the data per default, this would be already taken care of. The scaling also provides a 'weak fault tolerance', if a pod crashes then in the next connections life cycle (that we can set to happen every x milliseconds) the symbols will be redistributed on the remaining pods and they will restart the streams for those symbols. So the maximum time intervall of data we can loose is given by computation time + latency + life cycle intervall.
-
-If we are streaming from just one source then the ordering garuantee should avoid sorting the batch before ingesting into clickhouse which greatly improves ingestion performance. If we are streaming from multiple sources then the ordering on a given kafka partition of a topic may contain data from a source that was generated sooner but arrived later. Nevertheless partial order (within source system **and** symbol by designated timestamp) should enable us to gain performance boosts downstream.
 
 
 ### Kafka message broker + Strimzi cluster operator
@@ -596,6 +604,10 @@ ClickHouse is extremely well documented and the only distributed OLAP database I
 - Data is only stored for a few days  
 - Users have **read-only** permissions in ClickHouse  
 - For every processor that ingests into clickhouse there are designated ingestion tables and the processor has only write permissions on these tables
+
+clickhouse ingestion is a bit hard to judge since its not that straight-forward. As long as we keep our batch sizes as large as possible and use sound partitioning the performance should be well within the acceptable range. Since we can ingest directly from kafka we spare ourselves one network hop which is arguably the biggest risk for performance.
+
+So we need to keep the category schemas as few as possible to ensure that batch sizes are reached quickly
 
 ### discussion of streaming lane
 We have two main requirements to satisfy for the streaming lane, access to realtime data from the source systems and results of heavy computations that cannot be done elsewhere. We have already proven that if the connector does not fail, data will land in kafka and by the invariants of a connector the data is fitting to a category schema. If the connector does fail then we loose data for a time intervall. Data that has landed in kafka, can be reprocessed an 'infinite' times during runtime of the pipeline. Thus if a processor fails, data is lost or corrupted during transmission to any destination, then after restarting the processor it can reprocess the data. Since the processor is idempotent the resulting state is consistent with that if the processor was successfull the first time. So the data lands in a consistent way in the realtime store clickhouse. By the properties of the realtime store of which clickhouse is an instance of, we conclude that the data not only lands in the realtime store but also is available ordered by the latest value of the designated timestamp to users via materialized views.
