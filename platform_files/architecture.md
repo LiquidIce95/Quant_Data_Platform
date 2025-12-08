@@ -1,3 +1,6 @@
+You can open the architecture diagram in draw.io with the file 'architecture_diagram.drawio.xml'
+Or you can open the svg file
+
 # Conceptual Architecture
 
 In this section we define the conceptual architecture which is completely technology agnostic and focuses on the key relationships that we need to build a good platform for this use case.
@@ -107,8 +110,7 @@ The realtime store is the default destination of realtime data. We store data fr
 
 **Invariants**
 - Implements category schemas as ingestion tables
-- These ingestion tables are partitioned by source_system_name and designated timestamp by month
-- These ingestion tables are ordered and indexed by designated identifier, designated timestamp within each partition
+- These ingestion tables are ordered and indexed sparsely by source_system_name, designated identifier, designated timestamp
 - It is the only component that is in direct contact with users  
 - Provides user interface, API access and SQL use  
 - Provides roles as a means of managing users  
@@ -605,9 +607,10 @@ ClickHouse is extremely well documented and the only distributed OLAP database I
 - Users have **read-only** permissions in ClickHouse  
 - For every processor that ingests into clickhouse there are designated ingestion tables and the processor has only write permissions on these tables
 
-clickhouse ingestion is a bit hard to judge since its not that straight-forward. As long as we keep our batch sizes as large as possible and use sound partitioning the performance should be well within the acceptable range. Since we can ingest directly from kafka we spare ourselves one network hop which is arguably the biggest risk for performance.
 
-So we need to keep the category schemas as few as possible to ensure that batch sizes are reached quickly
+The ingestion tables will use merge tree engine, this means that every batch insert job into a category schema ingestion table, will be sorted once when clickhouse creates a 'table part' then in a background process all the table parts are continously merged together to keep the relation between table part sizes and overall number of table parts in the optimal range. The important part to understand is that we need to set a batch intervall in such a way that the machines which run clickhouse dont get overwhelmed with too many parts at once. We mitigate this by setting an accepatble batch intervall that together with the other latency factors of the pipeline still provides an overall acceptable latency budget. Then we estimate how much throughput our current sources might produce at most, this figure serves as an basis for the machines requirements that run clickhosue, they should be fast enough in sorting and merging table parts in the event of the pipeline achieving the maximum throughput to not let build up too many table parts. More in detail in the scaling and cost section.
+
+The batch intervall can also optimize the nubmer of parts being merged at a given point in time, if the batches are monotonic (the smallest value in this batch is larger than the largest value of last batch) then clickhosue will only merge the last few table parts which optimizes ingestion. By setting the batch intervall such that out-of-order and late arrivals stay within the same batch, we can take advantage of this fact.
 
 ### discussion of streaming lane
 We have two main requirements to satisfy for the streaming lane, access to realtime data from the source systems and results of heavy computations that cannot be done elsewhere. We have already proven that if the connector does not fail, data will land in kafka and by the invariants of a connector the data is fitting to a category schema. If the connector does fail then we loose data for a time intervall. Data that has landed in kafka, can be reprocessed an 'infinite' times during runtime of the pipeline. Thus if a processor fails, data is lost or corrupted during transmission to any destination, then after restarting the processor it can reprocess the data. Since the processor is idempotent the resulting state is consistent with that if the processor was successfull the first time. So the data lands in a consistent way in the realtime store clickhouse. By the properties of the realtime store of which clickhouse is an instance of, we conclude that the data not only lands in the realtime store but also is available ordered by the latest value of the designated timestamp to users via materialized views.
