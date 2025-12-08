@@ -53,14 +53,13 @@ We say **category row** for a row / tuple in the category schema. We call the sc
 - Every category schema defines a designated timestamp and a designated identifier
 - the designated identifier needs to be unique within a source system
 - the designated timestamp needs to be unique within a source system and designated identifier
-- a category schema is ordered by (source_system_name,designated identifier, designated timestamp)
 
-Note: Category schemas are **conceptual**. Physical schemas must at least cover all the category fields, but may add additional technical fields (for example multiple ingestion timestamps) without breaking the category contract. Ideally we want the category schema to preserve or even enhance information from the relation between the source fields and category fields. Together with a **Glossar** which defines the domains of the category fields, this can also greatly enhance data discovery and understanding.
+Note: Category schemas are **conceptual**. Physical schemas must at least cover all the category fields, but may add additional technical fields (for example multiple ingestion timestamps) without breaking the category contract. Ideally we want the category schema to preserve or even enhance information from the relation between the source fields and category fields. Together with a **Glossar** which defines the domains of the category fields we greatly enhance data discovery and understanding.
 
 ### Connectors
 
 **Definition**  
-A piece of software that simply extracts real-time data from a data source, maps the source fields to the category fields and fills out the category fields.
+A piece of software that extracts real-time data from a data source, maps the source fields to the category fields and fills out the category fields with correct format.
 
 **Invariants**
 
@@ -71,15 +70,16 @@ A piece of software that simply extracts real-time data from a data source, maps
 - Can resend data if lost or corrupted  
 - Only connectors can access source systems  
 - Each source system is managed by at least one connector  
-- If data from the source system does not provide data relatable to the designated timestamp, then the connector fabricates a timestamp to use. 
+- If data from the source system does not provide data relatable to the designated timestamp, then the connector fabricates a timestamp to use.
+- If data from thee source system does not provide data relatable to the designated identifier, then the connector fabricates an identifier to use. 
 
-Important to realize is that if we disallow connectors to communicate with each other, then no connector can ensure ordering of the data across source systems. If we do allow communication between different connectors then we introduce high coupling and overheat. We choose connectors to be isolated and have faith that ordering within a single source system is good enogh for downstream components.
+Important to realize is that if we disallow connectors to communicate with each other, then no connector can ensure ordering of the data across source systems. If we do allow communication between different connectors then we introduce high coupling and overheat. We choose connectors to be isolated since ordering is not needed in this pipeline.
 
 
 ### Buffer
 
 **Definition**  
-Persistent storage that simply holds the category data / rows belonging to a category.
+Persistent storage that simply holds the category data / rows belonging to a category schema.
 
 **Invariants**
 
@@ -106,7 +106,7 @@ Gets the category data from the buffer and prepares it for a destination. Sends 
 
 ### realtime store
 
-The realtime store is the default destination of realtime data. We store data from all topics in a dedicated ingestion table and then build materialized views for users to get the latest snapshot of data. With materialized view here we mean a physical table that is automatically updated if its source table in the store changes.
+The realtime store is the default destination of realtime data. We store data from all category schemas in a dedicated ingestion table and then build materialized views for users to get the latest values of the data, according to the designated timestamp for that category schema. With materialized view here we mean a physical table that is automatically updated if its source table in the store changes.
 
 **Invariants**
 - Implements category schemas as ingestion tables
@@ -117,9 +117,7 @@ The realtime store is the default destination of realtime data. We store data fr
 - Provides users with access to materialized views that present the most recent data according to the designated timestamp, by source system and designated identifier.
 - Only processors can store data in the realtime store
 
-The idea is to lay foundations to maximize query and ingestion performance.  
-
-If you continue reading you will notice that we are more strict here than with the historical store. This is to ensure performance of the realtime store which is more critical than for a historical store.
+The idea is to lay foundations to maximize query and ingestion performance via the desiganted timestamps and identifiers.  
 
 ## Discussion of streaming pipeline
 
@@ -137,7 +135,7 @@ If you continue reading you will notice that we are more strict here than with t
 
 ### Strengths
 
-#### No ordering garuantee required
+#### No ordering required
 
 Which makes out of order or late arrivals form source systems not a problem. Trying to impose order garuantees, especially in a many sources setting, is unrealistic anyways.
 
@@ -175,7 +173,7 @@ It provides a unified solution for all streaming sources and all consumer groups
 
 #### Latency
 
-Depends on implementation but if we use different machines or clusters of machines for each component, then network latency will add up. Given the firm’s positioning as a midterm commodities trader and the fact that they became used to experiencing lags, as long as we can keep overall latency below 6 seconds, I'd consider it as “good enough”.
+Depends on implementation but if we use different machines or clusters of machines for each component, then network latency will add up. Given the firm’s positioning as a midterm commodities trader and the fact that they became used to experiencing lags, as long as we can keep overall latency below 4 seconds, I'd consider it as “good enough”.
 
 #### Performance of the realtime store
 Since the data is unordered we need to sort at least once the data in the realtime store, this presents a risk for performance.
@@ -217,7 +215,7 @@ An extractor loads data from a source without transforming it or altering it int
 - Loads data from the source into the Data Lake, or loads data from Data Lake to Bronze, as-is in its raw state  
 - No metadata is added by extractors to prevent accidental changes to the data  
 - Reprocessing the same data for the same destination is idempotent  
-- Extractors can reprocess the data if the destination data is lost, has failed or is corrupted  
+- Extractors can reprocess the data if the destination data is lost or corrupted  
 
 ### Connectors
 
@@ -233,18 +231,29 @@ A connector is more or less consistent with the notion of connectors we had in t
 - Connectors can reprocess the data if the destination data is lost, has failed or is corrupted  
 - The only possible destinations are the silver layer or a data mart  
 
+Notice an important exception from this rule, if a Connector moves data from bronze to a data mart, then it does not need to comply with category schemas, the data mart decides how the data needs to conform.
+
 ### Transformers
 
 Transformers start from the silver layer and transform data into the gold layer or data marts.
 
+if a transfomer transforms data from the silver layer then the following holds:
 **Invariants**
-
 - Transforms data from the silver layer 
 - There is at least one transformer for each table in the silver layer  
 - Transforms the data from the silver layer to satisfy the invariants of the destination  
-- The destination is either the gold layer or a data mart  
+- The destination is the gold layer
 - Reprocessing the same data for the same destination is idempotent  
-- Transformers can reprocess the data if the data is los or corrupted or the transformer failed.
+- Transformers can reprocess the data if the data is lost or corrupted.
+
+if a transformer transforms data form the gold layer then the following hols:
+**invariants**
+- Transforms data form the gold layer
+- The destination is a data mart and nothing else can be a destination
+- Reprocessing the same data for the same destination is idempotent  
+- Transformers can reprocess the data if the data is lost or corrupted.
+
+Notice an important exception from this rule, if a transformer mvoes data from silver to a data mart, then it does not need to comply with the data model, the data mart decides how the data needs to be transformed.
 
 ### Data Lake
 
@@ -256,6 +265,8 @@ The data lake works as a simple persistent storage layer.
 - For all sources and data there is a designated storage place  
 - All data is clearly distinguishable by source_system and type (market data, supplier data, etc.)  
 - Only extractors can load into the Data Lake
+
+Beware that 'source' here means strictly batch processing sources.
 
 ### Bronze layer
 
@@ -279,7 +290,6 @@ The silver layer holds the data fitting a category schema. These are included in
 - Data that does not qualify for the gold layer is also stored in a designated place 
 - Only connectors can load into the silver layer 
 
-We allow these implementations to add fields not present in the category schemas.
 
 ### Gold layer
 
@@ -289,6 +299,7 @@ The gold layer holds data fitting the data model. Users can access this layer di
 
 - Implements the data model with data from the silver layer  
 - Only Transformers can load data into the gold layer
+- Users here have only read permission and nothing else
 
 ### Data marts
 
@@ -298,13 +309,16 @@ If a team has very good reasons not to use the data model then we prepare the da
 
 - Only the teams whose data mart this is has access to it  
 - Data can come from any layer but one layer at most (it cannot come from different layers)  
+- Users here have read and write permission
 
 ### Historical store
 Or We may call it warehouse since it will be also the hub for non market data.
 
 **invariants**
-- Users have only access to this compoenent no other component otherwise
-- It contains only the gold layer and data marts
+- Users have only access to this compoenent no other component of the batch processing pipeline
+- It contains the bronze, silver and gold layer
+
+If Users need access to raw data in the data lake (because they need the original file format for example) then we can create a data mart for that team holding these files. We would need to define a new entity that can perform these kinds of jobs since no current entity can move data from the data lake directly to a data mart. Because the business only deals with structured data there is no need to work with original files directly.
 
 ## Discussion of Batch pipeline
 
@@ -440,7 +454,7 @@ For abstracting as much as possible from the host machine and managing dependenc
 The provide a unified and simple way of defining properties of infrastructure and components. They will be provided as inputs for the templating engines to handle tool specific formats and language. The platform files also serve as source of truth for all components and infrastructure on the platform, this allows us to *force* invariants and constraints.
 
 ### Templating engines
-Instead of writing configuration files by hand we try to parametrize them with the variables that matter on a platform level, the engine the produces the correctly formatted files with the values we actually care about. This allows us to decouple system level configuration from tool specific configuration. For example a service developer only wants to specify start size of the cluster, namespace, number of pods and just minimal rbac and permissions. He provides that information via a dedicated config file that implements our platform logic and contract which also prevents him to change stuff he should not.
+Instead of writing configuration files by hand we try to parametrize them with the variables that matter on a platform level, the engine then produces the correctly formatted files with the values we actually care about. This allows us to decouple system level configuration from tool specific configuration. For example a service developer only wants to specify start size of the cluster, namespace, number of pods and just minimal rbac and permissions. He provides that information via a dedicated config file that implements our platform logic and contract which also prevents him to change stuff he should not.
 
 ### Airflow
 
@@ -450,21 +464,23 @@ Important, it does not reinvent existing technologies or takes over their respon
 
 A rule of thumb will be: if a workflow can be fully implemented using one technology then we do it there, if it involves multiple technologies, we do it in Airflow. An exception to this rule are workflows that even though can be done in one technology, they cannot be automated or scheduled in said technology (or I feel like it is better to do in Airflow).
 
-We want the Airflow project to work as the single source of truth for infrastructure files (Terraform, Kubernetes) and platform files (category schemas, Kafka topic names, ports, etc.) for the test and production environment (dev is the problem of developers). This allows us to be “DRY” on a system level. Another advantage of this is that we can gitignore security critical files since we can generate them at will with the latest values for the platform and secrets from the key vault.
+We want the Airflow project to work as the single source of truth for infrastructure files (Terraform, Kubernetes) and platform files (category schemas, Kafka topic names, ports, etc.) for the test and production environment (dev is the problem of developers). This allows us to be “DRY” on a system level. Another advantage of this is that we can gitignore security critical files since we can generate them at will with the latest values for the platform config files and secrets from the key vault.
 
-Airflow itself will not “handwrite” all files. It will orchestrate the tools / templating engines that are best suited for a given file type (for example Helm / K8s templating, Terraform tooling, etc.) and provide them with parameters (number of nodes, replica count, service names, ports, etc.). In other words: it does the same thing a human would do by hand, but reliably, automatically and testable.
 
-Lastly, these platform config files will be available to all services working on the platform. Some might say that this introduces strong coupling between the control plane and the environments and individual services. The developer of individual services should not concern himself with infrastructure since that is mostly determined by the actual data (throughput and frequency). And if specific services require specific infrastructure settings, then these can be applied via platform level config files. Additionally the control plane will handle mostly files that are coupled anyways like category schemas, data models, ports, etc. so whether you create these files by hand or programmatically does not change the fact that they are coupled.
+Lastly, these platform config files will be available to all services working on the platform by mounting them on their app containers.
 
 **Invariants**
 
 - All Airflow pipelines that are stateful depend only on data that is stored in Azure monitoring 
+- All Airflow pipelines are idempotent
 - No data from data sources is stored on the Airflow instance or its metadata database  
 - No computations are performed on the Airflow instance, not even lightweight batch processing jobs  
-- It creates all infrastructure and platform level files for the environments test and prod and nothing else  
-- Every service has access to the platform config files  
+- It creates all infrastructure and platform level files for the environments test and prod and nothing else can do that
+- Every service has access to the platform config files as mounted files on their app images
 
-Ovious excpetion is the data stored in the metadatabase of airflow.
+Ovious excpetion is the data stored in the metadatabase of airflow. With these invariants its not a problem if airflow becomes unavailable or crashes, because the pipelines are idempotent and can be rerun and those piplines that are stateful can get the current state from azure monitoring and lastly the config files can be regenarated if needed.
+
+To avoid airflow becomming unavailable or stale for too long we can periodically send heartbeats from airflow to azure monitoring and set alarms if airflow has not send an heart beat for a perfiod of time.
 
 ### Environments & CI
 
@@ -533,7 +549,7 @@ Handles the very unpleasant but extremely cheap realtime data source of Interact
 The designated identifier of the category schemas the ib connector sends to is called 'symbol' referreing to the trading symbols that we want to stream from interactive brokers.
 
 **Invariants**
-- Is a 'connector' component
+- Is an instance of a 'connector' component
 - handles data comming form interative brokers web api wesocket and nothing else
 - Keeps sockets for streaming alive  
 - Keeps the client portal alive  
@@ -562,7 +578,7 @@ We use Kafka as our buffer, for one because it satisfies our conceptual invarian
 
 As long as the connector does not fail (which can be made less likely with fault tolerance as discussed with the ib connector example) then data is garuanteed to arrive in the buffer and processors can reprocess the data as many times as they want, since its persistent for the entire runtime of the pipeline and kafka enables resending of already send data. Because data is very important to the core business, any loss of it is a direct loss in value.
 
-Another neat property is that by holding the data for the entire runtime in the buffer, if downstream components somehow fail permanently, we can pull the data from thekafka topics directly and reprocess the data as a batch job. Kafka further enhances this data arrival garuantee by providing fault tolerance and scaling. 
+Another neat property is that by holding the data for the entire runtime in the buffer, if downstream components somehow fail permanently, we can pull the data from the kafka topics directly and reprocess the data as a batch job. Kafka further enhances this data arrival garuantee by providing fault tolerance and scaling. 
 
 ### Kafka as processor of category data for ClickHouse
 
