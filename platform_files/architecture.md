@@ -49,10 +49,10 @@ We say **category row** for a row / tuple in the category schema. We call the sc
 
 **Invariant**  
 - Every source schema needs to be related to a subset of fields of at least one category schema.
-- all category schemas have a field uniquely identifying the source system, we call that field "source_system_name"
+- all category schemas have a field uniquely identifying the source system, we call that field "source_system_name" and its unique 
 - Every category schema defines a designated timestamp and a designated identifier
 - the designated identifier needs to be unique within a source system
-- the designated timestamp needs to be unique within a source system and designated identifier
+
 
 Note: Category schemas are **conceptual**. Physical schemas must at least cover all the category fields, but may add additional technical fields (for example multiple ingestion timestamps) without breaking the category contract. Ideally we want the category schema to preserve or even enhance information from the relation between the source fields and category fields. Together with a **Glossar** which defines the domains of the category fields we greatly enhance data discovery and understanding.
 
