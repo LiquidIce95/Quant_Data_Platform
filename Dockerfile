@@ -8,6 +8,7 @@ RUN apt-get update && \
         gnupg \
         lsb-release \
         curl \
+        openssh-client \
         ca-certificates && \
     wget -O- https://apt.releases.hashicorp.com/gpg | \
         gpg --dearmor > /usr/share/keyrings/hashicorp-archive-keyring.gpg && \
