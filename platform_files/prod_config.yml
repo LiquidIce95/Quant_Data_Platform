@@ -1,2 +1,0 @@
-# This config file defines the Production environemnts, this file will be used to generate config files for the tools used like kubernetes and terraform
-# but the file itself is tool agnostic

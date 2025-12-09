@@ -1,4 +1,4 @@
-FROM apache/airflow:2.10.2-python3.10
+FROM python:3.10-slim
 
 USER root
 
@@ -6,7 +6,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         wget \
         gnupg \
-        software-properties-common \
+        lsb-release \
         curl \
         ca-certificates && \
     wget -O- https://apt.releases.hashicorp.com/gpg | \
@@ -25,12 +25,8 @@ RUN apt-get update && \
     chmod +x /usr/local/bin/kubectl && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /usr/local/airflow
+WORKDIR /usr/src/app
 
 COPY . .
-
-ENV AIRFLOW_HOME=/usr/local/airflow
-
-USER airflow
 
 RUN pip install --no-cache-dir -r requirements.txt

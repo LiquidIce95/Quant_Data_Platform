@@ -450,37 +450,6 @@ Kubernetes is our primary tool for (self) managing our cluster for the streaming
 
 For abstracting as much as possible from the host machine and managing dependencies.
 
-### Platform configuration files
-The provide a unified and simple way of defining properties of infrastructure and components. They will be provided as inputs for the templating engines to handle tool specific formats and language. The platform files also serve as source of truth for all components and infrastructure on the platform, this allows us to *force* invariants and constraints.
-
-### Templating engines
-Instead of writing configuration files by hand we try to parametrize them with the variables that matter on a platform level, the engine then produces the correctly formatted files with the values we actually care about. This allows us to decouple system level configuration from tool specific configuration. For example a service developer only wants to specify start size of the cluster, namespace, number of pods and just minimal rbac and permissions. He provides that information via a dedicated config file that implements our platform logic and contract which also prevents him to change stuff he should not.
-
-### Airflow
-
-Airflow works for us as a workflow orchestrator on the platform level. So for example if we want to automate and schedule a workflow that involves multiple technologies (let’s say Helm, Terraform, Azure and Kubernetes) then Airflow does it. It is basically an automated version of a platform maintainer for anything that can be automated and scheduled.
-
-Important, it does not reinvent existing technologies or takes over their responsibilities.
-
-A rule of thumb will be: if a workflow can be fully implemented using one technology then we do it there, if it involves multiple technologies, we do it in Airflow. An exception to this rule are workflows that even though can be done in one technology, they cannot be automated or scheduled in said technology (or I feel like it is better to do in Airflow).
-
-We want the Airflow project to work as the single source of truth for infrastructure files (Terraform, Kubernetes) and platform files (category schemas, Kafka topic names, ports, etc.) for the test and production environment (dev is the problem of developers). This allows us to be “DRY” on a system level. Another advantage of this is that we can gitignore security critical files since we can generate them at will with the latest values for the platform config files and secrets from the key vault.
-
-
-Lastly, these platform config files will be available to all services working on the platform by mounting them on their app containers.
-
-**Invariants**
-
-- All Airflow pipelines that are stateful depend only on data that is stored in Azure monitoring 
-- All Airflow pipelines are idempotent
-- No data from data sources is stored on the Airflow instance or its metadata database  
-- No computations are performed on the Airflow instance, not even lightweight batch processing jobs  
-- It creates all infrastructure and platform level files for the environments test and prod and nothing else can do that
-- Every service has access to the platform config files as mounted files on their app images
-
-Ovious excpetion is the data stored in the metadatabase of airflow. With these invariants its not a problem if airflow becomes unavailable or crashes, because the pipelines are idempotent and can be rerun and those piplines that are stateful can get the current state from azure monitoring and lastly the config files can be regenarated if needed.
-
-To avoid airflow becomming unavailable or stale for too long we can periodically send heartbeats from airflow to azure monitoring and set alarms if airflow has not send an heart beat for a perfiod of time.
 
 ### Environments & CI
 
@@ -494,7 +463,7 @@ It goes without saying that only code, configuration or app images that pass dev
 
 If possible we first use GitHub CI tools and then Azure CI tools.
 
-### Monorepo of services
+### Monorepo of servicest
 
 The base repository on GitHub is an Airflow app. Then there are two folders: `services_streaming_lane` and `services_batch_lane`. Each of those folders contains subfolders for the respective services, they are set up in such a way that any service is developed in a devcontainer that mirrors the same Docker container that will be used in test and production as close as possible. Devcontainers are especially useful with IDEs like VS Code where one can open the IDE inside the devcontainer and develop as if it were an app on the host machine. On top of that git works from the devcontainer as well and has the same build context as the Docker file.
 
@@ -580,9 +549,9 @@ As long as the connector does not fail (which can be made less likely with fault
 
 Another neat property is that by holding the data for the entire runtime in the buffer, if downstream components somehow fail permanently, we can pull the data from the kafka topics directly and reprocess the data as a batch job. Kafka further enhances this data arrival garuantee by providing fault tolerance and scaling. 
 
-### Kafka as processor of category data for ClickHouse
+### Spark as processor of category data for ClickHouse
 
-We can ingest directly from Kafka topics into ClickHouse, this works since we design the ingestion tables in ClickHouse to be implementations of category schemas and by the invariants of any connector, the data will be ready for ingestion.
+We can ingest directly from Kafka topics into ClickHouse, this works since we design the ingestion tables in ClickHouse to be implementations of category schemas and by the invariants of any connector, the data will be ready for ingestion. **However** these kafka ingestion solutions dont seem to play well in a distributed clickhouse setting with sharded and replicated trees. Even though we will only first use replication, the architecture needs to be ready to scale.
 
 **Invariants**
 - is an instance of a processor
@@ -631,7 +600,7 @@ The batch intervall can also optimize the nubmer of parts being merged at a give
 ### discussion of streaming lane
 We have two main requirements to satisfy for the streaming lane, access to realtime data from the source systems and results of heavy computations that cannot be done elsewhere. We have already proven that if the connector does not fail, data will land in kafka and by the invariants of a connector the data is fitting to a category schema. If the connector does fail then we loose data for a time intervall. Data that has landed in kafka, can be reprocessed an 'infinite' times during runtime of the pipeline. Thus if a processor fails, data is lost or corrupted during transmission to any destination, then after restarting the processor it can reprocess the data. Since the processor is idempotent the resulting state is consistent with that if the processor was successfull the first time. So the data lands in a consistent way in the realtime store clickhouse. By the properties of the realtime store of which clickhouse is an instance of, we conclude that the data not only lands in the realtime store but also is available ordered by the latest value of the designated timestamp to users via materialized views.
 
-As mentionned the ordering garuantess within a source system are there to improve performance, this will be discussed in depth in the section about data models and category schemas. But the main idea is to partition by source_system, then sort and index by source_system, symbol and designated timestamp. The core idea is that queries of analysts usually involve few symbols and the designated timestamp so these queries should be very fast even if involving joins, as long as these joins are done via source system, symbol or designated timestamp since clickhouse can use merge join that runs in O(n+m) where n,m are the number of rows of the tables to be joined.  
+As mentionned the ordering garuantess within a source system are there to improve performance, this will be discussed in depth in the section about data models and category schemas. But the main idea is to partition by source_system, then sort and index by source_system, symbol and designated timestamp. The core idea is that queries of analysts usually involve few symbols and the designated timestamp so these queries should be very fast even if involving joins, as long as these joins are done via source system, designated identifier or designated timestamp since clickhouse can use merge join that runs in O(n+m) where n,m are the number of rows of the tables to be joined.  
 
 For data different than market data (economic releases) we simply choose release_code or something equivalent to replace "symbol" as the designated identifier. This core idea will also be used for historical data stored in the historical store.
 

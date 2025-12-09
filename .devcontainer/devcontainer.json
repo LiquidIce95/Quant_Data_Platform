@@ -3,8 +3,8 @@
 	//keeps build context the same as for dockerfile
 	"build": { "dockerfile": "../Dockerfile", "context": "../" },
 
-	"workspaceMount": "source=${localWorkspaceFolder},target=/usr/local/airflow/,type=bind,consistency=cached",
-	"workspaceFolder": "/usr/local/airflow/",
+	"workspaceMount": "source=${localWorkspaceFolder},target=/usr/src/app/,type=bind,consistency=cached",
+	"workspaceFolder": "/usr/src/app/",
 
 	"mounts": [
 		"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached",
