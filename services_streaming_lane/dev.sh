@@ -77,6 +77,25 @@ IB_RBAC_FILE="$IB_DIR/infra_dev/05-ib-connector-rbac.yml"
 IB_POD_FILE="$IB_DIR/infra_dev/10-ib-connector-pod.yml"
 IB_IMG="ib-connector:dev"
 
+# ========= Avro Schema Registry =========
+AVRO_REG_DIR="$ROOT/services_streaming_lane/avro_schema_registry"
+AVRO_REG_INFRA_DIR="$AVRO_REG_DIR/infra_dev"
+AVRO_SCHEMA_DIR="$AVRO_REG_DIR/category_schemas"
+
+AVRO_REG_NS_FILE="$AVRO_REG_INFRA_DIR/01-namespace.yml"
+AVRO_REG_CFG_FILE="$AVRO_REG_INFRA_DIR/02-configmap-schema-registry.yml"
+AVRO_REG_DEPLOY_FILE="$AVRO_REG_INFRA_DIR/03-deployment-schema-registry.yml"
+AVRO_REG_SVC_FILE="$AVRO_REG_INFRA_DIR/04-service-schema-registry.yml"
+AVRO_REG_KUSTOM_FILE="$AVRO_REG_INFRA_DIR/kustomization.yml"
+
+AVRO_REG_SVC_NAME="${AVRO_REG_SVC_NAME:-schema-registry}"
+AVRO_REG_LOCAL_PORT="${AVRO_REG_LOCAL_PORT:-8081}"
+AVRO_REG_COMPATIBILITY="${AVRO_REG_COMPATIBILITY:-BACKWARD}"
+
+AVRO_SCHEMA_TICK="$AVRO_SCHEMA_DIR/derivatives_tick_market_data.avsc"
+AVRO_SCHEMA_L2="$AVRO_SCHEMA_DIR/derivatives_l2_market_data.avsc"
+AVRO_SCHEMA_IND="$AVRO_SCHEMA_DIR/indicators.avsc"
+AVRO_SCHEMA_ECO="$AVRO_SCHEMA_DIR/numeric_economic_data.avsc"
 
 # ========= JAR paths (ABSOLUTE, NO find/symlink) =========
 JAR_DEST="$ROOT/services_streaming_lane/app.jar"
@@ -110,6 +129,8 @@ status() {
 	echo "== ClientPortalAPI =="; kubectl -n "$CLIENT_PORTAL_NS" get pods -o wide || true
 	echo "== IbConnector =="; kubectl -n "$NAMESPACE_IB" get pods -o wide || true
 	echo "== IbConnectorLegacy =="; kubectl -n "$NAMESPACE_IB_LEGACY" get pods -o wide || true
+	echo "== SchemaRegistry =="; kubectl -n "$NAMESPACE_KAFKA" get pods -l app=schema-registry -o wide || true
+	echo "== SchemaRegistry Svc =="; kubectl -n "$NAMESPACE_KAFKA" get svc "$AVRO_REG_SVC_NAME" -o wide || true
 }
 
 down() { kind delete cluster --name "${CLUSTER_NAME}" || true; }
@@ -152,6 +173,75 @@ peek_topic_l2_data() {
 
 port_forward() {
 	kubectl -n "$NAMESPACE_KAFKA" port-forward "svc/${KAFKA_NAME}-kafka-bootstrap" "${BOOTSTRAP_LOCAL_PORT}:9092"
+}
+
+# ========= Avro Schema Registry =========
+deploy_avro_registry_schema() {
+	need kubectl
+	have "$AVRO_REG_CFG_FILE"
+	have "$AVRO_REG_DEPLOY_FILE"
+	have "$AVRO_REG_SVC_FILE"
+
+	kubectl apply -n "$NAMESPACE_KAFKA" -f "$AVRO_REG_CFG_FILE"
+	kubectl apply -n "$NAMESPACE_KAFKA" -f "$AVRO_REG_DEPLOY_FILE"
+	kubectl apply -n "$NAMESPACE_KAFKA" -f "$AVRO_REG_SVC_FILE"
+
+	kubectl -n "$NAMESPACE_KAFKA" rollout status deployment/schema-registry --timeout=180s || true
+	kubectl -n "$NAMESPACE_KAFKA" get pods -l app=schema-registry -o wide || true
+	kubectl -n "$NAMESPACE_KAFKA" get svc "$AVRO_REG_SVC_NAME" -o wide || true
+}
+
+register_avro_schemas() {
+	need kubectl
+	need curl
+	need jq
+
+	have "$AVRO_SCHEMA_TICK"
+	have "$AVRO_SCHEMA_L2"
+	have "$AVRO_SCHEMA_IND"
+	have "$AVRO_SCHEMA_ECO"
+
+	local PF_PID=""
+	local REG_URL="http://127.0.0.1:${AVRO_REG_LOCAL_PORT}"
+
+	kubectl -n "$NAMESPACE_KAFKA" port-forward "svc/${AVRO_REG_SVC_NAME}" "${AVRO_REG_LOCAL_PORT}:8081" >/dev/null 2>&1 &
+	PF_PID="$!"
+
+	( sleep 1 )
+
+	if ! curl -fsS "${REG_URL}/subjects" >/dev/null 2>&1; then
+		kill "$PF_PID" >/dev/null 2>&1 || true
+		echo "[schema-registry] Registry not reachable via port-forward on ${REG_URL}" >&2
+		exit 1
+	fi
+
+	register_one_schema() {
+		local FILE="$1"
+		local TOPIC="$2"
+		local SUBJECT="${TOPIC}-value"
+		local PAYLOAD
+
+		PAYLOAD="$(jq -Rs '{schema: .}' < "$FILE")"
+
+		curl -fsS -X PUT \
+			-H "Content-Type: application/vnd.schemaregistry.v1+json" \
+			--data "{\"compatibility\":\"${AVRO_REG_COMPATIBILITY}\"}" \
+			"${REG_URL}/config/${SUBJECT}" >/dev/null
+
+		curl -fsS -X POST \
+			-H "Content-Type: application/vnd.schemaregistry.v1+json" \
+			--data "$PAYLOAD" \
+			"${REG_URL}/subjects/${SUBJECT}/versions" >/dev/null
+
+		echo "[schema-registry] Registered ${SUBJECT} from $(basename "$FILE") (compat=${AVRO_REG_COMPATIBILITY})"
+	}
+
+	register_one_schema "$AVRO_SCHEMA_TICK" "derivatives_tick_market_data"
+	register_one_schema "$AVRO_SCHEMA_L2" "derivatives_l2_market_data"
+	register_one_schema "$AVRO_SCHEMA_IND" "indicators"
+	register_one_schema "$AVRO_SCHEMA_ECO" "numeric_economic_data"
+
+	kill "$PF_PID" >/dev/null 2>&1 || true
 }
 
 # ========= IB Connector (LEGACY) =========
@@ -236,7 +326,6 @@ ib_connector_play() {
 			sbt -batch "runMain src.main.scala.Boilerplate.play"
 		'
 }
-
 
 ib_connector_run() {
 	need kubectl
@@ -361,8 +450,6 @@ peek_spark() {
 	fi
 }
 
-
-
 # ========= ClickHouse =========
 build_clickhouse_image() {
 	need docker
@@ -407,7 +494,6 @@ peek_clickhouse_market_trades() {
 		clickhouse-client --user spark --password sparkpass --multiquery --query "$Q"
 }
 
-
 azure_authenticate_first() {
 	need kubectl
 
@@ -434,8 +520,6 @@ azure_authenticate_first() {
 	'
 }
 
-
-
 usage() {
 	cat <<EOF
 Usage: $0 <command>
@@ -450,6 +534,10 @@ Kafka:
   pf                          Port-forward Kafka bootstrap to localhost:${BOOTSTRAP_LOCAL_PORT}
   peek_topic_ticklast         Tail last 10 messages from 'ticklast'
   peek_topic_l2_data          Tail last 10 messages from 'l2-data'
+
+Avro Schema Registry:
+  deploy_avro_registry_schema Deploy Schema Registry into the kafka namespace
+  register_avro_schemas       Register all .avsc files into Schema Registry (compat=${AVRO_REG_COMPATIBILITY})
 
 IB Connector (legacy):
   deploy_ib_connector_legacy  Build image and deploy ib-connector-legacy pod
@@ -483,6 +571,8 @@ cmd="${1:-help}"
 case "$cmd" in
 	create_cluster_dev) create_cluster_dev ;;
 	deploy_kafka) deploy_kafka ;;
+	deploy_avro_registry_schema) deploy_avro_registry_schema ;;
+	register_avro_schemas) register_avro_schemas ;;
 	deploy_ib_connector_legacy) deploy_ib_connector_legacy ;;
 	simulate_stream_legacy) shift; simulate_stream_legacy "$@";;
 	deploy_ib_connector) deploy_ib_connector ;;
