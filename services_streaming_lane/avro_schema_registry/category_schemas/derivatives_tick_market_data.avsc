@@ -1,0 +1,30 @@
+{
+  "type": "record",
+  "name": "derivatives_tick_market_data",
+  "namespace": "category",
+  "fields": [
+    { "name": "source_system_name", "type": "string" },
+    { "name": "component_instance_name", "type": "string" },
+
+    { "name": "ingestion_time",
+      "type": { "type": "long", "logicalType": "timestamp-millis" } },
+
+    { "name": "exchange_code", "type": "string" },
+    { "name": "symbol_code", "type": "string" },
+    { "name": "symbol_type", "type": "string" },
+
+    { "name": "price", "type": "double" },
+    { "name": "price_unit", "type": "string" },
+    { "name": "size", "type": "double" },
+    { "name": "size_unit", "type": "string" },
+
+    { "name": "tick_time",
+      "type": { "type": "long", "logicalType": "timestamp-millis" } },
+
+    { "name": "event_ref", "type": "string",
+      "doc": "Deterministic hash of canonical tick identity fields." },
+
+    { "name": "open_interest", "type": ["null", "long"], "default": null },
+    { "name": "open_interest_unit", "type": ["null", "string"], "default": null }
+  ]
+}

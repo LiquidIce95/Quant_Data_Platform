@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schema-registry
+  namespace: streaming-lane
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: schema-registry
+  template:
+    metadata:
+      labels:
+        app: schema-registry
+    spec:
+      containers:
+        - name: schema-registry
+          image: confluentinc/cp-schema-registry:7.6.1
+          ports:
+            - name: http
+              containerPort: 8081
+          volumeMounts:
+            - name: config
+              mountPath: /etc/schema-registry/schema-registry.properties
+              subPath: schema-registry.properties
+          readinessProbe:
+            httpGet:
+              path: /subjects
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /subjects
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: config
+          configMap:
+            name: schema-registry-config

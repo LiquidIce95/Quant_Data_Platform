@@ -1,0 +1,25 @@
+{
+  "type": "record",
+  "name": "numeric_economic_data",
+  "namespace": "category",
+  "fields": [
+    { "name": "source_system_name", "type": "string" },
+    { "name": "component_instance_name", "type": "string" },
+
+    { "name": "ingestion_time",
+      "type": { "type": "long", "logicalType": "timestamp-millis" } },
+
+    { "name": "publisher_code", "type": "string" },
+    { "name": "release_code", "type": "string" },
+
+    { "name": "release_time",
+      "type": { "type": "long", "logicalType": "timestamp-millis" } },
+
+    { "name": "release_field", "type": "string" },
+    { "name": "release_field_value", "type": "double" },
+    { "name": "release_field_value_unit", "type": "string" },
+
+    { "name": "event_ref", "type": "string",
+      "doc": "Deterministic hash of canonical release identity fields." }
+  ]
+}

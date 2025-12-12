@@ -450,6 +450,8 @@ Kubernetes is our primary tool for (self) managing our cluster for the streaming
 
 For abstracting as much as possible from the host machine and managing dependencies.
 
+### Apache Avro as schema registry
+Primarily for the streaming lane
 
 ### Environments & CI
 
@@ -966,14 +968,20 @@ Category schema "derivatives_tick_market_data" {
   source_system_name       NOT NULL
   component_instance_name  NOT NULL
   ingestion_time           NOT NULL
+
   exchange_code            NOT NULL
   symbol_code              NOT NULL   // designated identifier
   symbol_type              NOT NULL   // futures, options, other derivatives
+
   price                    NOT NULL
   price_unit               NOT NULL
   size                     NOT NULL
   size_unit                NOT NULL
-  tick_time                NOT NULL   // designated timestamp
+
+  tick_time                NOT NULL   // designated event timestamp
+
+  event_ref                NOT NULL   // stable event identity (hash of canonical base columns)
+
   open_interest
   open_interest_unit
 }
@@ -982,20 +990,28 @@ Category schema "derivatives_l2_market_data" {
   source_system_name       NOT NULL
   component_instance_name  NOT NULL
   ingestion_time           NOT NULL
+
   exchange_code
   symbol_code              NOT NULL   // designated identifier
   symbol_type
+
   price                    NOT NULL
   price_unit               NOT NULL
   size                     NOT NULL
   size_unit                NOT NULL
-  side                     NOT NULL   // ask or bid
-  level                    NOT NULL   // 1 to n where n is the maximum streamed level
-  max_level                NOT NULL   // this is n at the time of streaming
-  l2_time                  NOT NULL   // designated timestamp
+
+  side                     NOT NULL   // bid or ask
+  level                    NOT NULL   // 1..n
+  max_level                NOT NULL   // n at stream time
+
+  l2_time                  NOT NULL   // designated event timestamp
+
+  event_ref                NOT NULL   // stable event identity (hash of canonical base columns)
+
   open_interest
   open_interest_unit
 }
+
 ```
 
 Sometimes we might be streaming indicators or computed values from the source which would be expensive to compute ourselves or is precisely the reason why we use that source. In that case these computations which we view as indicators are stored in a separate category schema, this keeps row duplication minimal, since a source row with multiple indicators for a symbol only duplicates these category rows and not the others. If we want to join downstream in ClickHouse, this should not be problematic if we ensure that the ingestion tables are ordered by (source_system_name, symbol_identifier, designated_timestamp) where the designated timestamp might be tick_time or l2_time or release_time, then ClickHouse can use merge join which completes the join in O(n+m) where n,m are the sizes of the joined tables.
@@ -1003,32 +1019,116 @@ Sometimes we might be streaming indicators or computed values from the source wh
 We explicitly model the scope of an indicator (whether it is attached to a tick, an L2 event or a macro release) via an indicator_scope field. To keep the DBML and physical implementation simple, we do not enforce physical foreign keys from indicators to event tables; the relationship is documented and enforced at the query / modelling level.
 
 ```dbml
-Category schema "indicators_market_data" {
+Category schema "indicators" {
   source_system_name        NOT NULL
   component_instance_name   NOT NULL
+
+  category_schema_ref       NOT NULL   // equals event_ref of the base category row
+
   ingestion_time            NOT NULL
-  market_event_time         NOT NULL   // tick_time or l2_time or release_time, designated timestamp
+  market_event_time         NOT NULL   // tick_time, l2_time, or release_time
+
   symbol_code               NOT NULL   // designated identifier
-  indicator_scope           NOT NULL   // 'tick','l2','release'
+  indicator_scope           NOT NULL   // derivatives_tick_market_data | derivatives_l2_market_data | numeric_economic_data
+
   indicator_name            NOT NULL   // e.g. bollinger_bands_30_2
   indicator_value           NOT NULL
-  indicator_value_unit      NOT NULL   // e.g. 1_contract, 1_percent, ...
+  indicator_value_unit      NOT NULL
 }
+
 
 Category schema "numeric_economic_data" {
   source_system_name        NOT NULL
   component_instance_name   NOT NULL
   ingestion_time            NOT NULL
-  publisher_code            NOT NULL      // publisher is the institution who publishes the data
-  release_code              NOT NULL      // CFTC-COT-report, EIA-weekly-report, etc. designated identifier
-  release_time              NOT NULL      // the time when the report was released, designated timestamp
-  release_field             NOT NULL      // which field of the release, 'Crude-Oil Stocks Forecast'
+
+  publisher_code            NOT NULL   // publishing institution
+  release_code              NOT NULL   // designated identifier (e.g. CFTC-COT-report)
+
+  release_time              NOT NULL   // designated event timestamp
+
+  release_field             NOT NULL   // e.g. 'Crude-Oil Stocks Forecast'
   release_field_value       NOT NULL
   release_field_value_unit  NOT NULL
+
+  event_ref                 NOT NULL   // stable event identity (hash of canonical base columns)
 }
 
 
+
 ```
+
+#### Event identity and indicator linkage
+
+Each *base category schema* (e.g. `derivatives_tick_market_data`, `derivatives_l2_market_data`, `numeric_economic_data`) represents **atomic market or economic events**.
+
+For every base event, we define a **stable event reference** `event_ref`, which uniquely identifies the *semantic event* (independent of ingestion metadata such as `ingestion_time` and `component_instance_name`).
+
+`event_ref` is computed **once, at the producing connector**, as a deterministic hash over a **canonical set of base columns** that define the event’s identity. The value is written into the base category row.
+
+Indicators are modeled in a separate category schema `indicators` to avoid duplicating base event data when multiple indicators are attached to the same event.
+
+Each indicator row carries a `category_schema_ref`, which equals the `event_ref` of the base event from which the indicator was computed. This establishes a one-to-many relationship:
+
+- `base event (1)` → `indicators (many)` via `event_ref = category_schema_ref`
+
+To keep the DBML and physical implementation simple, we do not enforce physical foreign keys from indicators to event tables; the relationship is documented and enforced at the contract and query/modelling level.
+
+### Join strategy and performance
+
+All ingestion tables are physically ordered by:
+
+- `(source_system_name, symbol_code, designated_timestamp)`
+
+where the designated timestamp is:
+- `tick_time` for `derivatives_tick_market_data`
+- `l2_time` for `derivatives_l2_market_data`
+- `release_time` for `numeric_economic_data`
+
+This allows downstream joins between base event tables and `indicators` to be implemented as merge joins, completing in `O(n + m)` where `n, m` are the sizes of the joined inputs.
+
+`event_ref` is used for **correctness** (disambiguating legitimate duplicate timestamps and guaranteeing exact indicator-to-event matching). It is not required for merge-join performance.
+
+### Canonical hash input columns
+
+The hash must exclude ingestion metadata (`ingestion_time`, `component_instance_name`) and must be computed over a canonical serialization of the following fields:
+
+**`derivatives_tick_market_data.event_ref` is computed from:**
+- `source_system_name`
+- `exchange_code`
+- `symbol_code`
+- `symbol_type`
+- `tick_time`
+- `price`
+- `price_unit`
+- `size`
+- `size_unit`
+
+**`derivatives_l2_market_data.event_ref` is computed from:**
+- `source_system_name`
+- `exchange_code`
+- `symbol_code`
+- `symbol_type`
+- `l2_time`
+- `side`
+- `level`
+- `max_level`
+- `price`
+- `price_unit`
+- `size`
+- `size_unit`
+
+**`numeric_economic_data.event_ref` is computed from:**
+- `source_system_name`
+- `publisher_code`
+- `release_code`
+- `release_time`
+- `release_field`
+- `release_field_value`
+- `release_field_value_unit`
+
+Hash algorithm is an implementation choice (e.g. SHA-256, truncated), but the algorithm and canonical serialization must be identical across all producers.
+
 
 Note that numeric_economic_data does not have a symbol_code – it is not directly tied to an instrument universe. Linking macro releases to instruments (for example “EIA crude stocks vs HO futures”) happens in the gold layer or data marts, where we define which instruments are logically associated with which releases and time windows.
 
