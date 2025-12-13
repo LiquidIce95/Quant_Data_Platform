@@ -1,0 +1,34 @@
+{
+  "type": "record",
+  "name": "derivatives_l2_market_data",
+  "namespace": "category",
+  "fields": [
+    { "name": "source_system_name", "type": "string" },
+    { "name": "component_instance_name", "type": "string" },
+
+    { "name": "ingestion_time",
+      "type": { "type": "long", "logicalType": "timestamp-millis" } },
+
+    { "name": "exchange_code", "type": ["null", "string"], "default": null },
+    { "name": "symbol_code", "type": "string" },
+    { "name": "symbol_type", "type": ["null", "string"], "default": null },
+
+    { "name": "price", "type": "double" },
+    { "name": "price_unit", "type": "string" },
+    { "name": "size", "type": "double" },
+    { "name": "size_unit", "type": "string" },
+
+    { "name": "side", "type": "string" },
+    { "name": "level", "type": "int" },
+    { "name": "max_level", "type": "int" },
+
+    { "name": "l2_time",
+      "type": { "type": "long", "logicalType": "timestamp-millis" } },
+
+    { "name": "event_ref", "type": "string",
+      "doc": "Deterministic hash of canonical L2 identity fields." },
+
+    { "name": "open_interest", "type": ["null", "long"], "default": null },
+    { "name": "open_interest_unit", "type": ["null", "string"], "default": null }
+  ]
+}

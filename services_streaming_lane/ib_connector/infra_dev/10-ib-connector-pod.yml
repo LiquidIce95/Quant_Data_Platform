@@ -11,6 +11,8 @@ spec:
       env:
         - name: KAFKA_BOOTSTRAP_SERVERS
           value: "${KAFKA_NAME}-kafka-bootstrap.${NAMESPACE_KAFKA}:9092"
+        - name: SCHEMA_REGISTRY_URL
+          value: "http://schema-registry.avro-schema-registry:8081"
         - name: POD_NAME
           valueFrom:
             fieldRef:

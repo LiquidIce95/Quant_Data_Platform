@@ -2,13 +2,13 @@
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
 metadata:
-  name: ticklast                # <-- lowercase k8s name
+  name: derivatives-tick-market-data
   namespace: kafka
   labels:
     strimzi.io/cluster: dev-kafka
 spec:
-  topicName: ticklast           # <-- actual Kafka topic used by your app
-  partitions: 7
+  topicName: derivatives_tick_market_data
+  partitions: 3
   replicas: 1
   config:
     cleanup.policy: delete
@@ -18,13 +18,45 @@ spec:
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
 metadata:
-  name: l2-data                 # <-- lowercase k8s name
+  name: derivatives-l2-market-data
   namespace: kafka
   labels:
     strimzi.io/cluster: dev-kafka
 spec:
-  topicName: l2-data            # <-- actual Kafka topic used by your app
-  partitions: 7
+  topicName: derivatives_l2_market_data
+  partitions: 3
+  replicas: 1
+  config:
+    cleanup.policy: delete
+    retention.ms: 86400000
+
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: indicators
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: dev-kafka
+spec:
+  topicName: indicators
+  partitions: 3
+  replicas: 1
+  config:
+    cleanup.policy: delete
+    retention.ms: 86400000
+
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: numeric-economic-data
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: dev-kafka
+spec:
+  topicName: numeric_economic_data
+  partitions: 3
   replicas: 1
   config:
     cleanup.policy: delete

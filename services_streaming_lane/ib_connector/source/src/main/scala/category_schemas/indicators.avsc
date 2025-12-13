@@ -1,0 +1,25 @@
+{
+  "type": "record",
+  "name": "indicators",
+  "namespace": "category",
+  "fields": [
+    { "name": "source_system_name", "type": "string" },
+    { "name": "component_instance_name", "type": "string" },
+
+    { "name": "category_schema_ref", "type": "string",
+      "doc": "Equals event_ref of the base category row." },
+
+    { "name": "ingestion_time",
+      "type": { "type": "long", "logicalType": "timestamp-millis" } },
+
+    { "name": "market_event_time",
+      "type": { "type": "long", "logicalType": "timestamp-millis" } },
+
+    { "name": "symbol_code", "type": "string" },
+    { "name": "indicator_scope", "type": "string" },
+
+    { "name": "indicator_name", "type": "string" },
+    { "name": "indicator_value", "type": "double" },
+    { "name": "indicator_value_unit", "type": "string" }
+  ]
+}

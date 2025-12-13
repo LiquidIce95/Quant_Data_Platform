@@ -2,6 +2,10 @@ package src.main.scala
 
 import upickle.core.LinkedHashMap
 import ujson._
+import org.apache.avro.Schema
+import org.apache.avro.generic.GenericData
+import org.apache.avro.generic.GenericRecord
+import java.security.MessageDigest
 
 /** Processes IBKR SMD tick frames and emits normalized ticks to Kafka. */
 class SmdProcessor(
@@ -12,7 +16,6 @@ class SmdProcessor(
 	val symbolUniverse: Vector[(Long, String, String)] =
 		api.computeSymbolUniverse()
 
-	
 	private val conidToCode: Map[Long, String] = {
 		val m = scala.collection.mutable.Map[Long, String]()
 		var i = 0
@@ -22,14 +25,14 @@ class SmdProcessor(
 			val expiry = triplet._2
 			val symbol = triplet._3
 			val code = CommonUtils.buildMonthYearCode(expiry)
-			m.update(conId, symbol+code)
+			m.update(conId, symbol + code)
 			i = i + 1
 		}
 		m.toMap
 	}
 
 	private case class TickState(
-        var tradingSymbol : Option[String],
+		var tradingSymbol: Option[String],
 		var price: Option[String],
 		var size: Option[String],
 		var openInterest: Option[String],
@@ -39,22 +42,39 @@ class SmdProcessor(
 
 	private val stateByConId = {
 		val m = scala.collection.mutable.Map[Long, TickState]()
-        var i = 0
+		var i = 0
 		while (i < symbolUniverse.length) {
 			val pair = symbolUniverse(i)
 			val conId = pair._1
-			val expiry = pair._2
-			val tick = TickState(None,None,None,None,None,None)
+			val tick = TickState(None, None, None, None, None, None)
 			m.update(conId, tick)
 			i = i + 1
 		}
 		m
-    }
+	}
 
 	private val topic =
-		"ticklast"
+		"derivatives_tick_market_data"
 
-    private def valueAsString(v: ujson.Value): String =
+	private val avroSchema: Schema = {
+		val schemaFile = new java.io.File("src/main/scala/category_schemas/derivatives_tick_market_data.avsc")
+		assert(schemaFile.exists())
+		new Schema.Parser().parse(schemaFile)
+	}
+
+	private def sha256Hex(s: String): String = {
+		val md = MessageDigest.getInstance("SHA-256")
+		val bytes = md.digest(s.getBytes("UTF-8"))
+		val sb = new StringBuilder(bytes.length * 2)
+		var i = 0
+		while (i < bytes.length) {
+			sb.append(String.format("%02x", Byte.box(bytes(i))))
+			i = i + 1
+		}
+		sb.toString
+	}
+
+	private def valueAsString(v: ujson.Value): String =
 		v match {
 			case Str(s) => s
 			case Num(n) => n.toString
@@ -107,26 +127,71 @@ class SmdProcessor(
 			tick.eventTime.isDefined &&
 			tick.marketDataType.isDefined
 		) {
-			val json =
-				Obj(
-					"symbol" -> Str(tick.tradingSymbol.get),
-					"conid" -> Str(conId.toString),
-					"price" -> Str(tick.price.get),
-					"size" -> Str(tick.size.get),
-					"open_interest" -> Str(tick.openInterest.get),
-					"event_time" -> Str(tick.eventTime.get),
-					"market_data_type" -> Str(tick.marketDataType.get)
-				)
+			val sourceSystemName = "interactive_brokers_web_api_realtime_stream"
+			val componentInstanceName = "ib_connector"
 
-			val payload = write(json)
+			val ingestionTimeMs: Long =
+				System.currentTimeMillis()
 
-			producerApi.send(
+			val exchangeCode = "CME"
+			val symbolCode = tick.tradingSymbol.get
+			val symbolType = "futures"
+
+			val price: Double =
+				tick.price.get.toDouble
+
+			val priceUnit = "1_USdollar"
+
+			val size: Double =
+				tick.size.get.toDouble
+
+			val sizeUnit = "1_contract"
+
+			val tickTimeMs: Long =
+				tick.eventTime.get.toLong
+
+			val openInterest: Long =
+				tick.openInterest.get.toDouble.toLong
+
+			val openInterestUnit = "1000_contract"
+
+			val eventRefInput =
+				sourceSystemName + "\u0001" +
+				exchangeCode + "\u0001" +
+				symbolCode + "\u0001" +
+				symbolType + "\u0001" +
+				tickTimeMs.toString + "\u0001" +
+				price.toString + "\u0001" +
+				priceUnit + "\u0001" +
+				size.toString + "\u0001" +
+				sizeUnit
+
+			val eventRef =
+				sha256Hex(eventRefInput)
+
+			val rec: GenericRecord =
+				new GenericData.Record(avroSchema)
+
+			rec.put("source_system_name", sourceSystemName)
+			rec.put("component_instance_name", componentInstanceName)
+			rec.put("ingestion_time", ingestionTimeMs)
+			rec.put("exchange_code", exchangeCode)
+			rec.put("symbol_code", symbolCode)
+			rec.put("symbol_type", symbolType)
+			rec.put("price", price)
+			rec.put("price_unit", priceUnit)
+			rec.put("size", size)
+			rec.put("size_unit", sizeUnit)
+			rec.put("tick_time", tickTimeMs)
+			rec.put("event_ref", eventRef)
+			rec.put("open_interest", Long.box(openInterest))
+			rec.put("open_interest_unit", openInterestUnit)
+
+			producerApi.sendAvro(
 				topic,
 				conId,
-				payload
+				rec
 			)
 		}
 	}
-				
-	
 }

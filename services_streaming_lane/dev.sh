@@ -78,6 +78,8 @@ IB_POD_FILE="$IB_DIR/infra_dev/10-ib-connector-pod.yml"
 IB_IMG="ib-connector:dev"
 
 # ========= Avro Schema Registry =========
+NAMESPACE_AVRO="${NAMESPACE_AVRO:-avro-schema-registry}"
+
 AVRO_REG_DIR="$ROOT/services_streaming_lane/avro_schema_registry"
 AVRO_REG_INFRA_DIR="$AVRO_REG_DIR/infra_dev"
 AVRO_SCHEMA_DIR="$AVRO_REG_DIR/category_schemas"
@@ -129,8 +131,8 @@ status() {
 	echo "== ClientPortalAPI =="; kubectl -n "$CLIENT_PORTAL_NS" get pods -o wide || true
 	echo "== IbConnector =="; kubectl -n "$NAMESPACE_IB" get pods -o wide || true
 	echo "== IbConnectorLegacy =="; kubectl -n "$NAMESPACE_IB_LEGACY" get pods -o wide || true
-	echo "== SchemaRegistry =="; kubectl -n "$NAMESPACE_KAFKA" get pods -l app=schema-registry -o wide || true
-	echo "== SchemaRegistry Svc =="; kubectl -n "$NAMESPACE_KAFKA" get svc "$AVRO_REG_SVC_NAME" -o wide || true
+	echo "== SchemaRegistry =="; kubectl -n "$NAMESPACE_AVRO" get pods -l app=schema-registry -o wide || true
+	echo "== SchemaRegistry Svc =="; kubectl -n "$NAMESPACE_AVRO" get svc "$AVRO_REG_SVC_NAME" -o wide || true
 }
 
 down() { kind delete cluster --name "${CLUSTER_NAME}" || true; }
@@ -178,17 +180,19 @@ port_forward() {
 # ========= Avro Schema Registry =========
 deploy_avro_registry_schema() {
 	need kubectl
+	have "$AVRO_REG_NS_FILE"
 	have "$AVRO_REG_CFG_FILE"
 	have "$AVRO_REG_DEPLOY_FILE"
 	have "$AVRO_REG_SVC_FILE"
 
-	kubectl apply -n "$NAMESPACE_KAFKA" -f "$AVRO_REG_CFG_FILE"
-	kubectl apply -n "$NAMESPACE_KAFKA" -f "$AVRO_REG_DEPLOY_FILE"
-	kubectl apply -n "$NAMESPACE_KAFKA" -f "$AVRO_REG_SVC_FILE"
+	kubectl apply -f "$AVRO_REG_NS_FILE"
+	kubectl apply -n "$NAMESPACE_AVRO" -f "$AVRO_REG_CFG_FILE"
+	kubectl apply -n "$NAMESPACE_AVRO" -f "$AVRO_REG_DEPLOY_FILE"
+	kubectl apply -n "$NAMESPACE_AVRO" -f "$AVRO_REG_SVC_FILE"
 
-	kubectl -n "$NAMESPACE_KAFKA" rollout status deployment/schema-registry --timeout=180s || true
-	kubectl -n "$NAMESPACE_KAFKA" get pods -l app=schema-registry -o wide || true
-	kubectl -n "$NAMESPACE_KAFKA" get svc "$AVRO_REG_SVC_NAME" -o wide || true
+	kubectl -n "$NAMESPACE_AVRO" rollout status deployment/schema-registry --timeout=180s || true
+	kubectl -n "$NAMESPACE_AVRO" get pods -l app=schema-registry -o wide || true
+	kubectl -n "$NAMESPACE_AVRO" get svc "$AVRO_REG_SVC_NAME" -o wide || true
 }
 
 register_avro_schemas() {
@@ -204,7 +208,7 @@ register_avro_schemas() {
 	local PF_PID=""
 	local REG_URL="http://127.0.0.1:${AVRO_REG_LOCAL_PORT}"
 
-	kubectl -n "$NAMESPACE_KAFKA" port-forward "svc/${AVRO_REG_SVC_NAME}" "${AVRO_REG_LOCAL_PORT}:8081" >/dev/null 2>&1 &
+	kubectl -n "$NAMESPACE_AVRO" port-forward "svc/${AVRO_REG_SVC_NAME}" "${AVRO_REG_LOCAL_PORT}:8081" >/dev/null 2>&1 &
 	PF_PID="$!"
 
 	( sleep 1 )
@@ -304,7 +308,7 @@ deploy_ib_connector() {
 
 	echo "[ib-connector] Applying RBAC manifest …"
 	export NAMESPACE_IB NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
-	envsubst < "$IB_RBAC_FILE" | kubectl apply -f -	
+	envsubst < "$IB_RBAC_FILE" | kubectl apply -f -
 
 	echo "[ib-connector] Applying pod manifest …"
 	export NAMESPACE_IB NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
@@ -536,7 +540,7 @@ Kafka:
   peek_topic_l2_data          Tail last 10 messages from 'l2-data'
 
 Avro Schema Registry:
-  deploy_avro_registry_schema Deploy Schema Registry into the kafka namespace
+  deploy_avro_registry_schema Deploy Schema Registry into the avro-schema-registry namespace
   register_avro_schemas       Register all .avsc files into Schema Registry (compat=${AVRO_REG_COMPATIBILITY})
 
 IB Connector (legacy):

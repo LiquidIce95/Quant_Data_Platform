@@ -1,7 +1,7 @@
 {
 	"name": "scala-ib-connector-dev",
-	//keeps build context the same as for dockerfile
-	"build": { "dockerfile": "../Dockerfile", "context": "../" },
+	//keeps build context the same as for dockerfile which needs to be services_streaming_lane
+	"build": { "dockerfile": "../Dockerfile", "context": "../../../" },
 
 	"workspaceMount": "source=${localWorkspaceFolder}/../../..,target=/work,type=bind,consistency=cached",
 	"workspaceFolder": "/work/services_streaming_lane/ib_connector/source",
@@ -13,8 +13,7 @@
 	"remoteUser": "root",
 	"updateRemoteUserUID": false,
 
-	"postCreateCommand": "bash -lc 'git config --global --add safe.directory /work && curl -sL https://aka.ms/InstallAzureCLIDeb | bash && cp /work/platform_files/platform_config.yml /work/services_streaming_lane/ib_connector/source/platform_config.yml'",
-	"postStartCommand": "bash -lc '/usr/local/bin/ibkr-entrypoint.sh true'",
+	"postCreateCommand": "bash -lc 'git config --global --add safe.directory /work && curl -sL https://aka.ms/InstallAzureCLIDeb | bash && mkdir -p /work/services_streaming_lane/ib_connector/source/src/main/scala/category_schemas && cp -f /work/services_streaming_lane/avro_schema_registry/category_schemas/*.avsc /work/services_streaming_lane/ib_connector/source/src/main/scala/category_schemas/'",
 
 	"containerEnv": {
 		"IB_HOST": "127.0.0.1",

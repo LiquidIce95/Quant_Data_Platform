@@ -1,6 +1,7 @@
 // build.sbt
 
 ThisBuild / scalaVersion := "2.13.16"
+resolvers += "Confluent" at "https://packages.confluent.io/maven/"
 
 Test / logBuffered := false
 Test / parallelExecution := false
@@ -19,6 +20,11 @@ lazy val root = (project in file("."))
 			"com.lihaoyi" %% "cask" % "0.10.2",
 			
 			"org.apache.commons" % "commons-math3" % "3.6.1",
+			//--- confluent and avro
+			"org.apache.avro"            %  "avro"                              % "1.11.3",
+			"io.confluent"               %  "kafka-avro-serializer"             % "7.6.1",
+			"io.confluent"               %  "kafka-schema-registry-client"      % "7.6.1",
+
 
 			// --- Config files (HOCON) ---
 			"com.typesafe" % "config" % "1.4.3",

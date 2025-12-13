@@ -8,7 +8,6 @@ import sttp.client4.ws.SyncWebSocket
 import upickle.core.LinkedHashMap
 import scala.sys.process._
 import scala.collection.mutable
-import org.apache.kafka.shaded.com.google.protobuf.Api
 import scala.util.Try
 import scala.annotation.tailrec
 

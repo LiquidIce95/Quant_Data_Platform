@@ -22,8 +22,6 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"scalameta.metals",
-				"scala-lang.scala",
 				"ms-python.debugpy",
 				"ms-python.python",
 				"ms-python.vscode-pylance",

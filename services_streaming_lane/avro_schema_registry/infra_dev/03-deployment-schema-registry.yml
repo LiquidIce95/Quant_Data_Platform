@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: schema-registry
-  namespace: streaming-lane
+  namespace: avro-schema-registry
 spec:
   replicas: 2
   selector:

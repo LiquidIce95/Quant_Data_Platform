@@ -1,54 +1,44 @@
 package src.main.scala
 
-import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord, RecordMetadata}
-import org.apache.kafka.common.serialization.StringSerializer
+import org.apache.avro.generic.GenericRecord
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import java.util.Properties
-import java.util.concurrent.Future
-
 
 class KafkaProducerApi(
-  bootstrapServers: String = sys.env.getOrElse("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"),
-  clientId:        String  = sys.env.getOrElse("KAFKA_CLIENT_ID",        "ib-producer"),
-  api: ApiHandler
+	bootstrapServers: String = sys.env.getOrElse("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"),
+	clientId: String = sys.env.getOrElse("KAFKA_CLIENT_ID", "ib-producer"),
+	schemaRegistryUrl: String = sys.env.getOrElse("SCHEMA_REGISTRY_URL", "http://schema-registry:8081")
 ) {
-  private val props = new Properties()
-  props.put("bootstrap.servers", bootstrapServers)
-  props.put("client.id", clientId)
-  props.put("acks", "all")
-  props.put("key.serializer", classOf[StringSerializer].getName)
-  props.put("value.serializer", classOf[StringSerializer].getName)
-  props.put("linger.ms", sys.env.getOrElse("KAFKA_LINGER_MS", "100"))
-  props.put("batch.size", sys.env.getOrElse("KAFKA_BATCH_SIZE", "32768"))
 
-  private val producer = new KafkaProducer[String, String](props)
+	private val props: Properties = {
+		val p = new Properties()
+		p.put("bootstrap.servers", bootstrapServers)
+		p.put("client.id", clientId)
 
-  val symbolUniverse = api.computeSymbolUniverse()
+		p.put("acks", "all")
+		p.put("enable.idempotence", "true")
+		p.put("retries", "2147483647")
+		p.put("max.in.flight.requests.per.connection", "5")
+		p.put("delivery.timeout.ms", "120000")
+		p.put("request.timeout.ms", "30000")
 
-  /**
-    * maps the conIds to the partiion index,
-    * since the symbols are ordered ascending by expiry we will distribute
-    * the hot months first
-    */
-  val partitionIndices : Map[Long,Int] = {
-    for (i<-0 until symbolUniverse.size) yield symbolUniverse(i)._1 -> i
-  }.toMap
-  
+		p.put("linger.ms", "150")
 
-  val partitionSizes :Map[String,Int] = Map("ticklast"->producer.partitionsFor("ticklast").size(),"l2-data"->producer.partitionsFor("l2-data").size())
+		p.put("key.serializer", "org.apache.kafka.common.serialization.LongSerializer")
+		p.put("value.serializer", "io.confluent.kafka.serializers.KafkaAvroSerializer")
 
-  /**
-    * We want to send the data for a particular contract to the same partition to keep the data ordered
-    * This will yield great performance boost later down the line in spark and clickhouse
-    *
-    * @param topic the topic to send the messages to 
-    * @param key the key that determines the partion, needs to be conId= contract id
-    * @param value the json message
-    * @return
-    */
-  def send(topic: String, key: Long, value: String): Future[RecordMetadata] = {
-    producer.send(new ProducerRecord[String, String](topic, partitionIndices(key)%partitionSizes(topic),key.toString(), value))
-  }
+		p.put("schema.registry.url", schemaRegistryUrl)
+		p.put("auto.register.schemas", "false")
 
-  def flush(): Unit = producer.flush()
-  def close(): Unit = producer.close()
+		p
+	}
+
+	private val producer =
+		new KafkaProducer[java.lang.Long, AnyRef](props)
+
+	def sendAvro(topic: String, key: Long, value: GenericRecord): Unit = {
+		val record =
+			new ProducerRecord[java.lang.Long, AnyRef](topic, Long.box(key), value)
+		producer.send(record).get()
+	}
 }

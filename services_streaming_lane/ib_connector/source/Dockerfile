@@ -1,3 +1,4 @@
+# The build context of this container needs to be services_streaming_lane
 FROM debian:12.6-slim
 
 USER root
@@ -11,13 +12,13 @@ RUN apt-get update && apt-get install -y \
 	&& rm -rf /var/lib/apt/lists/*
 
 WORKDIR /work
-COPY ./ /work
+COPY ./ib_connector/source/ /work
 RUN mkdir -p /trust
 
 # ensure entrypoint is in the image (place this file next to devcontainer.json)
-COPY ./ibkr_client_portal.pem /trust/ibkr_client_portal.pem 
-COPY ./ibkr_truststore.jks /trust/ibkr_truststore.jks
-COPY ./entrypoint.sh /usr/local/bin/ibkr-entrypoint.sh
+COPY ./ib_connector/source/ibkr_client_portal.pem /trust/ibkr_client_portal.pem 
+COPY ./ib_connector/source/ibkr_truststore.jks /trust/ibkr_truststore.jks
+COPY ./ib_connector/source/entrypoint.sh /usr/local/bin/ibkr-entrypoint.sh
 RUN chmod +x /usr/local/bin/ibkr-entrypoint.sh
 
 # Default command; ENTRYPOINT will hand off to this
@@ -53,12 +54,12 @@ ENV VENV_PATH=/opt/venv
 RUN python3 -m venv "${VENV_PATH}"
 ENV PATH="${VENV_PATH}/bin:${PATH}"
 
-COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip \
- && pip install --no-cache-dir -r /tmp/requirements.txt
+ && pip install --no-cache-dir -r /work/requirements.txt
 
-COPY authenticator_2fa.py /work/authenticator_2fa.py
-COPY authenticator_no_2fa.py /work/authenticator_no_2fa.py
+RUN mkdir -p /work/src/main/scala/category_schemas 
+COPY ./avro_schema_registry/category_schemas/ /work/src/main/scala/category_schemas
+
 CMD ["bash","-lc","sleep infinity"]
 
 # Run our runtime init AFTER the container is created (post-start equivalent)

@@ -8,7 +8,6 @@ import sttp.client4.ws.SyncWebSocket
 import upickle.core.LinkedHashMap
 import scala.sys.process._
 import scala.collection.mutable
-import org.apache.kafka.shaded.com.google.protobuf.Api
 import scala.util.Try
 import scala.annotation.tailrec
 import src.main.scala.KubernetesApiHandler.getPodName
@@ -40,7 +39,7 @@ object IbConnector {
 			api.startApi()
 			println(f"api started ${api.isHealthy()}")
 
-            val producer = new KafkaProducerApi(api=api)
+            val producer = new KafkaProducerApi()
 
             val smdProcessor = new SmdProcessor(producer,api) 
             val peers = KubernetesApiHandler.getPeers()

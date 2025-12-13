@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: schema-registry
-  namespace: streaming-lane
+  namespace: avro-schema-registry
 spec:
   selector:
     app: schema-registry
