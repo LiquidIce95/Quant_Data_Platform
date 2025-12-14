@@ -6,6 +6,9 @@ import scala.collection.mutable
 import scala.util.Try
 import scala.annotation.tailrec
 
+/**
+  * Make sure to run 'az login' before running this
+  */
 object ExampleUse {
 
 	@tailrec
