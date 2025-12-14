@@ -13,8 +13,10 @@ lazy val root = (project in file("."))
 
     libraryDependencies ++= Seq(
       // Spark itself is provided by the runtime image
-      "org.apache.spark" %% "spark-core" % "3.5.7" % Provided,
-      "org.apache.spark" %% "spark-sql"  % "3.5.7" % Provided,
+      "org.apache.spark" %% "spark-core" % "3.5.7",
+      "org.apache.spark" %% "spark-sql"  % "3.5.7",
+      "org.apache.spark" %% "spark-avro" % "3.5.7",
+
 
       // Keep Kafka source in the fat jar (compile scope)
       "org.apache.spark" %% "spark-sql-kafka-0-10" % "3.5.7",

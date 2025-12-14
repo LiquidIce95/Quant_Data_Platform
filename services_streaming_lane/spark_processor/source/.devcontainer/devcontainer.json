@@ -11,7 +11,7 @@
 
   "remoteUser": "root",
   "updateRemoteUserUID": false,
-  "postCreateCommand": "sh -lc 'git config --global --add safe.directory /work' &&  cp /work/platform_files/platform_config.yml /work/services_streaming_lane/spark_processor/source/platform_config.yml",
+  "postCreateCommand": "sh -lc 'git config --global --add safe.directory /work'",
 
   "runArgs": ["--network=host"],
 

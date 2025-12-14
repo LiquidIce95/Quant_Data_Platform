@@ -151,7 +151,7 @@ class SmdProcessor(
 				tick.eventTime.get.toLong
 
 			val openInterest: Long =
-				tick.openInterest.get.toDouble.toLong
+				tick.openInterest.get.split("k")(0).toLong
 
 			val openInterestUnit = "1000_contract"
 
@@ -184,7 +184,7 @@ class SmdProcessor(
 			rec.put("size_unit", sizeUnit)
 			rec.put("tick_time", tickTimeMs)
 			rec.put("event_ref", eventRef)
-			rec.put("open_interest", Long.box(openInterest))
+			rec.put("open_interest", openInterest)
 			rec.put("open_interest_unit", openInterestUnit)
 
 			producerApi.sendAvro(

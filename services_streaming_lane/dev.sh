@@ -22,8 +22,8 @@ SPARK_IMAGE_TAG="${SPARK_IMAGE_TAG:-our-own-apache-spark-kb8}"
 APP_IMAGE_TAG="${APP_IMAGE_TAG:-${SPARK_IMAGE_TAG}-app}"
 SPARK_APP_CLASS="${SPARK_APP_CLASS:-com.yourorg.spark.ReadTickLastPrint}"
 
-# ClickHouse (runs in Spark ns by default)
-NAMESPACE_CLICKHOUSE="${NAMESPACE_CLICKHOUSE:-${NAMESPACE_SPARK}}"
+# ClickHouse (disjoint namespace)
+NAMESPACE_CLICKHOUSE="${NAMESPACE_CLICKHOUSE:-clickhouse}"
 CLICKHOUSE_IMAGE_TAG="${CLICKHOUSE_IMAGE_TAG:-clickhouse:dev}"
 
 # Node labels
@@ -54,6 +54,11 @@ SPARK_RBAC_FILE="$SPARK_DIR/infra_dev/10-rbac.yml"
 SPARK_DRIVER_POD_TMPL="$SPARK_DIR/infra_dev/20-driver-pod-template.yml"
 SPARK_EXEC_POD_TMPL="$SPARK_DIR/infra_dev/21-executor-pod-template.yml"
 SPARK_DEFAULTS_FILE="$SPARK_DIR/infra_dev/30-spark-defaults.conf"
+
+# ========= ClickHouse infra files (infra_dev) =========
+CLICKHOUSE_NS_FILE="$CLICKHOUSE_INFRA_DIR/00-namespace.yml"
+CLICKHOUSE_POD_FILE="$CLICKHOUSE_INFRA_DIR/10-clickhouse-pod.yml"
+CLICKHOUSE_SVC_FILE="$CLICKHOUSE_INFRA_DIR/20-clickhouse-svc.yml"
 
 # ========= IB Connector (legacy) =========
 IB_NS_FILE_LEGACY="$ROOT/services_streaming_lane/ib_connector_legacy/infra_dev/00-namespace.yml"
@@ -131,7 +136,7 @@ status() {
 	echo "== ClientPortalAPI =="; kubectl -n "$CLIENT_PORTAL_NS" get pods -o wide || true
 	echo "== IbConnector =="; kubectl -n "$NAMESPACE_IB" get pods -o wide || true
 	echo "== IbConnectorLegacy =="; kubectl -n "$NAMESPACE_IB_LEGACY" get pods -o wide || true
-	echo "== SchemaRegistry =="; kubectl -n "$NAMESPACE_AVRO" get pods -l app=schema-registry -o wide || true
+	echo "== SchemaRegistry =="; kubectl -n "$NAMESPACE_AVRO" get pods -o wide || true
 	echo "== SchemaRegistry Svc =="; kubectl -n "$NAMESPACE_AVRO" get svc "$AVRO_REG_SVC_NAME" -o wide || true
 }
 
@@ -160,9 +165,9 @@ deploy_kafka() { install_strimzi; apply_kafka_cluster; apply_topics; }
 peek_topic_ticklast() {
 	need kubectl
 	local BOOTSTRAP="${KAFKA_NAME}-kafka-bootstrap.${NAMESPACE_KAFKA}:9092"
-	kubectl -n "${NAMESPACE_KAFKA}" run -it --rm kcat-tail-ticklast \
+	kubectl -n "${NAMESPACE_KAFKA}" run -it --rm kcat-tail-derivatives-tick-market-data \
 		--image=edenhill/kcat:1.7.1 --restart=Never -- \
-		-b "${BOOTSTRAP}" -t ticklast -C -o -10 -e -q
+		-b "${BOOTSTRAP}" -t derivatives-tick-market-data -C -o -10 -e -q
 }
 
 peek_topic_l2_data() {
@@ -178,8 +183,19 @@ port_forward() {
 }
 
 # ========= Avro Schema Registry =========
+preload_avro_registry_image() {
+	need docker; need kind
+	echo "[schema-registry] Pre-pulling image on host …"
+	docker pull confluentinc/cp-schema-registry:7.6.1
+	echo "[schema-registry] Loading image into kind cluster '${CLUSTER_NAME}' …"
+	kind load docker-image confluentinc/cp-schema-registry:7.6.1 --name "$CLUSTER_NAME"
+}
+
+
 deploy_avro_registry_schema() {
 	need kubectl
+	preload_avro_registry_image
+
 	have "$AVRO_REG_NS_FILE"
 	have "$AVRO_REG_CFG_FILE"
 	have "$AVRO_REG_DEPLOY_FILE"
@@ -190,10 +206,11 @@ deploy_avro_registry_schema() {
 	kubectl apply -n "$NAMESPACE_AVRO" -f "$AVRO_REG_DEPLOY_FILE"
 	kubectl apply -n "$NAMESPACE_AVRO" -f "$AVRO_REG_SVC_FILE"
 
-	kubectl -n "$NAMESPACE_AVRO" rollout status deployment/schema-registry --timeout=180s || true
+	kubectl -n "$NAMESPACE_AVRO" rollout status deployment/schema-registry --timeout=400s || true
 	kubectl -n "$NAMESPACE_AVRO" get pods -l app=schema-registry -o wide || true
 	kubectl -n "$NAMESPACE_AVRO" get svc "$AVRO_REG_SVC_NAME" -o wide || true
 }
+
 
 register_avro_schemas() {
 	need kubectl
@@ -301,7 +318,11 @@ deploy_ib_connector() {
 	kubectl apply -f "$IB_NS_FILE"
 
 	echo "[ib-connector] Building image ib-connector:dev from ${IB_SRC_DIR} …"
-	docker build -t ib-connector:dev "$IB_SRC_DIR"
+	
+	docker build \
+		-f "$IB_SRC_DIR/Dockerfile" \
+		-t ib-connector:dev \
+		"$ROOT/services_streaming_lane"
 
 	echo "[ib-connector] Loading image into kind cluster '${CLUSTER_NAME}' …"
 	kind load docker-image ib-connector:dev --name "$CLUSTER_NAME"
@@ -467,7 +488,8 @@ deploy_clickhouse() {
 	build_clickhouse_image
 	kind load docker-image "${CLICKHOUSE_IMAGE_TAG}" --name "${CLUSTER_NAME}"
 
-	ns_exists "${NAMESPACE_CLICKHOUSE}" || kubectl create namespace "${NAMESPACE_CLICKHOUSE}"
+	have "${CLICKHOUSE_NS_FILE}"
+	kubectl apply -f "${CLICKHOUSE_NS_FILE}"
 
 	have "${CLICKHOUSE_POD_FILE}"
 	have "${CLICKHOUSE_SVC_FILE}"
@@ -482,21 +504,30 @@ deploy_clickhouse() {
 
 peek_clickhouse_market_trades() {
 	need kubectl
-	local Q="
-    SELECT
-      ingestion_time,
-      event_time,
-      trading_symbol,
-      source,
-      price,
-      size,
-      event_id
-    FROM quant.market_trades
-    ORDER BY event_time DESC
-    LIMIT 10"
-	kubectl -n "${NAMESPACE_CLICKHOUSE}" exec -it clickhouse -- \
-		clickhouse-client --user spark --password sparkpass --multiquery --query "$Q"
+	local NS="${NAMESPACE_CLICKHOUSE}"
+	local POD
+	POD="$(kubectl -n "${NS}" get pods -l app=clickhouse -o jsonpath='{.items[0].metadata.name}')"
+
+	local Q='SELECT * FROM realtime_store.derivatives_tick_market_data ORDER BY tick_time DESC LIMIT 10;'
+
+	kubectl -n "${NS}" exec -it "${POD}" -- \
+		clickhouse-client --multiquery --query "${Q}"
 }
+
+check_clickhouse_tables() {
+	need kubectl
+	local NS="${NAMESPACE_CLICKHOUSE}"
+	local POD
+	POD="$(kubectl -n "${NS}" get pods -l app=clickhouse -o jsonpath='{.items[0].metadata.name}')"
+
+	kubectl -n "${NS}" exec -it "${POD}" -- \
+		clickhouse-client --multiquery --query "
+SHOW DATABASES;
+SHOW TABLES FROM realtime_store;
+SHOW CREATE TABLE realtime_store.derivatives_tick_market_data;
+"
+}
+
 
 azure_authenticate_first() {
 	need kubectl
@@ -560,9 +591,8 @@ Spark:
   peek_spark                  Shows logs from the driver pod
 
 ClickHouse:
-  deploy_clickhouse           Build clickhouse:dev image, load to kind, deploy pod + service on spark node as single instance
+  deploy_clickhouse           Build clickhouse:dev image, load to kind, deploy pod + service in clickhouse namespace
   peek_clickhouse_market_trades  Show 10 latest rows from quant.market_trades
-
 
 EOF
 }
@@ -587,6 +617,7 @@ case "$cmd" in
 	start_spark_sim2) start_spark_sim2 ;;
 	deploy_clickhouse) deploy_clickhouse ;;
 	peek_clickhouse_market_trades) peek_clickhouse_market_trades ;;
+	check_clickhouse_tables) check_clickhouse_tables ;;
 	peek_topic_ticklast) peek_topic_ticklast ;;
 	peek_topic_l2_data) peek_topic_l2_data ;;
 	peek_spark) peek_spark ;;
