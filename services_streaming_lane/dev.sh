@@ -164,11 +164,14 @@ deploy_kafka() { install_strimzi; apply_kafka_cluster; apply_topics; }
 
 peek_topic_ticklast() {
 	need kubectl
-	local BOOTSTRAP="${KAFKA_NAME}-kafka-bootstrap.${NAMESPACE_KAFKA}:9092"
-	kubectl -n "${NAMESPACE_KAFKA}" run -it --rm kcat-tail-derivatives-tick-market-data \
+	local NS="${NAMESPACE_KAFKA}"
+	local BOOTSTRAP="${KAFKA_NAME}-kafka-bootstrap.${NS}:9092"
+
+	kubectl -n "${NS}" run -it --rm kcat-tail-derivatives-tick-market-data \
 		--image=edenhill/kcat:1.7.1 --restart=Never -- \
-		-b "${BOOTSTRAP}" -t derivatives-tick-market-data -C -o -10 -e -q
+		-b "${BOOTSTRAP}" -t derivatives_tick_market_data -C -o -10 -e -q
 }
+
 
 peek_topic_l2_data() {
 	need kubectl
