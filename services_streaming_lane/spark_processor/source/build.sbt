@@ -10,17 +10,27 @@ lazy val root = (project in file("."))
 
     // If you want to drop any loose jars, put them in ./lib
     unmanagedBase := baseDirectory.value / "lib",
-
+    resolvers ++= Seq(
+			"Confluent" at "https://packages.confluent.io/maven/"
+		),
     libraryDependencies ++= Seq(
       // Spark itself is provided by the runtime image
       "org.apache.spark" %% "spark-core" % "3.5.7",
       "org.apache.spark" %% "spark-sql"  % "3.5.7",
       "org.apache.spark" %% "spark-avro" % "3.5.7",
-
+      "org.apache.spark" %% "spark-token-provider-kafka-0-10" % "3.5.7",
 
       // Keep Kafka source in the fat jar (compile scope)
       "org.apache.spark" %% "spark-sql-kafka-0-10" % "3.5.7",
 
+      ("za.co.absa" %% "abris" % "6.4.1")
+				.excludeAll(
+					ExclusionRule(organization = "org.apache.spark"),
+					ExclusionRule(organization = "org.scala-lang"),
+					ExclusionRule(organization = "org.scala-lang.modules")
+			),
+
+			"io.confluent" % "kafka-avro-serializer" % "7.6.1",
       // ClickHouse native Spark connector + JDBC (matching 0.8.1 line)
       "com.clickhouse.spark" %% "clickhouse-spark-runtime-3.5" % "0.8.1",
       "com.clickhouse"        % "clickhouse-jdbc"              % "0.8.1",

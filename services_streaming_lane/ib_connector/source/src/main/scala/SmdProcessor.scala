@@ -123,7 +123,6 @@ class SmdProcessor(
 			tick.tradingSymbol.isDefined &&
 			tick.price.isDefined &&
 			tick.size.isDefined &&
-			tick.openInterest.isDefined &&
 			tick.eventTime.isDefined &&
 			tick.marketDataType.isDefined
 		) {
@@ -148,10 +147,7 @@ class SmdProcessor(
 			val sizeUnit = "1_contract"
 
 			val tickTimeMs: Long =
-				tick.eventTime.get.toLong
-
-			val openInterest: Long =
-				tick.openInterest.get.split("k")(0).toLong
+				tick.eventTime.get.toDouble.toLong
 
 			val openInterestUnit = "1000_contract"
 
@@ -184,7 +180,12 @@ class SmdProcessor(
 			rec.put("size_unit", sizeUnit)
 			rec.put("tick_time", tickTimeMs)
 			rec.put("event_ref", eventRef)
-			rec.put("open_interest", openInterest)
+			rec.put("open_interest",
+				tick.openInterest match {
+					case Some(x) => x.split("K")(0).toDouble.toLong
+					case None    => null
+				}
+			)
 			rec.put("open_interest_unit", openInterestUnit)
 
 			producerApi.sendAvro(
