@@ -109,6 +109,23 @@ JAR_DEST="$ROOT/services_streaming_lane/app.jar"
 SBT_ASSEMBLY_ABS="${SPARK_DIR}/source/target/scala-2.12/spark-processor-assembly-0.1.0-SNAPSHOT.jar"
 APP_JAR_PATH_IN_IMAGE="/opt/spark/app/app.jar"
 
+# ========= kubectl config ========
+KUBE_CONTEXT="${KUBE_CONTEXT:-kind-${CLUSTER_NAME}}"
+
+ensure_kubectl_context() {
+	local cur
+	cur="$(command kubectl config current-context 2>/dev/null || true)"
+	if [[ "${cur}" != "${KUBE_CONTEXT}" ]]; then
+		echo "ERROR: wrong kubectl context: current='${cur}' expected='${KUBE_CONTEXT}'" >&2
+		exit 1
+	fi
+}
+
+kubectl() {
+	ensure_kubectl_context
+	command kubectl "$@"
+}
+
 # ========= Helpers =========
 need() { command -v "$1" >/dev/null 2>&1 || { echo "Missing dependency: $1"; exit 1; }; }
 have() { [[ -f "$1" ]] || { echo "Required file not found: $1"; exit 1; }; }
