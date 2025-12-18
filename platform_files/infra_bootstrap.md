@@ -1,37 +1,34 @@
-PORTFOLIO INFRASTRUCTURE BOOTSTRAP
+# Portfolio Infrastructure Bootstrap
 
 This document records the exact steps taken to bootstrap the portfolio infrastructure using Hetzner Cloud, k3s, and Terraform Cloud.
 The goal is pragmatic setup, reproducibility, and clarity.
 
-==================================================
-ACCOUNTS
-==================================================
+## Accounts
 
-HETZNER CLOUD
+### Hetzner Cloud
 Account created at
 https://console.hetzner.cloud/
 
-Two factor authentication enabled.
+Two-factor authentication enabled.
 Default project created.
 
-TERRAFORM CLOUD
+### Terraform Cloud
 Account created at
 https://portal.cloud.hashicorp.com/sign-in
 
 Free tier used.
 Purpose is remote Terraform state and execution.
 
-==================================================
-HETZNER CLOUD CONFIGURATION
-==================================================
+## Hetzner Cloud Configuration
 
-HETZNER API TOKEN
-In the Hetzner Console open the user menu in the top right and navigate to API Tokens.
+### Hetzner API Token
+In the Hetzner Console, open the user menu in the top right and navigate to API Tokens.
+
 A token named terraform-quant-data-platform was created.
 The token was copied once.
 The token is stored only in Terraform Cloud.
 
-PRIVATE NETWORK
+### Private Network
 A private network was created in the Hetzner Console.
 
 Name
@@ -45,22 +42,20 @@ CIDR
 
 All servers are attached to this network.
 
-FIREWALL
+### Firewall
 A firewall was created and attached only to the control plane server.
 
 Inbound rules allow access only from the developer public IP.
 
-TCP port 22 for SSH.
-TCP port 6443 for Kubernetes API.
+SSH access on TCP port 22.
+Kubernetes API access on TCP port 6443.
 ICMP allowed for diagnostics.
 
 Worker nodes have no public IP and are not directly reachable.
 
-==================================================
-CONTROL PLANE SERVER
-==================================================
+## Control Plane Server
 
-SERVER CREATION
+### Server Creation
 A server named control-plane-server-1 was created with regular performance.
 
 320 GB NVMe disk included.
@@ -71,70 +66,56 @@ Existing SSH public key used.
 Backups disabled.
 Volumes not configured.
 Labels empty.
-Cloud init empty.
+Cloud-init empty.
 
-DELETION PROTECTION
+### Deletion Protection
 Deletion protection enabled to prevent accidental deletion or rebuild.
 
-==================================================
-K3S INSTALLATION
-==================================================
+## k3s Installation
 
-SSH ACCESS
-Command used to connect to the control plane server:
-
+### SSH Access
 ssh root@<public-ip>
 
-INSTALL K3S SERVER
-The server is forced to advertise its private IP so all cluster traffic stays on the private network.
-
+### Install k3s Server
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip 10.0.0.2" sh -
 
-VERIFY INSTALLATION
+### Verify Installation
 kubectl get nodes
 
 The control plane node appears in Ready state.
 
-==================================================
-KUBERNETES ACCESS FROM LOCAL MACHINE
-==================================================
+## Kubernetes Access from Local Machine
 
-RETRIEVE KUBECONFIG
-On the control plane server:
-
+### Retrieve kubeconfig
 cat /etc/rancher/k3s/k3s.yaml
 
-LOCAL CONFIGURATION
+### Local Configuration
 The file was saved as ~/.kube/config on the local machine.
-The server address was changed from
-https://127.0.0.1:6443
-to
-https://<control-plane-public-ip>:6443
 
-TEST
-kubectl get nodes
+If kind was previously used, the kubeconfig must be merged so multiple contexts can coexist.
 
-kubectl and the Python Kubernetes client both use this kubeconfig.
+Direct public access fails TLS validation, therefore SSH port-forwarding is used.
 
-==================================================
-TERRAFORM CLOUD SETUP
-==================================================
+### Access via SSH Tunnel
+ssh -N -L 6443:127.0.0.1:6443 root@<public-ip>
 
-ORGANIZATION
-Organization created with name:
+In another terminal:
+kubectl --context k3s-hetzner get nodes
+
+Both kubectl and the Python Kubernetes client use the same kubeconfig.
+
+## Terraform Cloud Setup
+
+### Organization
 Quant_Data_Platform
 
-WORKSPACE
-Workspace created with name:
+### Workspace
 hetzner-test
 
-Workflow type:
-CLI driven
+Workflow type: CLI-driven
+Execution mode: Remote
 
-Execution mode:
-Remote
-
-STORE HETZNER TOKEN
+### Store Hetzner Token
 Workspace variable created.
 
 Key
@@ -145,15 +126,12 @@ Hetzner API token
 
 Marked as sensitive.
 
-==================================================
-TERRAFORM INSTALLATION
-==================================================
+## Terraform Installation
 
-CHECK INSTALLATION
+### Check Installation
 terraform version
 
-INSTALL TERRAFORM ON UBUNTU 24.04
-
+### Install Terraform on Ubuntu 24.04
 sudo apt-get update
 sudo apt-get install -y gnupg software-properties-common curl
 curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
@@ -161,19 +139,14 @@ echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://
 sudo apt-get update
 sudo apt-get install -y terraform
 
-==================================================
-TERRAFORM CLOUD VERIFICATION
-==================================================
+## Terraform Cloud Verification
 
-CREATE TEST DIRECTORY
-
+### Create Test Directory
 mkdir -p ~/tf-test
 cd ~/tf-test
-
 nano main.tf
 
-MAIN.TF CONTENT
-
+### main.tf Content
 terraform {
   cloud {
     organization = "Quant_Data_Platform"
@@ -192,12 +165,10 @@ terraform {
 
 provider "hcloud" {}
 
-TERRAFORM LOGIN
-
+### Terraform Login
 terraform login
 
-INIT AND PLAN
-
+### Init and Plan
 terraform init
 terraform plan
 
@@ -205,25 +176,10 @@ The plan runs remotely in Terraform Cloud.
 State is stored remotely.
 Hetzner provider authentication works via the workspace variable.
 
-==================================================
-DEVELOPMENT MODEL
-==================================================
+## Development Model
 
-TERRAFORM
+### Terraform
 Terraform can be run from the control plane VM or the local development machine.
 Terraform Cloud handles state and remote execution.
 The Hetzner API token is never stored locally.
 
-KUBERNETES
-kubectl uses ~/.kube/config and communicates with the API server on port 6443.
-The Python Kubernetes client uses the same kubeconfig.
-
-==================================================
-NEXT STEP
-==================================================
-
-Create Terraform module for worker nodes.
-Use cloud init to install k3s agent with the control plane private IP and join token.
-Verify workers with kubectl get nodes.
-
-END OF DOCUMENT
