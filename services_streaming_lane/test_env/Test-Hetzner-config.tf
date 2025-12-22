@@ -1,5 +1,3 @@
-// Test-Hetzner-config.tf
-
 terraform {
 	cloud {
 		organization = "Quant_Data_Platform"
@@ -17,6 +15,11 @@ terraform {
 }
 
 variable "HCLOUD_TOKEN" {
+	type      = string
+	sensitive = true
+}
+
+variable "k3s_token" {
 	type      = string
 	sensitive = true
 }
@@ -88,13 +91,26 @@ resource "hcloud_server" "test_worker" {
 		env      = "test"
 		workload = local.workers[count.index].workload
 	}
+
+user_data = <<-EOF
+#cloud-config
+runcmd:t
+  - |
+    while ! ip -4 addr show enp7s0 | grep -q 'inet '; do sleep 2; done
+    IP=$(ip -4 addr show enp7s0 | awk '/inet / {print $2}' | cut -d/ -f1)
+    curl -sfL https://get.k3s.io | \
+      K3S_URL="https://10.0.0.2:6443" \
+      K3S_TOKEN="${var.k3s_token}" \
+      INSTALL_K3S_EXEC="agent --node-ip $IP" \
+      K3S_NODE_LABEL="node-role.kubernetes.io/worker=true" \
+      sh -
+EOF
+
 }
 
 resource "hcloud_firewall_attachment" "test_worker_fw" {
 	firewall_id = data.hcloud_firewall.basic.id
-	server_ids  = [
-		for s in hcloud_server.test_worker : s.id
-	]
+	server_ids  = [for s in hcloud_server.test_worker : s.id]
 }
 
 output "test_worker_public_ipv4" {
