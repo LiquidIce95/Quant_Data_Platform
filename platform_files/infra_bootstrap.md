@@ -84,6 +84,15 @@ kubectl get nodes
 
 The control plane node appears in Ready state.
 
+### Store join secret in terraform backend
+ssh into the control plane server, execute 
+
+```bash
+sudo cat /var/lib/rancher/k3s/server/node-token
+```
+
+Then store the secret as a sensitive variable in terraform cloud with the key 'k3s_token'
+
 ## Kubernetes Access from Local Machine
 
 ### Retrieve kubeconfig
@@ -167,6 +176,12 @@ provider "hcloud" {}
 
 ### Terraform Login
 terraform login
+
+Will prompt you to create a token and store it, the token cannot be viewed in the UI afterwards but with the command 
+
+```bash
+cat ~/.terraform.d/credentials.tfrc.json
+```
 
 ### Init and Plan
 terraform init
