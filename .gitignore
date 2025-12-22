@@ -19,3 +19,5 @@ airflow.db
 logs
 standalone_admin_password.txt
 webserver_config.py
+services_streaming_lane/test_env/.terraform/
+services_streaming_lane/test_env/.terraform.lock.hcl
