@@ -57,6 +57,7 @@ def kubectl_get_nodes()->str:
 	check = "control-plane-server-1"
 	return apply_command(comm,check)
 
+
 def check_workers_present()->str:
 	output= kubectl_get_nodes()
 	if (
