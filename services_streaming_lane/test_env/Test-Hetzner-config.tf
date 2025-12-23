@@ -94,7 +94,7 @@ resource "hcloud_server" "test_worker" {
 
 user_data = <<-EOF
 #cloud-config
-runcmd:t
+runcmd:
   - |
     while ! ip -4 addr show enp7s0 | grep -q 'inet '; do sleep 2; done
     IP=$(ip -4 addr show enp7s0 | awk '/inet / {print $2}' | cut -d/ -f1)
