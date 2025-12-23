@@ -6,6 +6,7 @@ import subprocess
 
 def apply_command(command : list[str], check_string:str) -> str:
 	"""
+	
 	Docstring for apply_command
 	
 	:param command: like ["terraform", "apply", "-auto-approve"] commands and flags seperated
