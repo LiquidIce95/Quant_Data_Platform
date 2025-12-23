@@ -89,6 +89,7 @@ def create_cluster_test()->bool:
 	assert("Command ran successful" in terraform_apply())
 	assert("Command ran successful" in check_workers_present())
 
+
 def tear_down_cluster_test()->bool:
 	"""
 	Docstring for tear_down_cluster_test
