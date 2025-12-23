@@ -81,6 +81,8 @@ def create_cluster_test()->bool:
 	"""
 	Docstring for create_cluster_test
 	Creates the test cluster and checks if worker nodes are correctly registered
+	You need to run the ssh tunel command yourself and switch the kubectl context to hetzner cloud for local dev
+	On the k3s server this does not need to be done
 	:return: Description
 	:rtype: bool
 	"""
