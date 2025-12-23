@@ -7,7 +7,6 @@
 	"workspaceFolder": "/usr/src/app/",
 
 	"mounts": [
-		"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached",
 		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
 	],
 
