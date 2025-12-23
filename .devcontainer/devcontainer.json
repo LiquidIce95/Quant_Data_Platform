@@ -15,6 +15,7 @@
 		"source=${localEnv:HOME}/.ssh/id_ed25519_gitlab_personal.pub,target=/root/.ssh/id_ed25519_gitlab_personal.pub,type=bind,consistency=cached,readonly"
 
 	],
+	// IMPORTANT, you need to manually create /root/.ssh/config with the same values as your host config, to use multple ssh keys for different gitlab accounts
 	"remoteEnv": { "SSH_AUTH_SOCK": "/ssh-agent" },
 	"remoteUser": "root",
 	"updateRemoteUserUID": false,
