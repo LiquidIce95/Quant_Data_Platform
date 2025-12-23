@@ -14,7 +14,7 @@
 	"remoteUser": "root",
 	"updateRemoteUserUID": false,
 
-	"postCreateCommand": "bash -lc 'git config --global --add safe.directory /work && curl -sL https://aka.ms/InstallAzureCLIDeb | bash'",
+	"postCreateCommand": "bash -lc 'chown -R root:root /root/.ssh && chmod 700 /root/.ssh && chmod 600 /root/.ssh/config /root/.ssh/id_rsa /root/.ssh/id_ed25519_gitlab_personal && chmod 644 /root/.ssh/*.pub && git config --global --add safe.directory /work && curl -sL https://aka.ms/InstallAzureCLIDeb | bash'",
 
 	"runArgs": ["--network=host"],
 
