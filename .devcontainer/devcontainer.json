@@ -7,14 +7,19 @@
 	"workspaceFolder": "/usr/src/app/",
 
 	"mounts": [
-		"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached",
-		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
-	],
+		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+		"source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind",
+		"source=${localEnv:HOME}/.ssh/id_rsa,target=/root/.ssh/id_rsa,type=bind,consistency=cached,readonly",
+		"source=${localEnv:HOME}/.ssh/id_rsa.pub,target=/root/.ssh/id_rsa.pub,type=bind,consistency=cached,readonly",
+		"source=${localEnv:HOME}/.ssh/id_ed25519_gitlab_personal,target=/root/.ssh/id_ed25519_gitlab_personal,type=bind,consistency=cached,readonly",
+		"source=${localEnv:HOME}/.ssh/id_ed25519_gitlab_personal.pub,target=/root/.ssh/id_ed25519_gitlab_personal.pub,type=bind,consistency=cached,readonly"
 
+	],
+	"remoteEnv": { "SSH_AUTH_SOCK": "/ssh-agent" },
 	"remoteUser": "root",
 	"updateRemoteUserUID": false,
 
-	"postCreateCommand": "bash -lc 'git config --global --add safe.directory /work && curl -sL https://aka.ms/InstallAzureCLIDeb | bash'",
+	"postCreateCommand": "bash -lc 'git config --global --add safe.directory /work &&  curl -sL https://aka.ms/InstallAzureCLIDeb | bash'",
 
 	"runArgs": ["--network=host"],
 
