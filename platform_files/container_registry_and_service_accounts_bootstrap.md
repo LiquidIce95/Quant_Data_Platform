@@ -75,6 +75,7 @@ SP_APP_ID="$(az ad sp create-for-rbac --name "$SP_NAME" --scopes "$ACR_ID" --rol
 SP_PASSWORD="$(az ad sp credential reset --id "$SP_APP_ID" --query password -o tsv)"
 ```
 
+
 ## 5. using the secrets in kuberentes
 
 **Anytime** you create a namespace run the following commmands after its creation, with the correct namespace name of course
