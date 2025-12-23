@@ -6,7 +6,8 @@
 	"workspaceMount": "source=${localWorkspaceFolder},target=/usr/src/app/,type=bind,consistency=cached",
 	"workspaceFolder": "/usr/src/app/",
 
-	"mounts": [
+	"mounts": [		
+		"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached",
 		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
 	],
 
