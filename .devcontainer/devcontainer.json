@@ -7,14 +7,15 @@
 	"workspaceFolder": "/usr/src/app/",
 
 	"mounts": [		
-		"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached",
-		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+		"source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"
 	],
 
 	"remoteUser": "root",
+	"remoteEnv": { "SSH_AUTH_SOCK": "/ssh-agent" },
 	"updateRemoteUserUID": false,
 
-	"postCreateCommand": "bash -lc 'chown -R root:root /root/.ssh && chmod 700 /root/.ssh && chmod 600 /root/.ssh/config /root/.ssh/id_rsa /root/.ssh/id_ed25519_gitlab_personal && chmod 644 /root/.ssh/*.pub && git config --global --add safe.directory /work && curl -sL https://aka.ms/InstallAzureCLIDeb | bash'",
+	"postCreateCommand": "bash -lc 'git config --global --add safe.directory /work && curl -sL https://aka.ms/InstallAzureCLIDeb | bash'",
 
 	"runArgs": ["--network=host"],
 
