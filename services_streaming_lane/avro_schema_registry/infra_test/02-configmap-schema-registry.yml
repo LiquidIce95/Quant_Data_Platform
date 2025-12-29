@@ -1,13 +1,12 @@
-# 02-configmap-schema-registry.yml
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: schema-registry-config
-  namespace: avro-schema-registry
+  namespace: test-avro-schema-registry
 data:
   schema-registry.properties: |
     listeners=http://0.0.0.0:8081
-    kafkastore.bootstrap.servers=PLAINTEXT://dev-kafka-kafka-bootstrap.kafka:9092
+    kafkastore.bootstrap.servers=PLAINTEXT://test-kafka-kafka-bootstrap.test-kafka:9092
     kafkastore.topic=_schemas
     schema.registry.group.id=schema-registry
     inter.instance.protocol=http

@@ -1,9 +1,8 @@
-# 05-ib-connector-rbac.yml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: ib-connector
-  namespace: ${NAMESPACE_IB}
+  namespace: test-ib-connector
   annotations:
     azure.workload.identity/client-id: "cda8806f-1f13-4335-8ff2-2ce55f32b2bc"
 ---
@@ -11,7 +10,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: ib-connector-pod-reader
-  namespace: ${NAMESPACE_IB}
+  namespace: test-ib-connector
 rules:
   - apiGroups: [""]
     resources: ["pods"]
@@ -21,11 +20,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: ib-connector-pod-reader-binding
-  namespace: ${NAMESPACE_IB}
+  namespace: test-ib-connector
 subjects:
   - kind: ServiceAccount
     name: ib-connector
-    namespace: ${NAMESPACE_IB}
+    namespace: test-ib-connector
 roleRef:
   kind: Role
   name: ib-connector-pod-reader

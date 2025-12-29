@@ -1,8 +1,8 @@
-# 10-kafka-cluster.yml
 apiVersion: kafka.strimzi.io/v1beta2
 kind: Kafka
 metadata:
-  name: dev-kafka
+  name: test-kafka
+  namespace: test-kafka
 spec:
   kafka:
     version: 4.1.0
@@ -26,9 +26,10 @@ spec:
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaNodePool
 metadata:
-  name: dev-kafka-all
+  name: test-kafka-all
+  namespace: test-kafka
   labels:
-    strimzi.io/cluster: dev-kafka
+    strimzi.io/cluster: test-kafka
 spec:
   replicas: 1
   roles:

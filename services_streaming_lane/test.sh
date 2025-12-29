@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -10,24 +9,23 @@ set -euo pipefail
 # - Cluster is already configured for:
 #   - ACR pulls via per-namespace imagePullSecret "acr-pull"
 #   - KeyVault pulls via Workload Identity + CSI driver (IB connector manifests reference this)
-# - All manifests are in infra_prod and are tested; this script only injects namespace + image refs via envsubst.
+# - All manifests are in infra_test and are tested; this script only injects values via envsubst.
 
 # ========= Environment prefix (HARD separation) =========
 ENVIRONMENT_PREFIX="test"
 
-# ========= Deterministic image naming =========
-IMAGE_TAG="${IMAGE_TAG:-dev}"
+# ========= Deterministic image tag =========
+IMAGE_TAG="test"
 
-# ========= Namespaces =========
-NAMESPACE_IB_LEGACY="${ENVIRONMENT_PREFIX}-ib-connector-legacy"
-NAMESPACE_IB="${ENVIRONMENT_PREFIX}-ib-connector"
-NAMESPACE_KAFKA="${ENVIRONMENT_PREFIX}-kafka"
-NAMESPACE_SPARK="${ENVIRONMENT_PREFIX}-spark"
-NAMESPACE_CLICKHOUSE="${ENVIRONMENT_PREFIX}-clickhouse"
-NAMESPACE_AVRO="${ENVIRONMENT_PREFIX}-avro-schema-registry"
+# ========= Namespaces (MUST MATCH infra_test YAMLs) =========
+NAMESPACE_IB="test-ib-connector"
+NAMESPACE_KAFKA="test-kafka"
+NAMESPACE_SPARK="test-spark"
+NAMESPACE_CLICKHOUSE="test-clickhouse"
+NAMESPACE_AVRO="test-avro-schema-registry"
 
-# ========= Kafka / Strimzi =========
-KAFKA_NAME="${ENVIRONMENT_PREFIX}-kafka"
+# ========= Kafka / Strimzi (MUST MATCH infra_test YAMLs) =========
+KAFKA_NAME="test-kafka"
 STRIMZI_URL="https://strimzi.io/install/latest?namespace=${NAMESPACE_KAFKA}"
 BOOTSTRAP_LOCAL_PORT="${BOOTSTRAP_LOCAL_PORT:-9092}"
 
@@ -42,58 +40,53 @@ SPARK_APP_CLASS="${SPARK_APP_CLASS:-com.yourorg.spark.ReadTickLastPrint}"
 ACR_PULL_SECRET_NAME="acr-pull"
 CH_PASSWORD_SECRET_NAME="clickhouse-password"
 
-# ========= Images (ACR) =========
-IMG_IB_CONNECTOR="${ACR_LOGIN_SERVER}/${ENVIRONMENT_PREFIX}-ib-connector:${IMAGE_TAG}"
-IMG_IB_LEGACY="${ACR_LOGIN_SERVER}/${ENVIRONMENT_PREFIX}-ib-connector-legacy:${IMAGE_TAG}"
-IMG_CLICKHOUSE="${ACR_LOGIN_SERVER}/${ENVIRONMENT_PREFIX}-clickhouse:${IMAGE_TAG}"
-IMG_SPARK_BASE="${ACR_LOGIN_SERVER}/${ENVIRONMENT_PREFIX}-spark-base:${IMAGE_TAG}"
-IMG_SPARK_APP="${ACR_LOGIN_SERVER}/${ENVIRONMENT_PREFIX}-spark-app:${IMAGE_TAG}"
+# ========= Images (ACR) (MUST MATCH infra_test image names) =========
+IMG_IB_CONNECTOR="${ACR_LOGIN_SERVER}/test-ib-connector:${IMAGE_TAG}"
+IMG_CLICKHOUSE="${ACR_LOGIN_SERVER}/test-clickhouse:${IMAGE_TAG}"
+IMG_SPARK_BASE="${ACR_LOGIN_SERVER}/test-spark-base:${IMAGE_TAG}"
+IMG_SPARK_APP="${ACR_LOGIN_SERVER}/test-spark-app:${IMAGE_TAG}"
 
 # ========= Repo paths =========
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 KAFKA_DIR="$ROOT/services_streaming_lane/kafka_message_broker"
-IB_DIR_LEGACY="$ROOT/services_streaming_lane/ib_connector_legacy/source"
 SPARK_DIR="$ROOT/services_streaming_lane/spark_processor"
 SPARK_HOME="$ROOT/services_streaming_lane/spark-${SPARK_VERSION}-bin-hadoop3"
 
 CLICKHOUSE_DIR="$ROOT/services_streaming_lane/click_house"
-CLICKHOUSE_INFRA_DIR="$CLICKHOUSE_DIR/infra_prod"
+CLICKHOUSE_INFRA_DIR="$CLICKHOUSE_DIR/infra_test"
 
-# ========= Kafka manifests (infra_prod) =========
-NS_FILE="$KAFKA_DIR/infra_prod/00-namespace.yml"
-KAFKA_FILE="$KAFKA_DIR/infra_prod/10-kafka-cluster.yml"
-TOPICS_FILE="$KAFKA_DIR/infra_prod/20-topics.yml"
+IB_DIR="$ROOT/services_streaming_lane/ib_connector"
+IB_SRC_DIR="$IB_DIR/source"
 
-# ========= Spark infra files (infra_prod) =========
-SPARK_NS_FILE="$SPARK_DIR/infra_prod/00-namespace.yml"
-SPARK_RBAC_FILE="$SPARK_DIR/infra_prod/10-rbac.yml"
-SPARK_DRIVER_POD_TMPL="$SPARK_DIR/infra_prod/20-driver-pod-template.yml"
-SPARK_EXEC_POD_TMPL="$SPARK_DIR/infra_prod/21-executor-pod-template.yml"
-SPARK_DEFAULTS_FILE="$SPARK_DIR/infra_prod/30-spark-defaults.conf"
+AVRO_REG_DIR="$ROOT/services_streaming_lane/avro_schema_registry"
+AVRO_REG_INFRA_DIR="$AVRO_REG_DIR/infra_test"
+AVRO_SCHEMA_DIR="$AVRO_REG_DIR/category_schemas"
 
-# ========= ClickHouse infra files (infra_prod) =========
+# ========= Kafka manifests (infra_test) =========
+NS_FILE="$KAFKA_DIR/infra_test/00-namespace.yml"
+KAFKA_FILE="$KAFKA_DIR/infra_test/10-kafka-cluster.yml"
+TOPICS_FILE="$KAFKA_DIR/infra_test/20-topics.yml"
+
+# ========= Spark infra files (infra_test) =========
+SPARK_NS_FILE="$SPARK_DIR/infra_test/00-namespace.yml"
+SPARK_RBAC_FILE="$SPARK_DIR/infra_test/10-rbac.yml"
+SPARK_DRIVER_POD_TMPL="$SPARK_DIR/infra_test/20-driver-pod-template.yml"
+SPARK_EXEC_POD_TMPL="$SPARK_DIR/infra_test/21-executor-pod-template.yml"
+SPARK_DEFAULTS_FILE="$SPARK_DIR/infra_test/30-spark-defaults.conf"
+
+# ========= ClickHouse infra files (infra_test) =========
 CLICKHOUSE_NS_FILE="$CLICKHOUSE_INFRA_DIR/00-namespace.yml"
 CLICKHOUSE_POD_FILE="$CLICKHOUSE_INFRA_DIR/10-clickhouse-pod.yml"
 CLICKHOUSE_SVC_FILE="$CLICKHOUSE_INFRA_DIR/20-clickhouse-svc.yml"
 
-# ========= IB Connector (legacy) infra (infra_prod) =========
-IB_NS_FILE_LEGACY="$ROOT/services_streaming_lane/ib_connector_legacy/infra_prod/00-namespace.yml"
-IB_POD_FILE_LEGACY="$ROOT/services_streaming_lane/ib_connector_legacy/infra_prod/10-ib-connector-pod.yml"
+# ========= IB Connector (current) infra (infra_test) =========
+IB_NS_FILE="$IB_DIR/infra_test/00-namespace.yml"
+IB_RBAC_FILE="$IB_DIR/infra_test/05-ib-connector-rbac.yml"
+IB_POD_FILE="$IB_DIR/infra_test/10-ib-connector-pod.yml"
 
-# ========= IB Connector (current) infra (infra_prod) =========
-IB_DIR="$ROOT/services_streaming_lane/ib_connector"
-IB_SRC_DIR="$IB_DIR/source"
-IB_NS_FILE="$IB_DIR/infra_prod/00-namespace.yml"
-IB_RBAC_FILE="$IB_DIR/infra_prod/05-ib-connector-rbac.yml"
-IB_POD_FILE="$IB_DIR/infra_prod/10-ib-connector-pod.yml"
-
-# ========= Avro Schema Registry (infra_prod) =========
-AVRO_REG_DIR="$ROOT/services_streaming_lane/avro_schema_registry"
-AVRO_REG_INFRA_DIR="$AVRO_REG_DIR/infra_prod"
-AVRO_SCHEMA_DIR="$AVRO_REG_DIR/category_schemas"
-
+# ========= Avro Schema Registry (infra_test) =========
 AVRO_REG_NS_FILE="$AVRO_REG_INFRA_DIR/01-namespace.yml"
 AVRO_REG_CFG_FILE="$AVRO_REG_INFRA_DIR/02-configmap-schema-registry.yml"
 AVRO_REG_DEPLOY_FILE="$AVRO_REG_INFRA_DIR/03-deployment-schema-registry.yml"
@@ -112,7 +105,6 @@ AVRO_SCHEMA_ECO="$AVRO_SCHEMA_DIR/numeric_economic_data.avsc"
 JAR_DEST="$ROOT/services_streaming_lane/app.jar"
 SBT_ASSEMBLY_ABS="${SPARK_DIR}/source/target/scala-2.12/spark-processor-assembly-0.1.0-SNAPSHOT.jar"
 APP_JAR_PATH_IN_IMAGE="/opt/spark/app/app.jar"
-
 
 # ========= Helpers =========
 need() { command -v "$1" >/dev/null 2>&1 || { echo "Missing dependency: $1"; exit 1; }; }
@@ -281,36 +273,12 @@ register_avro_schemas() {
 	kill "$PF_PID" >/dev/null 2>&1 || true
 }
 
-# ========= IB Connector (LEGACY) =========
-build_push_ib_connector_legacy() {
-	need docker
-	have "$IB_DIR_LEGACY/Dockerfile"
-	docker build -t "$IMG_IB_LEGACY" "$IB_DIR_LEGACY"
-	docker push "$IMG_IB_LEGACY"
-}
-
-deploy_ib_connector_legacy() {
-	need envsubst
-	have "$IB_NS_FILE_LEGACY"
-	have "$IB_POD_FILE_LEGACY"
-
-	export NAMESPACE_IB_LEGACY
-	envsubst < "$IB_NS_FILE_LEGACY" | kubectl apply -f -
-	apply_acr_pull_secret "$NAMESPACE_IB_LEGACY"
-
-	export NAMESPACE_IB_LEGACY NAMESPACE_KAFKA KAFKA_NAME IMG_IB_LEGACY
-	envsubst < "$IB_POD_FILE_LEGACY" | kubectl apply -f -
-
-	kubectl -n "$NAMESPACE_IB_LEGACY" wait --for=condition=Ready pod/ib-connector-legacy --timeout=180s || true
-	kubectl -n "$NAMESPACE_IB_LEGACY" get pods -o wide || true
-}
-
 # ========= IB Connector (CURRENT) =========
 build_push_ib_connector() {
 	need docker
 	have "$IB_SRC_DIR/Dockerfile"
-	have "$IB_DIR/infra_prod/ibkr_truststore.jks"
-	have "$IB_DIR/infra_prod/ibkr_client_portal.pem"
+	have "$IB_DIR/infra_test/ibkr_truststore.jks"
+	have "$IB_DIR/infra_test/ibkr_client_portal.pem"
 
 	docker build \
 		-f "$IB_SRC_DIR/Dockerfile" \
@@ -386,6 +354,7 @@ DOCKERFILE
 deploy_spark() {
 	need envsubst
 	have "$SPARK_NS_FILE"; have "$SPARK_RBAC_FILE"; have "$SPARK_DEFAULTS_FILE"
+
 	export NAMESPACE_SPARK
 	envsubst < "$SPARK_NS_FILE" | kubectl apply -f -
 	apply_acr_pull_secret "$NAMESPACE_SPARK"
@@ -452,7 +421,6 @@ deploy_clickhouse() {
 # ========= Batch image build =========
 build_push_images() {
 	build_push_clickhouse
-	build_push_ib_connector_legacy
 	build_push_ib_connector
 	deploy_spark
 }
@@ -464,7 +432,6 @@ status() {
 	echo "== Spark =="; kubectl -n "$NAMESPACE_SPARK" get pods -o wide || true
 	echo "== ClickHouse =="; kubectl -n "$NAMESPACE_CLICKHOUSE" get pods -o wide || true
 	echo "== IB =="; kubectl -n "$NAMESPACE_IB" get pods -o wide || true
-	echo "== IB Legacy =="; kubectl -n "$NAMESPACE_IB_LEGACY" get pods -o wide || true
 	echo "== Avro =="; kubectl -n "$NAMESPACE_AVRO" get pods -o wide || true
 }
 
@@ -478,7 +445,6 @@ Cluster:
 Images:
   build_push_images
   build_push_clickhouse
-  build_push_ib_connector_legacy
   build_push_ib_connector
   deploy_spark
 
@@ -486,7 +452,6 @@ Infra:
   deploy_kafka
   deploy_avro_registry_schema
   register_avro_schemas
-  deploy_ib_connector_legacy
   deploy_ib_connector
   deploy_clickhouse
 
@@ -513,14 +478,12 @@ case "$cmd" in
 
 	build_push_images) build_push_images ;;
 	build_push_clickhouse) build_push_clickhouse ;;
-	build_push_ib_connector_legacy) build_push_ib_connector_legacy ;;
 	build_push_ib_connector) build_push_ib_connector ;;
 	deploy_spark) deploy_spark ;;
 
 	deploy_kafka) deploy_kafka ;;
 	deploy_avro_registry_schema) deploy_avro_registry_schema ;;
 	register_avro_schemas) register_avro_schemas ;;
-	deploy_ib_connector_legacy) deploy_ib_connector_legacy ;;
 	deploy_ib_connector) deploy_ib_connector ;;
 	deploy_clickhouse) deploy_clickhouse ;;
 
@@ -532,4 +495,3 @@ case "$cmd" in
 	status) status ;;
 	help|*) usage ;;
 esac
-

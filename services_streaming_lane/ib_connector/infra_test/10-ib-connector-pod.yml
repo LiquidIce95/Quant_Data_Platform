@@ -1,9 +1,8 @@
-# 10-ib-connector-pod.yml
 apiVersion: v1
 kind: Pod
 metadata:
   name: ib-connector
-  namespace: ${NAMESPACE_IB}
+  namespace: test-ib-connector
 spec:
   serviceAccountName: ib-connector
   imagePullSecrets:
@@ -17,16 +16,16 @@ spec:
           secretProviderClass: ib-kv
   containers:
     - name: ib-connector
-      image: ib-connector:dev
+      image: test-ib-connector
       volumeMounts:
         - name: kv-secrets
           mountPath: /mnt/secrets
           readOnly: true
       env:
         - name: KAFKA_BOOTSTRAP_SERVERS
-          value: "${KAFKA_NAME}-kafka-bootstrap.${NAMESPACE_KAFKA}:9092"
+          value: "test-kafka-kafka-bootstrap.test-kafka:9092"
         - name: SCHEMA_REGISTRY_URL
-          value: "http://schema-registry.avro-schema-registry:8081"
+          value: "http://schema-registry.test-avro-schema-registry:8081"
         - name: POD_NAME
           valueFrom:
             fieldRef:

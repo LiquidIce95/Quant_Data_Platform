@@ -1,15 +1,14 @@
-# 10-rbac.yml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: spark-sa
-  namespace: spark
+  namespace: test-spark
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: spark-role
-  namespace: spark
+  namespace: test-spark
 rules:
   - apiGroups: [""]
     resources:
@@ -33,11 +32,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: spark-rolebinding
-  namespace: spark
+  namespace: test-spark
 subjects:
   - kind: ServiceAccount
     name: spark-sa
-    namespace: spark
+    namespace: test-spark
 roleRef:
   kind: Role
   name: spark-role

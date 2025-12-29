@@ -1,5 +1,4 @@
-# 00-namespace.yml
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: kafka
+  name: test-kafka

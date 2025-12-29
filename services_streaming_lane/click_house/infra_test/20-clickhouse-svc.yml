@@ -1,9 +1,8 @@
-# 20-clickhouse-svc.yml
 apiVersion: v1
 kind: Service
 metadata:
   name: clickhouse
-  namespace: ${NAMESPACE_CLICKHOUSE}
+  namespace: test-clickhouse
   labels:
     app: clickhouse
 spec:

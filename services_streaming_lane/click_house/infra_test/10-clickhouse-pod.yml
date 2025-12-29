@@ -1,9 +1,8 @@
-# 10-clickhouse-pod.yml
 apiVersion: v1
 kind: Pod
 metadata:
   name: clickhouse
-  namespace: ${NAMESPACE_CLICKHOUSE}
+  namespace: test-clickhouse
   labels:
     app: clickhouse
 spec:
@@ -11,7 +10,7 @@ spec:
     - name: acr-pull
   containers:
     - name: clickhouse
-      image: clickhouse:dev
+      image: test-clickhouse
       imagePullPolicy: IfNotPresent
       env:
         - name: TZ

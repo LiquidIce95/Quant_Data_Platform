@@ -1,7 +1,6 @@
-# 00-namespace.yml
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: spark
+  name: test-spark
   labels:
     azure.workload.identity/use: "true"

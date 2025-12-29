@@ -1,9 +1,8 @@
-# kustomization.yml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
   - 01-namespace.yml
   - 02-configmap-schema-registry.yml
-  - 03-deloyment-schema-registry.yml
+  - 03-deployment-schema-registry.yml
   - 04-service-schema-registry.yml

@@ -1,11 +1,10 @@
-# 20-topics.yml
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
 metadata:
   name: derivatives-tick-market-data
-  namespace: kafka
+  namespace: test-kafka
   labels:
-    strimzi.io/cluster: dev-kafka
+    strimzi.io/cluster: test-kafka
 spec:
   topicName: derivatives_tick_market_data
   partitions: 3
@@ -18,9 +17,9 @@ apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
 metadata:
   name: derivatives-l2-market-data
-  namespace: kafka
+  namespace: test-kafka
   labels:
-    strimzi.io/cluster: dev-kafka
+    strimzi.io/cluster: test-kafka
 spec:
   topicName: derivatives_l2_market_data
   partitions: 3
@@ -33,9 +32,9 @@ apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
 metadata:
   name: indicators
-  namespace: kafka
+  namespace: test-kafka
   labels:
-    strimzi.io/cluster: dev-kafka
+    strimzi.io/cluster: test-kafka
 spec:
   topicName: indicators
   partitions: 3
@@ -48,9 +47,9 @@ apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
 metadata:
   name: numeric-economic-data
-  namespace: kafka
+  namespace: test-kafka
   labels:
-    strimzi.io/cluster: dev-kafka
+    strimzi.io/cluster: test-kafka
 spec:
   topicName: numeric_economic_data
   partitions: 3
