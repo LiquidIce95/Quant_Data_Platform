@@ -3,6 +3,8 @@
 This document describes the creation of an Azure Container Registry (ACR)
 used by a k3s cluster running on Hetzner to pull application images.
 
+For local development use 'az login'
+
 Scope: **registry creation only**.
 
 ---
@@ -65,7 +67,7 @@ Make sure that ECHO $ACR_LOGIN_SERVER looks like qdpregistry.*.azurecr.io where 
 
 you may want to verify by running the command and then checking echo $ACR_ID
 
-**IMPORTANT: you only do this ONCE on the K3s server, doing it multple times may break the authenctication**
+**IMPORTANT: you only do this ONCE on the K3s server, doing it multple times may break the authentication**
 
 Now we create the account
 For security best practices, trust the process and dont echo these vars, can be seen in log traces.

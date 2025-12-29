@@ -1,0 +1,47 @@
+# 10-clickhouse-pod.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: clickhouse
+  namespace: ${NAMESPACE_CLICKHOUSE}
+  labels:
+    app: clickhouse
+spec:
+  imagePullSecrets:
+    - name: acr-pull
+  containers:
+    - name: clickhouse
+      image: clickhouse:dev
+      imagePullPolicy: IfNotPresent
+      env:
+        - name: TZ
+          value: "Europe/Zurich"
+        - name: CLICKHOUSE_USER
+          value: "spark"
+        - name: CLICKHOUSE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: clickhouse-spark-user
+              key: password
+      ports:
+        - name: http
+          containerPort: 8123
+        - name: tcp
+          containerPort: 9000
+        - name: interserver
+          containerPort: 9009
+      readinessProbe:
+        httpGet:
+          path: /ping
+          port: 8123
+        initialDelaySeconds: 5
+        periodSeconds: 5
+      livenessProbe:
+        httpGet:
+          path: /ping
+          port: 8123
+        initialDelaySeconds: 10
+        periodSeconds: 10
+  nodeSelector:
+    ${LBL_KEY}: ${LBL_VAL_SPARK}
+  restartPolicy: Always

@@ -1,0 +1,7 @@
+# 00-namespace.yml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ib-connector
+  labels:
+    azure.workload.identity/use: "true"

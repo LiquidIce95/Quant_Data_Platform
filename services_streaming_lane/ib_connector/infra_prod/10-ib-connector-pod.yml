@@ -1,0 +1,40 @@
+# 10-ib-connector-pod.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ib-connector
+  namespace: ${NAMESPACE_IB}
+spec:
+  serviceAccountName: ib-connector
+  imagePullSecrets:
+    - name: acr-pull
+  volumes:
+    - name: kv-secrets
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: ib-kv
+  containers:
+    - name: ib-connector
+      image: ib-connector:dev
+      volumeMounts:
+        - name: kv-secrets
+          mountPath: /mnt/secrets
+          readOnly: true
+      env:
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "${KAFKA_NAME}-kafka-bootstrap.${NAMESPACE_KAFKA}:9092"
+        - name: SCHEMA_REGISTRY_URL
+          value: "http://schema-registry.avro-schema-registry:8081"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+  nodeSelector:
+    ${LBL_KEY}: ${LBL_VAL_KAFKA}
+  restartPolicy: Always
