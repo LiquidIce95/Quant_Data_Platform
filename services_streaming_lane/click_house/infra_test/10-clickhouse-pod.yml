@@ -41,6 +41,4 @@ spec:
           port: 8123
         initialDelaySeconds: 10
         periodSeconds: 10
-  nodeSelector:
-    ${LBL_KEY}: ${LBL_VAL_SPARK}
   restartPolicy: Always
