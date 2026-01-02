@@ -11,7 +11,7 @@ NAMESPACE_IB="${NAMESPACE_IB:-ib-connector}"
 # Kafka / Strimzi
 NAMESPACE_KAFKA="${NAMESPACE_KAFKA:-kafka}"
 KAFKA_NAME="${KAFKA_NAME:-dev-kafka}"
-STRIMZI_URL="${STRIMZI_URL:-https://strimzi.io/install/latest?namespace=${NAMESPACE_KAFKA}}"
+STRIMZI_URL="https://strimzi.io/install/0.49.1?namespace=${NAMESPACE_KAFKA}"
 BOOTSTRAP_LOCAL_PORT="${BOOTSTRAP_LOCAL_PORT:-9092}"
 
 # Spark (K8s)
@@ -351,7 +351,28 @@ simulate_stream_legacy() {
 }
 
 # ========= IB Connector (CURRENT) — stupid simple deploy =========
+sync_ibkr_secrets_from_keyvault() {
+	need az
+	need kubectl
+
+	local KV_NAME="ibkr-secrets"
+	local NS="${NAMESPACE_IB}"
+	local K8S_SECRET_NAME="ibkr-secret"
+
+	local USERNAME_1
+	local PASSWORD_1
+
+	USERNAME_1="$(az keyvault secret show --vault-name "${KV_NAME}" --name "ibkr-username-1" --query value -o tsv)"
+	PASSWORD_1="$(az keyvault secret show --vault-name "${KV_NAME}" --name "ibkr-password-1" --query value -o tsv)"
+
+	kubectl -n "${NS}" create secret generic "${K8S_SECRET_NAME}" \
+		--from-literal="IBKR_USERNAME_1=${USERNAME_1}" \
+		--from-literal="IBKR_PASSWORD_1=${PASSWORD_1}" \
+		--dry-run=client -o yaml | kubectl apply -f -
+}
+
 deploy_ib_connector() {
+	# Ensure you ran az login and it was successfull!
 	need docker; need kind; need kubectl; need envsubst
 
 	have "$IB_NS_FILE"
@@ -365,6 +386,9 @@ deploy_ib_connector() {
 
 	echo "[ib-connector] Applying namespace …"
 	kubectl apply -f "$IB_NS_FILE"
+
+	echo "syncing the secrets from the key vault"
+	sync_ibkr_secrets_from_keyvault()
 
 	echo "[ib-connector] Building image ib-connector:dev from ${IB_SRC_DIR} …"
 	
