@@ -6,14 +6,15 @@ metadata:
   labels:
     app: clickhouse
 spec:
+  imagePullSecrets:
+    - name: dockerhub-pull
   containers:
     - name: clickhouse
-      image: clickhouse:dev
+      image: commodore95/quant_data_platform_repository:clickhouse-dev
       imagePullPolicy: IfNotPresent
       env:
         - name: TZ
           value: "Europe/Zurich"
-        # Enable network access with explicit user/pw
         - name: CLICKHOUSE_USER
           value: "spark"
         - name: CLICKHOUSE_PASSWORD

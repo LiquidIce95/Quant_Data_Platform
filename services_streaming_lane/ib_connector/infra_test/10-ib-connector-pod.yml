@@ -19,7 +19,7 @@ spec:
       image: test-ib-connector
       envFrom:
         - secretRef:
-          name: ibkr-secret
+            name: ibkr-secret
       volumeMounts:
         - name: kv-secrets
           mountPath: /mnt/secrets

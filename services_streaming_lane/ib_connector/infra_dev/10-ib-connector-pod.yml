@@ -5,12 +5,14 @@ metadata:
   namespace: ${NAMESPACE_IB}
 spec:
   serviceAccountName: ib-connector
+  imagePullSecrets:
+    - name: dockerhub-pull
   containers:
     - name: ib-connector
-      image: ib-connector:dev
+      image: commodore95/quant_data_platform_repository:ib-connector-dev
       envFrom:
         - secretRef:
-          name: ibkr-secret
+            name: ibkr-secret
       env:
         - name: KAFKA_BOOTSTRAP_SERVERS
           value: "${KAFKA_NAME}-kafka-bootstrap.${NAMESPACE_KAFKA}:9092"
@@ -24,6 +26,4 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-  nodeSelector:
-    ${LBL_KEY}: ${LBL_VAL_KAFKA}
   restartPolicy: Always

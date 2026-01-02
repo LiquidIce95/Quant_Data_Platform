@@ -110,6 +110,61 @@ JAR_DEST="$ROOT/services_streaming_lane/app.jar"
 SBT_ASSEMBLY_ABS="${SPARK_DIR}/source/target/scala-2.12/spark-processor-assembly-0.1.0-SNAPSHOT.jar"
 APP_JAR_PATH_IN_IMAGE="/opt/spark/app/app.jar"
 
+# ========= Docker Hub ============
+DOCKERHUB_USER="commodore95"
+DOCKERHUB_REPO="commodore95/quant_data_platform_repository"
+DOCKERHUB_TOKEN_KV_NAME="ibkr-secrets"
+DOCKERHUB_TOKEN_SECRET_NAME="docker-hub-token"
+DOCKERHUB_PULL_SECRET_NAME="dockerhub-pull"
+
+
+create_dockerhub_pull_secret() {
+	need az
+	need kubectl
+
+	local NS="${1:-}"
+	[[ -n "${NS}" ]] || { echo "ERROR: missing namespace argument" >&2; return 1; }
+
+	local TOKEN
+	TOKEN="$(az keyvault secret show --vault-name "${DOCKERHUB_TOKEN_KV_NAME}" --name "${DOCKERHUB_TOKEN_SECRET_NAME}" --query value -o tsv)"
+
+	kubectl -n "${NS}" create secret docker-registry "${DOCKERHUB_PULL_SECRET_NAME}" \
+		--docker-server="https://index.docker.io/v1/" \
+		--docker-username="${DOCKERHUB_USER}" \
+		--docker-password="${TOKEN}" \
+		--docker-email="unused@example.com" \
+		--dry-run=client -o yaml | kubectl apply -f -
+}
+
+get_dockerhub_token() {
+	need az
+	az keyvault secret show --vault-name "${DOCKERHUB_TOKEN_KV_NAME}" --name "${DOCKERHUB_TOKEN_SECRET_NAME}" --query value -o tsv
+}
+
+push_to_dockerhub() {
+	need docker
+
+	local LOCAL_IMAGE="${1:-}"
+	[[ -n "${LOCAL_IMAGE}" ]] || { echo "ERROR: missing image argument" >&2; return 1; }
+
+	local TOKEN
+	TOKEN="$(get_dockerhub_token)"
+
+	docker login -u "${DOCKERHUB_USER}" -p "${TOKEN}"
+
+	local TAG_SAFE
+	TAG_SAFE="${LOCAL_IMAGE//\//-}"
+	TAG_SAFE="${TAG_SAFE//:/-}"
+
+	local REMOTE_IMAGE="${DOCKERHUB_REPO}:${TAG_SAFE}"
+
+	docker tag "${LOCAL_IMAGE}" "${REMOTE_IMAGE}"
+	docker push "${REMOTE_IMAGE}"
+
+	printf '%s\n' "${REMOTE_IMAGE}"
+}
+
+
 set_deployment_env() {
 	local env="${1:-}"
 	case "$env" in
@@ -137,23 +192,6 @@ set_deployment_env() {
 	done
 }
 
-
-# ========= kubectl config ========
-KUBE_CONTEXT="${KUBE_CONTEXT:-kind-${CLUSTER_NAME}}"
-
-ensure_kubectl_context() {
-	local cur
-	cur="$(command kubectl config current-context 2>/dev/null || true)"
-	if [[ "${cur}" != "${KUBE_CONTEXT}" ]]; then
-		echo "ERROR: wrong kubectl context: current='${cur}' expected='${KUBE_CONTEXT}'" >&2
-		exit 1
-	fi
-}
-
-kubectl() {
-	ensure_kubectl_context
-	command kubectl "$@"
-}
 
 # ========= Helpers =========
 need() { command -v "$1" >/dev/null 2>&1 || { echo "Missing dependency: $1"; exit 1; }; }
@@ -192,6 +230,8 @@ down() { kind delete cluster --name "${CLUSTER_NAME}" || true; }
 install_strimzi() {
 	have "$NS_FILE"; have "$KAFKA_FILE"
 	kubectl apply -f "$NS_FILE"
+	create_dockerhub_pull_secret "${NAMESPACE_KAFKA}"
+
 	kubectl apply -n "$NAMESPACE_KAFKA" -f "$STRIMZI_URL"
 	kubectl -n "$NAMESPACE_KAFKA" rollout status deployment/strimzi-cluster-operator
 }
@@ -237,7 +277,7 @@ preload_avro_registry_image() {
 	echo "[schema-registry] Pre-pulling image on host …"
 	docker pull confluentinc/cp-schema-registry:7.6.1
 	echo "[schema-registry] Loading image into kind cluster '${CLUSTER_NAME}' …"
-	kind load docker-image confluentinc/cp-schema-registry:7.6.1 --name "$CLUSTER_NAME"
+	push_to_dockerhub "confluentinc/cp-schema-registry:7.6.1" >/dev/null
 }
 
 
@@ -251,6 +291,8 @@ deploy_avro_registry_schema() {
 	have "$AVRO_REG_SVC_FILE"
 
 	kubectl apply -f "$AVRO_REG_NS_FILE"
+	create_dockerhub_pull_secret "${NAMESPACE_AVRO}"
+
 	kubectl apply -n "$NAMESPACE_AVRO" -f "$AVRO_REG_CFG_FILE"
 	kubectl apply -n "$NAMESPACE_AVRO" -f "$AVRO_REG_DEPLOY_FILE"
 	kubectl apply -n "$NAMESPACE_AVRO" -f "$AVRO_REG_SVC_FILE"
@@ -323,12 +365,14 @@ deploy_ib_connector_legacy() {
 
 	echo "[ib-connector-legacy] Applying namespace …"
 	kubectl apply -f "$IB_NS_FILE_LEGACY"
+	create_dockerhub_pull_secret "${NAMESPACE_IB_LEGACY}"
+
 
 	echo "[ib-connector-legacy] Building image ib-connector-legacy:dev from ${IB_DIR_LEGACY} …"
 	docker build -t ib-connector-legacy:dev "$IB_DIR_LEGACY"
 
 	echo "[ib-connector-legacy] Loading image into kind cluster '${CLUSTER_NAME}' …"
-	kind load docker-image ib-connector-legacy:dev --name "$CLUSTER_NAME"
+	push_to_dockerhub "ib-connector-legacy:dev" >/dev/null
 
 	echo "[ib-connector-legacy] Applying pod manifest …"
 	export NAMESPACE_IB_LEGACY NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
@@ -386,6 +430,8 @@ deploy_ib_connector() {
 
 	echo "[ib-connector] Applying namespace …"
 	kubectl apply -f "$IB_NS_FILE"
+	create_dockerhub_pull_secret "${NAMESPACE_IB}"
+
 
 	echo "syncing the secrets from the key vault"
 	sync_ibkr_secrets_from_keyvault()
@@ -398,7 +444,7 @@ deploy_ib_connector() {
 		"$ROOT/services_streaming_lane"
 
 	echo "[ib-connector] Loading image into kind cluster '${CLUSTER_NAME}' …"
-	kind load docker-image ib-connector:dev --name "$CLUSTER_NAME"
+	push_to_dockerhub "ib-connector:dev" >/dev/null
 
 	echo "[ib-connector] Applying RBAC manifest …"
 	export NAMESPACE_IB NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
@@ -440,7 +486,7 @@ build_base_spark_image() {
 	need docker; need kind
 	have "$SPARK_HOME/bin/docker-image-tool.sh"
 	(cd "$SPARK_HOME" && sudo ./bin/docker-image-tool.sh -t "$SPARK_IMAGE_TAG" build)
-	kind load docker-image "spark:${SPARK_IMAGE_TAG}" --name "${CLUSTER_NAME}"
+	push_to_dockerhub "spark:${SPARK_IMAGE_TAG}" >/dev/null
 }
 
 build_fat_jar() {
@@ -472,13 +518,15 @@ FROM spark:${SPARK_IMAGE_TAG}
 COPY services_streaming_lane/app.jar ${APP_JAR_PATH_IN_IMAGE}
 DOCKERFILE
 	)
-	kind load docker-image "spark:${APP_IMAGE_TAG}" --name "${CLUSTER_NAME}"
+	push_to_dockerhub "spark:${APP_IMAGE_TAG}" >/dev/null
 }
 
 deploy_spark() {
 	need kubectl
 	have "$SPARK_NS_FILE"; have "$SPARK_RBAC_FILE"; have "$SPARK_DEFAULTS_FILE"
 	kubectl apply -f "$SPARK_NS_FILE"
+	create_dockerhub_pull_secret "${NAMESPACE_SPARK}"
+
 	kubectl apply -f "$SPARK_RBAC_FILE"
 	build_base_spark_image
 	build_fat_jar
@@ -558,11 +606,12 @@ build_clickhouse_image() {
 
 deploy_clickhouse() {
 	need docker; need kind; need kubectl; need envsubst
-	build_clickhouse_image
-	kind load docker-image "${CLICKHOUSE_IMAGE_TAG}" --name "${CLUSTER_NAME}"
 
 	have "${CLICKHOUSE_NS_FILE}"
 	kubectl apply -f "${CLICKHOUSE_NS_FILE}"
+	create_dockerhub_pull_secret "${NAMESPACE_CLICKHOUSE}"
+	build_clickhouse_image
+	push_to_dockerhub "${CLICKHOUSE_IMAGE_TAG}" >/dev/null
 
 	have "${CLICKHOUSE_POD_FILE}"
 	have "${CLICKHOUSE_SVC_FILE}"
