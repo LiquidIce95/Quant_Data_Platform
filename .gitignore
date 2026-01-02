@@ -23,3 +23,4 @@ services_streaming_lane/test_env/.terraform/
 services_streaming_lane/test_env/.terraform.lock.hcl
 ervices_streaming_lane/prod_env/.terraform/
 services_streaming_lane/prod_env/.terraform.lock.hcl
+.env.secrets

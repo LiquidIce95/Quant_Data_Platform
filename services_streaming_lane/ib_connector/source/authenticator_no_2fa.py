@@ -5,23 +5,10 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from azure.identity import DefaultAzureCredential
-from azure.keyvault.secrets import SecretClient
-
+import os
 
 LOGIN_URL_DEV = "https://localhost:5000"
 STATUS_URL_DEV = "https://localhost:5000/v1/api/iserver/auth/status"
-KEYVAULT_NAME = "ibkr-secrets"
-KEYVAULT_URL = f"https://{KEYVAULT_NAME}.vault.azure.net"
-
-
-def build_secret_client() -> SecretClient:
-	"""
-	Build a SecretClient using DefaultAzureCredential.
-	"""
-	credential = DefaultAzureCredential()
-	client = SecretClient(vault_url=KEYVAULT_URL, credential=credential)
-	return client
 
 
 def get_ibkr_credentials(user_id: int) -> tuple[str, str]:
@@ -32,13 +19,11 @@ def get_ibkr_credentials(user_id: int) -> tuple[str, str]:
 	  ibkr-username-{user_id}
 	  ibkr-password-{user_id}
 	"""
-	client = build_secret_client()
+	username_secret_name = f"IBKR_USERNAME_{user_id}"
+	password_secret_name = f"IBKR_PASSWORD_{user_id}"
 
-	username_secret_name = f"ibkr-username-{user_id}"
-	password_secret_name = f"ibkr-password-{user_id}"
-
-	username = client.get_secret(username_secret_name).value
-	password = client.get_secret(password_secret_name).value
+	username = os.environ[username_secret_name]
+	password = os.environ[password_secret_name]
 
 	return username, password
 

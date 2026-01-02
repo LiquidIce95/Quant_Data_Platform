@@ -1,7 +1,11 @@
 {
 	"name": "scala-ib-connector-dev",
-	//keeps build context the same as for dockerfile which needs to be services_streaming_lane
 	"build": { "dockerfile": "../Dockerfile", "context": "../../../" },
+
+	"runArgs": [
+		"--env-file",
+		"./.devcontainer/.env.secrets"
+	],
 
 	"workspaceMount": "source=${localWorkspaceFolder}/../../..,target=/work,type=bind,consistency=cached",
 	"workspaceFolder": "/work/services_streaming_lane/ib_connector/source",
@@ -13,8 +17,7 @@
 	"remoteUser": "root",
 	"updateRemoteUserUID": false,
 
-	"postCreateCommand": "bash -lc 'git config --global --add safe.directory /work && curl -sL https://aka.ms/InstallAzureCLIDeb | bash && mkdir -p /work/services_streaming_lane/ib_connector/source/src/main/scala/category_schemas && cp -f /work/services_streaming_lane/avro_schema_registry/category_schemas/*.avsc /work/services_streaming_lane/ib_connector/source/src/main/scala/category_schemas/'",
-	//very important these postcreate annd poststart commands 
+	"postCreateCommand": "bash -lc 'set -euo pipefail && git config --global --add safe.directory /work && mkdir -p /work/services_streaming_lane/ib_connector/source/src/main/scala/category_schemas && cp -f /work/services_streaming_lane/avro_schema_registry/category_schemas/*.avsc /work/services_streaming_lane/ib_connector/source/src/main/scala/category_schemas/'",
 	"postStartCommand": "bash -lc '/usr/local/bin/ibkr-entrypoint.sh true'",
 
 	"containerEnv": {
@@ -22,7 +25,6 @@
 		"IB_PORT": "4002",
 		"IB_CLIENT_ID": "1"
 	},
-
 
 	"customizations": {
 		"vscode": {
@@ -40,3 +42,4 @@
 		}
 	}
 }
+
