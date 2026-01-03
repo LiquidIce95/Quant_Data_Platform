@@ -30,7 +30,7 @@ provider "hcloud" {
 
 variable "server_type" {
 	type    = string
-	default = "cpx22"
+	default = "cpx32"
 }
 
 data "hcloud_network" "k3s_private" {
