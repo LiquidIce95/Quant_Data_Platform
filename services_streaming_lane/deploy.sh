@@ -4,6 +4,13 @@ set -euo pipefail
 # ========= Settings (override via env if needed) =========
 CLUSTER_NAME="${CLUSTER_NAME:-kind}"
 
+# ========= Docker Hub ============
+DOCKERHUB_USER="commodore95"
+DOCKERHUB_REPO="commodore95/quant_data_platform_repository"
+DOCKERHUB_TOKEN_KV_NAME="ibkr-secrets"
+DOCKERHUB_TOKEN_SECRET_NAME="docker-hub-token"
+DOCKERHUB_PULL_SECRET_NAME="dockerhub-pull"
+
 # IB namespace (legacy kept separate)
 NAMESPACE_IB_LEGACY="${NAMESPACE_IB_LEGACY:-ib-connector-legacy}"
 NAMESPACE_IB="${NAMESPACE_IB:-ib-connector}"
@@ -11,14 +18,14 @@ NAMESPACE_IB="${NAMESPACE_IB:-ib-connector}"
 # Kafka / Strimzi
 NAMESPACE_KAFKA="${NAMESPACE_KAFKA:-kafka}"
 KAFKA_NAME="${KAFKA_NAME:-dev-kafka}"
-STRIMZI_URL="https://strimzi.io/install/0.49.1?namespace=${NAMESPACE_KAFKA}"
+STRIMZI_URL="https://strimzi.io/install/latest?namespace=${NAMESPACE_KAFKA}"
 BOOTSTRAP_LOCAL_PORT="${BOOTSTRAP_LOCAL_PORT:-9092}"
 
 # Spark (K8s)
 NAMESPACE_SPARK="${NAMESPACE_SPARK:-spark}"
 SPARK_SA="${SPARK_SA:-spark-sa}"
 SPARK_VERSION="${SPARK_VERSION:-3.5.7}"
-SPARK_IMAGE_TAG="${SPARK_IMAGE_TAG:-our-own-apache-spark-kb8}"
+SPARK_IMAGE_TAG="${DOCKERHUB_REPO}:spark-our-own-apache-spark-kb8"
 APP_IMAGE_TAG="${APP_IMAGE_TAG:-${SPARK_IMAGE_TAG}-app}"
 SPARK_APP_CLASS="${SPARK_APP_CLASS:-com.yourorg.spark.ReadTickLastPrint}"
 
@@ -110,12 +117,6 @@ JAR_DEST="$ROOT/services_streaming_lane/app.jar"
 SBT_ASSEMBLY_ABS="${SPARK_DIR}/source/target/scala-2.12/spark-processor-assembly-0.1.0-SNAPSHOT.jar"
 APP_JAR_PATH_IN_IMAGE="/opt/spark/app/app.jar"
 
-# ========= Docker Hub ============
-DOCKERHUB_USER="commodore95"
-DOCKERHUB_REPO="commodore95/quant_data_platform_repository"
-DOCKERHUB_TOKEN_KV_NAME="ibkr-secrets"
-DOCKERHUB_TOKEN_SECRET_NAME="docker-hub-token"
-DOCKERHUB_PULL_SECRET_NAME="dockerhub-pull"
 
 
 create_dockerhub_pull_secret() {
@@ -276,7 +277,7 @@ preload_avro_registry_image() {
 	need docker; need kind
 	echo "[schema-registry] Pre-pulling image on host …"
 	docker pull confluentinc/cp-schema-registry:7.6.1
-	echo "[schema-registry] Loading image into kind cluster '${CLUSTER_NAME}' …"
+	echo "[schema-registry] Loading image into docker hub '${CLUSTER_NAME}' …"
 	push_to_dockerhub "confluentinc/cp-schema-registry:7.6.1" >/dev/null
 }
 
@@ -434,7 +435,7 @@ deploy_ib_connector() {
 
 
 	echo "syncing the secrets from the key vault"
-	sync_ibkr_secrets_from_keyvault()
+	sync_ibkr_secrets_from_keyvault
 
 	echo "[ib-connector] Building image ib-connector:dev from ${IB_SRC_DIR} …"
 	
@@ -485,8 +486,9 @@ ib_connector_run() {
 build_base_spark_image() {
 	need docker; need kind
 	have "$SPARK_HOME/bin/docker-image-tool.sh"
-	(cd "$SPARK_HOME" && sudo ./bin/docker-image-tool.sh -t "$SPARK_IMAGE_TAG" build)
-	push_to_dockerhub "spark:${SPARK_IMAGE_TAG}" >/dev/null
+	(cd "$SPARK_HOME" && ./bin/docker-image-tool.sh -t "$SPARK_IMAGE_TAG" build)
+	SPARK_REMOTE_BASE_IMAGE="$(push_to_dockerhub "spark:${SPARK_IMAGE_TAG}")"
+	export SPARK_REMOTE_BASE_IMAGE
 }
 
 build_fat_jar() {
@@ -518,7 +520,8 @@ FROM spark:${SPARK_IMAGE_TAG}
 COPY services_streaming_lane/app.jar ${APP_JAR_PATH_IN_IMAGE}
 DOCKERFILE
 	)
-	push_to_dockerhub "spark:${APP_IMAGE_TAG}" >/dev/null
+	SPARK_REMOTE_APP_IMAGE="$(push_to_dockerhub "spark:${APP_IMAGE_TAG}")"
+	export SPARK_REMOTE_APP_IMAGE
 }
 
 deploy_spark() {
@@ -549,7 +552,7 @@ start_spark_sim() {
 		--class "${SPARK_APP_CLASS}" \
 		--conf "spark.kubernetes.namespace=${NAMESPACE_SPARK}" \
 		--conf "spark.kubernetes.authenticate.driver.serviceAccountName=${SPARK_SA}" \
-		--conf "spark.kubernetes.container.image=spark:${APP_IMAGE_TAG}" \
+		--conf "spark.kubernetes.container.image=${APP_IMAGE_TAG}" \
 		--conf "spark.kubernetes.container.image.pullPolicy=IfNotPresent" \
 		--conf "spark.kubernetes.driver.podTemplateFile=${SPARK_DRIVER_POD_TMPL}" \
 		--conf "spark.kubernetes.executor.podTemplateFile=${SPARK_EXEC_POD_TMPL}" \
@@ -574,7 +577,7 @@ start_spark_sim2() {
 		--class org.apache.spark.examples.SparkPi \
 		--conf "spark.kubernetes.namespace=${NAMESPACE_SPARK}" \
 		--conf "spark.kubernetes.authenticate.driver.serviceAccountName=${SPARK_SA}" \
-		--conf "spark.kubernetes.container.image=spark:${SPARK_IMAGE_TAG}" \
+		--conf "spark.kubernetes.container.image=${SPARK_REMOTE_BASE_IMAGE}" \
 		--conf "spark.kubernetes.container.image.pullPolicy=IfNotPresent" \
 		--conf "spark.executor.instances=2" \
 		"local:///opt/spark/examples/jars/app.jar" 1000
@@ -746,5 +749,6 @@ case "$cmd" in
 	status) status ;;
 	down) down ;;
 	azure_authenticate_first) azure_authenticate_first;;
+	label_workers) label_workers;;
 	help|*) usage ;;
 esac
