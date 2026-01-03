@@ -25,8 +25,9 @@ BOOTSTRAP_LOCAL_PORT="${BOOTSTRAP_LOCAL_PORT:-9092}"
 NAMESPACE_SPARK="${NAMESPACE_SPARK:-spark}"
 SPARK_SA="${SPARK_SA:-spark-sa}"
 SPARK_VERSION="${SPARK_VERSION:-3.5.7}"
-SPARK_IMAGE_TAG="${DOCKERHUB_REPO}:spark-our-own-apache-spark-kb8"
+SPARK_IMAGE_TAG="spark-our-own-apache-spark-kb8"
 APP_IMAGE_TAG="${APP_IMAGE_TAG:-${SPARK_IMAGE_TAG}-app}"
+SPARK_IMAGE_ADDRESS="${DOCKERHUB_REPO}:${APP_IMAGE_TAG}"
 SPARK_APP_CLASS="${SPARK_APP_CLASS:-com.yourorg.spark.ReadTickLastPrint}"
 
 # ClickHouse (disjoint namespace)
@@ -516,7 +517,7 @@ build_app_image() {
 	need docker; need kind
 	have "${JAR_DEST}"
 	( cd "$ROOT" && docker build -t "${APP_IMAGE_TAG}" -f- . <<DOCKERFILE
-FROM ${SPARK_IMAGE_TAG}
+FROM ${DOCKERHUB_REPO}:${SPARK_IMAGE_TAG}
 COPY services_streaming_lane/app.jar ${APP_JAR_PATH_IN_IMAGE}
 DOCKERFILE
 	)
@@ -552,7 +553,7 @@ start_spark_sim() {
 		--class "${SPARK_APP_CLASS}" \
 		--conf "spark.kubernetes.namespace=${NAMESPACE_SPARK}" \
 		--conf "spark.kubernetes.authenticate.driver.serviceAccountName=${SPARK_SA}" \
-		--conf "spark.kubernetes.container.image=${APP_IMAGE_TAG}" \
+		--conf "spark.kubernetes.container.image=${SPARK_IMAGE_ADDRESS}" \
 		--conf "spark.kubernetes.container.image.pullPolicy=IfNotPresent" \
 		--conf "spark.kubernetes.driver.podTemplateFile=${SPARK_DRIVER_POD_TMPL}" \
 		--conf "spark.kubernetes.executor.podTemplateFile=${SPARK_EXEC_POD_TMPL}" \
@@ -577,7 +578,7 @@ start_spark_sim2() {
 		--class org.apache.spark.examples.SparkPi \
 		--conf "spark.kubernetes.namespace=${NAMESPACE_SPARK}" \
 		--conf "spark.kubernetes.authenticate.driver.serviceAccountName=${SPARK_SA}" \
-		--conf "spark.kubernetes.container.image=${SPARK_REMOTE_BASE_IMAGE}" \
+		--conf "spark.kubernetes.container.image=${SPARK_IMAGE_ADDRESS}" \
 		--conf "spark.kubernetes.container.image.pullPolicy=IfNotPresent" \
 		--conf "spark.executor.instances=2" \
 		"local:///opt/spark/examples/jars/app.jar" 1000
