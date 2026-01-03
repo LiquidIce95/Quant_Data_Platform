@@ -487,7 +487,7 @@ build_base_spark_image() {
 	need docker; need kind
 	have "$SPARK_HOME/bin/docker-image-tool.sh"
 	(cd "$SPARK_HOME" && ./bin/docker-image-tool.sh -t "$SPARK_IMAGE_TAG" build)
-	SPARK_REMOTE_BASE_IMAGE="$(push_to_dockerhub "spark:${SPARK_IMAGE_TAG}")"
+	SPARK_REMOTE_BASE_IMAGE="$(push_to_dockerhub "${SPARK_IMAGE_TAG}")"
 	export SPARK_REMOTE_BASE_IMAGE
 }
 
