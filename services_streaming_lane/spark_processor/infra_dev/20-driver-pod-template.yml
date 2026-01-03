@@ -4,8 +4,6 @@ metadata:
   labels:
     streamlane/role: spark-driver
 spec:
-  nodeSelector:
-    streamlane/role: spark
   restartPolicy: Never
   containers:
     - name: spark-kubernetes-driver
