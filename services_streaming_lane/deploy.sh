@@ -515,12 +515,12 @@ build_fat_jar() {
 build_app_image() {
 	need docker; need kind
 	have "${JAR_DEST}"
-	( cd "$ROOT" && docker build -t "spark:${APP_IMAGE_TAG}" -f- . <<DOCKERFILE
-FROM spark:${SPARK_IMAGE_TAG}
+	( cd "$ROOT" && docker build -t "${APP_IMAGE_TAG}" -f- . <<DOCKERFILE
+FROM ${SPARK_IMAGE_TAG}
 COPY services_streaming_lane/app.jar ${APP_JAR_PATH_IN_IMAGE}
 DOCKERFILE
 	)
-	SPARK_REMOTE_APP_IMAGE="$(push_to_dockerhub "spark:${APP_IMAGE_TAG}")"
+	SPARK_REMOTE_APP_IMAGE="$(push_to_dockerhub "${APP_IMAGE_TAG}")"
 	export SPARK_REMOTE_APP_IMAGE
 }
 
