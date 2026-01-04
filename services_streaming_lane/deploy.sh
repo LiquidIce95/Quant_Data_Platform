@@ -484,6 +484,47 @@ ib_connector_run() {
 }
 
 # ========= Spark: base runtime image =========
+make_spark_submit_kubeconfig() {
+	need kubectl
+
+	local NS="${1:?missing namespace}"
+	local SA="${2:?missing serviceaccount}"
+	local OUT="${3:?missing output kubeconfig path}"
+
+	local SERVER
+	local CA
+	local TOKEN
+	local CTX
+
+	SERVER="$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')"
+	CA="$(kubectl config view --raw --minify -o jsonpath='{.clusters[0].cluster.certificate-authority-data}')"
+	TOKEN="$(kubectl -n "${NS}" create token "${SA}")"
+	CTX="spark-submit@k8s"
+
+	cat > "${OUT}" <<EOF
+apiVersion: v1
+kind: Config
+clusters:
+- name: k8s
+  cluster:
+    server: ${SERVER}
+    certificate-authority-data: ${CA}
+users:
+- name: spark-submit
+  user:
+    token: ${TOKEN}
+contexts:
+- name: ${CTX}
+  context:
+    cluster: k8s
+    user: spark-submit
+    namespace: ${NS}
+current-context: ${CTX}
+EOF
+
+	printf '%s\n' "${CTX}"
+}
+
 build_base_spark_image() {
 	need docker; need kind
 	have "$SPARK_HOME/bin/docker-image-tool.sh"
@@ -545,6 +586,11 @@ start_spark_sim() {
 	K8S_SERVER="$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')"
 	have "${JAR_DEST}"
 
+	local SUBMIT_KUBECONFIG
+	local SUBMIT_CTX
+	SUBMIT_KUBECONFIG="$(mktemp -t spark-submit-kubeconfig.XXXXXX)"
+	SUBMIT_CTX="$(make_spark_submit_kubeconfig "${NAMESPACE_SPARK}" "${SPARK_SA}" "${SUBMIT_KUBECONFIG}")"
+
 	echo "[spark] Submitting YOUR app from image spark:${APP_IMAGE_TAG} ..."
 	"${SPARK_HOME}/bin/spark-submit" \
 		--master "k8s://${K8S_SERVER}" \
@@ -552,6 +598,8 @@ start_spark_sim() {
 		--name spark-app \
 		--class "${SPARK_APP_CLASS}" \
 		--conf "spark.kubernetes.namespace=${NAMESPACE_SPARK}" \
+		--conf "spark.kubernetes.authenticate.submission.kubeconfigFile=${SUBMIT_KUBECONFIG}" \
+		--conf "spark.kubernetes.authenticate.submission.context=${SUBMIT_CTX}" \
 		--conf "spark.kubernetes.authenticate.driver.serviceAccountName=${SPARK_SA}" \
 		--conf "spark.kubernetes.container.image=${SPARK_IMAGE_ADDRESS}" \
 		--conf "spark.kubernetes.container.image.pullPolicy=IfNotPresent" \
@@ -564,11 +612,17 @@ start_spark_sim() {
 	kubectl -n "${NAMESPACE_SPARK}" logs -f "$(kubectl -n "${NAMESPACE_SPARK}" get pods -l spark-role=driver -o name | tail -n1 | cut -d/ -f2)" || true
 }
 
+
 # ========= Spark submit (MINIMAL) =========
 start_spark_sim2() {
 	need kubectl
 	local K8S_SERVER
 	K8S_SERVER="$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')"
+
+	local SUBMIT_KUBECONFIG
+	local SUBMIT_CTX
+	SUBMIT_KUBECONFIG="$(mktemp -t spark-submit-kubeconfig.XXXXXX)"
+	SUBMIT_CTX="$(make_spark_submit_kubeconfig "${NAMESPACE_SPARK}" "${SPARK_SA}" "${SUBMIT_KUBECONFIG}")"
 
 	echo "[spark] Minimal submit (examples jar) using spark:${SPARK_IMAGE_TAG} ..."
 	"${SPARK_HOME}/bin/spark-submit" \
@@ -577,6 +631,8 @@ start_spark_sim2() {
 		--name spark-pi \
 		--class org.apache.spark.examples.SparkPi \
 		--conf "spark.kubernetes.namespace=${NAMESPACE_SPARK}" \
+		--conf "spark.kubernetes.authenticate.submission.kubeconfigFile=${SUBMIT_KUBECONFIG}" \
+		--conf "spark.kubernetes.authenticate.submission.context=${SUBMIT_CTX}" \
 		--conf "spark.kubernetes.authenticate.driver.serviceAccountName=${SPARK_SA}" \
 		--conf "spark.kubernetes.container.image=${SPARK_IMAGE_ADDRESS}" \
 		--conf "spark.kubernetes.container.image.pullPolicy=IfNotPresent" \
@@ -586,6 +642,7 @@ start_spark_sim2() {
 	echo "[spark] Driver logs:"
 	kubectl -n "${NAMESPACE_SPARK}" logs -f "$(kubectl -n "${NAMESPACE_SPARK}" get pods -l spark-role=driver -o name | tail -n1 | cut -d/ -f2)" || true
 }
+
 
 peek_spark() {
 	need kubectl
@@ -681,6 +738,34 @@ azure_authenticate_first() {
 	'
 }
 
+destroy_kafka_namespace(){
+	NS="kafka"
+	CLUSTER="dev-kafka"
+
+	# 1) Delete Strimzi resources (topics/users first, then cluster)
+	kubectl -n "${NS}" delete kafkatopic --all
+	kubectl -n "${NS}" delete kafkauser --all
+	kubectl -n "${NS}" delete kafka "${CLUSTER}"
+
+	# 2) Wait until they are really gone
+	kubectl -n "${NS}" wait --for=delete kafka/"${CLUSTER}" --timeout=10m || true
+
+	# 3) (Optional, if you want a truly fresh start) delete storage
+	kubectl -n "${NS}" delete pvc --all
+
+	# 4) Delete namespace last
+	kubectl delete ns "${NS}"
+
+}
+
+destroy_non_kafka_namespaces() {
+	kubectl delete namespace spark
+	kubectl delete namespace clickhouse
+	kubectl delete namespace avro-schema-registry
+	kubectl delete namespace ib-connector
+
+}
+
 usage() {
 	cat <<EOF
 Usage: $0 <command>
@@ -689,6 +774,8 @@ Cluster:
   create_cluster_dev          Create kind cluster and label nodes (kafka/spark)
   down                        Delete kind cluster
   status                      Show nodes/pods/services/topics
+  destroy_kafka_namespace	  Deletes kafka namespace and all of its ressources
+  destroy_non_kafka_namespaces Deletes the remaining namespaces and all of their ressources
 
 Kafka:
   deploy_kafka                Install Strimzi, deploy Kafka & topics
@@ -720,6 +807,7 @@ ClickHouse:
   deploy_clickhouse           Build clickhouse:dev image, load to kind, deploy pod + service in clickhouse namespace
   peek_clickhouse_market_trades  Show 10 latest rows from quant.market_trades
 
+
 EOF
 }
 
@@ -730,6 +818,8 @@ need kubectl
 cmd="${1:-help}"
 case "$cmd" in
 	create_cluster_dev) create_cluster_dev ;;
+	destroy_non_kafka_namespaces) destroy_non_kafka_namespaces;;
+	destroy_kafka_namespace) destroy_kafka_namespace;;
 	deploy_kafka) deploy_kafka ;;
 	deploy_avro_registry_schema) deploy_avro_registry_schema ;;
 	register_avro_schemas) register_avro_schemas ;;

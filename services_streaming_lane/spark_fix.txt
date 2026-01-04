@@ -1,0 +1,52 @@
+NS="spark"
+SA="spark-sa"
+
+kubectl -n "${NS}" create token "${SA}" > /tmp/spark-sa.token
+
+SERVER="$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')"
+CA="$(kubectl config view --raw --minify -o jsonpath='{.clusters[0].cluster.certificate-authority-data}')"
+
+cat > /tmp/spark-submit.kubeconfig <<EOF
+apiVersion: v1
+kind: Config
+clusters:
+- name: k3s
+  cluster:
+    server: ${SERVER}
+    certificate-authority-data: ${CA}
+users:
+- name: spark-submit
+  user:
+    token: $(cat /tmp/spark-sa.token)
+contexts:
+- name: spark-submit@k3s
+  context:
+    cluster: k3s
+    user: spark-submit
+    namespace: ${NS}
+current-context: spark-submit@k3s
+EOF
+
+unset KUBECONFIG
+export KUBECONFIG="/tmp/spark-submit.kubeconfig"
+
+NS="spark"
+SA="spark-sa"
+CTX="spark-submit@k3s"
+SERVER="$(kubectl config view --raw --kubeconfig "${KUBECONFIG}" --minify -o jsonpath='{.clusters[0].cluster.server}')"
+
+"${SPARK_HOME}/bin/spark-submit" \
+	--master "k8s://${SERVER}" \
+	--deploy-mode cluster \
+	--name spark-app \
+	--class "${SPARK_APP_CLASS}" \
+	--conf "spark.kubernetes.namespace=${NS}" \
+	--conf "spark.kubernetes.authenticate.submission.kubeconfigFile=${KUBECONFIG}" \
+	--conf "spark.kubernetes.authenticate.submission.context=${CTX}" \
+	--conf "spark.kubernetes.authenticate.driver.serviceAccountName=${SA}" \
+	--conf "spark.kubernetes.container.image=${SPARK_IMAGE_ADDRESS}" \
+	--conf "spark.kubernetes.container.image.pullPolicy=IfNotPresent" \
+	--conf "spark.kubernetes.driver.podTemplateFile=${SPARK_DRIVER_POD_TMPL}" \
+	--conf "spark.kubernetes.executor.podTemplateFile=${SPARK_EXEC_POD_TMPL}" \
+	--properties-file "${SPARK_DEFAULTS_FILE}" \
+	"local://${APP_JAR_PATH_IN_IMAGE}"
