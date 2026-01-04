@@ -581,26 +581,52 @@ deploy_spark() {
 
 # ========= Spark submit (YOUR app.jar baked in image) =========
 start_spark_sim() {
-	need kubectl
-	local K8S_SERVER
-	K8S_SERVER="$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')"
-	have "${JAR_DEST}"
+	NS="spark"
+	SA="spark-sa"
 
-	local SUBMIT_KUBECONFIG
-	local SUBMIT_CTX
-	SUBMIT_KUBECONFIG="$(mktemp -t spark-submit-kubeconfig.XXXXXX)"
-	SUBMIT_CTX="$(make_spark_submit_kubeconfig "${NAMESPACE_SPARK}" "${SPARK_SA}" "${SUBMIT_KUBECONFIG}")"
+	kubectl -n "${NS}" create token "${SA}" > /tmp/spark-sa.token
 
-	echo "[spark] Submitting YOUR app from image spark:${APP_IMAGE_TAG} ..."
+	SERVER="$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')"
+	CA="$(kubectl config view --raw --minify -o jsonpath='{.clusters[0].cluster.certificate-authority-data}')"
+
+cat > /tmp/spark-submit.kubeconfig <<EOF
+apiVersion: v1
+kind: Config
+clusters:
+- name: k3s
+  cluster:
+    server: ${SERVER}
+    certificate-authority-data: ${CA}
+users:
+- name: spark-submit
+  user:
+    token: $(cat /tmp/spark-sa.token)
+contexts:
+- name: spark-submit@k3s
+  context:
+    cluster: k3s
+    user: spark-submit
+    namespace: ${NS}
+current-context: spark-submit@k3s
+EOF
+
+	unset KUBECONFIG
+	export KUBECONFIG="/tmp/spark-submit.kubeconfig"
+
+	NS="spark"
+	SA="spark-sa"
+	CTX="spark-submit@k3s"
+	SERVER="$(kubectl config view --raw --kubeconfig "${KUBECONFIG}" --minify -o jsonpath='{.clusters[0].cluster.server}')"
+
 	"${SPARK_HOME}/bin/spark-submit" \
-		--master "k8s://${K8S_SERVER}" \
+		--master "k8s://${SERVER}" \
 		--deploy-mode cluster \
 		--name spark-app \
 		--class "${SPARK_APP_CLASS}" \
-		--conf "spark.kubernetes.namespace=${NAMESPACE_SPARK}" \
-		--conf "spark.kubernetes.authenticate.submission.kubeconfigFile=${SUBMIT_KUBECONFIG}" \
-		--conf "spark.kubernetes.authenticate.submission.context=${SUBMIT_CTX}" \
-		--conf "spark.kubernetes.authenticate.driver.serviceAccountName=${SPARK_SA}" \
+		--conf "spark.kubernetes.namespace=${NS}" \
+		--conf "spark.kubernetes.authenticate.submission.kubeconfigFile=${KUBECONFIG}" \
+		--conf "spark.kubernetes.authenticate.submission.context=${CTX}" \
+		--conf "spark.kubernetes.authenticate.driver.serviceAccountName=${SA}" \
 		--conf "spark.kubernetes.container.image=${SPARK_IMAGE_ADDRESS}" \
 		--conf "spark.kubernetes.container.image.pullPolicy=IfNotPresent" \
 		--conf "spark.kubernetes.driver.podTemplateFile=${SPARK_DRIVER_POD_TMPL}" \
@@ -608,8 +634,8 @@ start_spark_sim() {
 		--properties-file "${SPARK_DEFAULTS_FILE}" \
 		"local://${APP_JAR_PATH_IN_IMAGE}"
 
-	echo "[spark] Driver logs:"
-	kubectl -n "${NAMESPACE_SPARK}" logs -f "$(kubectl -n "${NAMESPACE_SPARK}" get pods -l spark-role=driver -o name | tail -n1 | cut -d/ -f2)" || true
+		echo "[spark] Driver logs:"
+		kubectl -n "${NAMESPACE_SPARK}" logs -f "$(kubectl -n "${NAMESPACE_SPARK}" get pods -l spark-role=driver -o name | tail -n1 | cut -d/ -f2)" || true
 }
 
 

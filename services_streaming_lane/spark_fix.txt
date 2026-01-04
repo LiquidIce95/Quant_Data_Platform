@@ -1,3 +1,24 @@
+export ROOT="$(cd "$(pwd)/.." && pwd)"
+
+export SPARK_VERSION="3.5.7"
+export SPARK_HOME="${ROOT}/services_streaming_lane/spark-${SPARK_VERSION}-bin-hadoop3"
+
+export DOCKERHUB_REPO="commodore95/quant_data_platform_repository"
+export SPARK_IMAGE_TAG="spark-our-own-apache-spark-kb8"
+export APP_IMAGE_TAG="${SPARK_IMAGE_TAG}-app"
+export SPARK_IMAGE_ADDRESS="${DOCKERHUB_REPO}:${APP_IMAGE_TAG}"
+
+export NAMESPACE_SPARK="spark"
+export SPARK_SA="spark-sa"
+
+export SPARK_APP_CLASS="com.yourorg.spark.ReadTickLastPrint"
+
+export SPARK_DRIVER_POD_TMPL="${ROOT}/services_streaming_lane/spark_processor/infra_dev/20-driver-pod-template.yml"
+export SPARK_EXEC_POD_TMPL="${ROOT}/services_streaming_lane/spark_processor/infra_dev/21-executor-pod-template.yml"
+export SPARK_DEFAULTS_FILE="${ROOT}/services_streaming_lane/spark_processor/infra_dev/30-spark-defaults.conf"
+
+export APP_JAR_PATH_IN_IMAGE="/opt/spark/app/app.jar"
+
 NS="spark"
 SA="spark-sa"
 
