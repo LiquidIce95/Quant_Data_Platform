@@ -10,6 +10,16 @@ spec:
   containers:
     - name: ib-connector
       image: commodore95/quant_data_platform_repository:ib-connector-dev
+      workingDir: /work
+      # We use a literal block (|) to ensure the shell string is preserved exactly
+      command: ["/bin/bash", "-lc"]
+      args: 
+        - |
+          /usr/local/bin/ibkr-entrypoint.sh
+          echo "[Launcher] Waiting 30s for system stability..."
+          sleep 60
+          echo "[Launcher] Shifting to /work and starting IbConnector..."
+          cd /work && sbt -batch "runMain src.main.scala.IbConnector"
       envFrom:
         - secretRef:
             name: ibkr-secret

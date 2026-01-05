@@ -248,7 +248,13 @@ apply_topics() {
 	kubectl apply -n "$NAMESPACE_KAFKA" -f "$TOPICS_FILE"
 }
 
-deploy_kafka() { install_strimzi; apply_kafka_cluster; apply_topics; }
+deploy_kafka() { 
+	install_strimzi 
+	apply_kafka_cluster 
+	apply_topics 
+	kubectl wait --for=condition=Ready pod --all -n "${NAMESPACE_KAFKA}" --timeout=60s
+
+}
 
 peek_topic_ticklast() {
 	need kubectl
@@ -302,6 +308,12 @@ deploy_avro_registry_schema() {
 	kubectl -n "$NAMESPACE_AVRO" rollout status deployment/schema-registry --timeout=400s || true
 	kubectl -n "$NAMESPACE_AVRO" get pods -l app=schema-registry -o wide || true
 	kubectl -n "$NAMESPACE_AVRO" get svc "$AVRO_REG_SVC_NAME" -o wide || true
+
+	sleep 10
+
+	register_avro_schemas
+
+	kubectl wait --for=condition=Ready pod --all -n "${NAMESPACE_AVRO}" --timeout=60s
 }
 
 
@@ -457,7 +469,7 @@ deploy_ib_connector() {
 	envsubst < "$IB_POD_FILE" | kubectl apply -f -
 
 	echo "[ib-connector] Waiting for pod/ib-connector Ready …"
-	kubectl -n "$NAMESPACE_IB" wait --for=condition=Ready pod/ib-connector --timeout=180s || true
+	kubectl -n "$NAMESPACE_IB" wait --for=condition=Ready pod/ib-connector --timeout=360s || true
 
 	echo "[ib-connector] Pods:"
 	kubectl -n "$NAMESPACE_IB" get pods -o wide || true
@@ -483,47 +495,12 @@ ib_connector_run() {
 		'
 }
 
-# ========= Spark: base runtime image =========
-make_spark_submit_kubeconfig() {
-	need kubectl
-
-	local NS="${1:?missing namespace}"
-	local SA="${2:?missing serviceaccount}"
-	local OUT="${3:?missing output kubeconfig path}"
-
-	local SERVER
-	local CA
-	local TOKEN
-	local CTX
-
-	SERVER="$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')"
-	CA="$(kubectl config view --raw --minify -o jsonpath='{.clusters[0].cluster.certificate-authority-data}')"
-	TOKEN="$(kubectl -n "${NS}" create token "${SA}")"
-	CTX="spark-submit@k8s"
-
-	cat > "${OUT}" <<EOF
-apiVersion: v1
-kind: Config
-clusters:
-- name: k8s
-  cluster:
-    server: ${SERVER}
-    certificate-authority-data: ${CA}
-users:
-- name: spark-submit
-  user:
-    token: ${TOKEN}
-contexts:
-- name: ${CTX}
-  context:
-    cluster: k8s
-    user: spark-submit
-    namespace: ${NS}
-current-context: ${CTX}
-EOF
-
-	printf '%s\n' "${CTX}"
+ib_connector_inspect() {
+	# the last arg is the pod name 
+	kubectl -n "${NAMESPACE_IB}" logs -f ib-connector
 }
+
+# ========= Spark: base runtime image =========
 
 build_base_spark_image() {
 	need docker; need kind
@@ -580,7 +557,7 @@ deploy_spark() {
 }
 
 # ========= Spark submit (YOUR app.jar baked in image) =========
-start_spark_sim() {
+submit_spark_job() {
 	NS="spark"
 	SA="spark-sa"
 
@@ -632,12 +609,22 @@ EOF
 		--conf "spark.kubernetes.driver.podTemplateFile=${SPARK_DRIVER_POD_TMPL}" \
 		--conf "spark.kubernetes.executor.podTemplateFile=${SPARK_EXEC_POD_TMPL}" \
 		--properties-file "${SPARK_DEFAULTS_FILE}" \
-		"local://${APP_JAR_PATH_IN_IMAGE}"
+		"local://${APP_JAR_PATH_IN_IMAGE}" > /dev/null 2>&1 &
+	# Wait for Spark to register the pod in the API
+	echo "[spark] Sleeping 20s to allow Spark to create the driver pod..."
+	sleep 20
 
-		echo "[spark] Driver logs:"
-		kubectl -n "${NAMESPACE_SPARK}" logs -f "$(kubectl -n "${NAMESPACE_SPARK}" get pods -l spark-role=driver -o name | tail -n1 | cut -d/ -f2)" || true
+	# Wait for all pods in the namespace to be Ready
+	echo "[spark] Waiting for pods in namespace '${NAMESPACE_SPARK}' to be Ready..."
+	kubectl wait --for=condition=Ready pod --all -n "${NAMESPACE_SPARK}" --timeout=180s
+	
+
 }
 
+spark_insepct_driver() {
+	echo "[spark] Driver logs:"
+	kubectl -n "${NAMESPACE_SPARK}" logs -f "$(kubectl -n "${NAMESPACE_SPARK}" get pods -l spark-role=driver -o name | tail -n1 | cut -d/ -f2)" || true
+}
 
 # ========= Spark submit (MINIMAL) =========
 start_spark_sim2() {
@@ -825,7 +812,7 @@ IB Connector (current):
 
 Spark:
   deploy_spark                Apply spark infra, build base image, build app.jar, bake overlay image
-  start_spark_sim             Submit YOUR baked app (local:///opt/spark/app/app.jar)
+  submit_spark_job             Submit YOUR baked app (local:///opt/spark/app/app.jar)
   start_spark_sim2            Minimal tutorial-style SparkPi using examples JAR
   peek_spark                  Shows logs from the driver pod
 
@@ -854,8 +841,10 @@ case "$cmd" in
 	deploy_ib_connector) deploy_ib_connector ;;
 	ib_connector_play) ib_connector_play ;;
 	ib_connector_run) ib_connector_run;;
+	ib_connector_inspect) ib_connector_inspect;;
 	deploy_spark) deploy_spark ;;
-	start_spark_sim) start_spark_sim ;;
+	submit_spark_job) submit_spark_job ;;
+	spark_insepct_driver) spark_insepct_driver;;
 	start_spark_sim2) start_spark_sim2 ;;
 	deploy_clickhouse) deploy_clickhouse ;;
 	peek_clickhouse_market_trades) peek_clickhouse_market_trades ;;
