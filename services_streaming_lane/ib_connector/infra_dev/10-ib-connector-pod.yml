@@ -4,6 +4,8 @@ metadata:
   name: ib-connector
   namespace: ${NAMESPACE_IB}
 spec:
+  nodeSelector:
+    env: dev  # This matches the label we created in Task 1
   serviceAccountName: ib-connector
   imagePullSecrets:
     - name: dockerhub-pull

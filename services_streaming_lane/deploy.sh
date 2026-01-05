@@ -118,7 +118,120 @@ JAR_DEST="$ROOT/services_streaming_lane/app.jar"
 SBT_ASSEMBLY_ABS="${SPARK_DIR}/source/target/scala-2.12/spark-processor-assembly-0.1.0-SNAPSHOT.jar"
 APP_JAR_PATH_IN_IMAGE="/opt/spark/app/app.jar"
 
+label_workers() {
+	# assumes that the names of the nodes appearing in 'kubectl get nodes' are of form test-worker-1 , dev-worker-1 or prod-worker-1
+	# needs to be run like this :
+	# source ./deploy.sh
+	# set_deployment_env dev
+	# label_workers
+	# Now run this—it should succeed because it sees the variable in memory
+    # Ensure DEPLOYMENT_ENV is set
+    if [[ -z "${DEPLOYMENT_ENV:-}" ]]; then
+        echo "ERROR: DEPLOYMENT_ENV is not set. Run set_deployment_env first." >&2
+        return 1
+    fi
 
+    echo "Scanning nodes for environment: ${DEPLOYMENT_ENV}"
+
+    # Filter nodes that start with the specific environment prefix (e.g., "dev-")
+    local node_pattern="^${DEPLOYMENT_ENV}-"
+    local nodes=$(kubectl get nodes --no-headers -o custom-columns=":metadata.name" | grep -E "$node_pattern")
+
+    if [[ -z "$nodes" ]]; then
+        echo "WARNING: No nodes found matching pattern '$node_pattern'"
+        return 0
+    fi
+
+    for node in $nodes; do
+        echo "Labelling node $node with env=${DEPLOYMENT_ENV}"
+        kubectl label node "$node" env="${DEPLOYMENT_ENV}" --overwrite
+    done
+}
+
+# ========= Terraform Environment Management =========:
+# these are less dynamic and more hardcoded to avoid accidental mixture of terraform states of the different environemnts
+create_cluster_test() {
+    local target_dir="$SCRIPT_DIR/test_env"
+    
+    if [[ ! -d "$target_dir" ]]; then
+        echo "ERROR: Directory $target_dir not found." >&2
+        return 1
+    fi
+
+    echo "[terraform] Starting cluster creation in $target_dir..."
+    
+    # We use a subshell ( ) to encapsulate the directory change and execution
+    (
+        cd "$target_dir"
+        terraform init -input=false
+        # This will block until the cloud provider confirms resources are up
+        terraform apply -auto-approve -input=false
+    )
+    
+    # Because of 'set -e' at the top, if terraform fails, the script exits.
+    # If we reach this line, terraform finished successfully.
+    echo "[terraform] Success: Cluster is provisioned and ready."
+}
+
+destroy_cluster_test() {
+    local target_dir="$SCRIPT_DIR/test_env"
+    
+    if [[ ! -d "$target_dir" ]]; then
+        echo "ERROR: Directory $target_dir not found." >&2
+        return 1
+    fi
+
+    echo "[terraform] Starting cluster destruction in $target_dir..."
+    
+    (
+        cd "$target_dir"
+        # This will block until the cloud provider confirms resources are deleted
+        terraform destroy -auto-approve -input=false
+    )
+    
+    echo "[terraform] Success: Cluster resources have been torn down."
+}
+
+# ========= Terraform Production Environment =========
+
+create_cluster_prod() {
+    local target_dir="$SCRIPT_DIR/prod_env"
+    
+    if [[ ! -d "$target_dir" ]]; then
+        echo "ERROR: Production directory $target_dir not found." >&2
+        return 1
+    fi
+
+    echo "[terraform-PROD] Starting production cluster creation in $target_dir..."
+    
+    (
+        cd "$target_dir"
+        terraform init -input=false
+        # Blocks execution until the production environment is fully provisioned
+        terraform apply -auto-approve -input=false
+    )
+    
+    echo "[terraform-PROD] Success: Production cluster is provisioned."
+}
+
+destroy_cluster_prod() {
+    local target_dir="$SCRIPT_DIR/prod_env"
+    
+    if [[ ! -d "$target_dir" ]]; then
+        echo "ERROR: Production directory $target_dir not found." >&2
+        return 1
+    fi
+
+    echo "[terraform-PROD] Starting production cluster destruction in $target_dir..."
+    
+    (
+        cd "$target_dir"
+        # Blocks until all production resources are verified deleted
+        terraform destroy -auto-approve -input=false
+    )
+    
+    echo "[terraform-PROD] Success: Production resources have been torn down."
+}
 
 create_dockerhub_pull_secret() {
 	need az
@@ -165,33 +278,41 @@ push_to_dockerhub() {
 
 	printf '%s\n' "${REMOTE_IMAGE}"
 }
+# This function orchestrates the sequence in a single process
+prepare_env() {
+	# use thsi for labelling of the workers nodes
+    local target_env="${1:-}"
+    if [[ -z "$target_env" ]]; then
+        echo "ERROR: prepare_env requires an environment (dev|test|prod)" >&2
+        return 1
+    fi
 
+    # 1. Set the variable in memory
+    set_deployment_env "$target_env"
 
+    # 2. Label only the nodes matching that environment
+    label_workers
+}
 set_deployment_env() {
-	local env="${1:-}"
-	case "$env" in
-		test|dev|prod) ;;
-		*) echo "ERROR: invalid env '$env' (expected: test|dev|prod)" >&2; return 1 ;;
-	esac
+	# needs to be run like this :
+	# source ./deploy.sh
+	# set_deployment_env dev
+	# label_workers
+    local env="${1:-}"
+    
+    case "$env" in
+        test|dev|prod) ;;
+        *) 
+            echo "ERROR: invalid env '$env' (expected: test|dev|prod)" >&2
+            return 1 
+            ;;
+    esac
 
-	export DEPLOYMENT_ENV="$env"
-
-	local comps=("KAFKA" "SPARK" "CLICKHOUSE" "IB" "AVRO" "DOCKRE")
-	local comp file_var file ns_name ns_name_var
-
-	for comp in "${comps[@]}"; do
-		file_var="${comp}_NS_FILE"
-		file="${!file_var:-}"
-		[[ -n "$file" ]] || { echo "ERROR: ${file_var} not set" >&2; return 1; }
-		[[ -f "$file" ]] || { echo "ERROR: file not found: $file" >&2; return 1; }
-
-		ns_name="$(awk 'BEGIN{m=0} {k=tolower($1)} k=="metadata:"{m=1;next} m && tolower($1)=="name:"{print $2;exit}' "$file")"
-		[[ -n "$ns_name" ]] || { echo "ERROR: could not parse metadata.name from $file" >&2; return 1; }
-
-		ns_name_var="${comp}_NS_NAME"
-		printf -v "$ns_name_var" '%s' "$ns_name"
-		export "$ns_name_var"
-	done
+    # Exporting ensures that child processes and subsequent 
+    # function calls in the same script can see this.
+    export DEPLOYMENT_ENV="$env"
+    
+    echo "Deployment environment set to: $DEPLOYMENT_ENV"
 }
 
 
@@ -289,7 +410,7 @@ preload_avro_registry_image() {
 }
 
 
-deploy_avro_registry_schema() {
+deploy_avro_schema_registry() {
 	need kubectl
 	preload_avro_registry_image
 
@@ -617,7 +738,7 @@ EOF
 	# Wait for all pods in the namespace to be Ready
 	echo "[spark] Waiting for pods in namespace '${NAMESPACE_SPARK}' to be Ready..."
 	kubectl wait --for=condition=Ready pod --all -n "${NAMESPACE_SPARK}" --timeout=180s
-	
+	kubectl wait --for=jsonpath='{.status.phase}'=Running pod --all -n "${NAMESPACE_SPARK}" --timeout=180s	
 
 }
 
@@ -831,11 +952,16 @@ need kubectl
 cmd="${1:-help}"
 case "$cmd" in
 	create_cluster_dev) create_cluster_dev ;;
+	prepare_env) shift; prepare_env "$@";;
+    create_cluster_prod)  create_cluster_prod ;;
+    destroy_cluster_prod) destroy_cluster_prod ;;
+	create_cluster_test) create_cluster_test;;
+	destroy_cluster_prod) destroy_cluster_prod;;
+	set_deployment_env) shift; set_deployment_env "$@";;
 	destroy_non_kafka_namespaces) destroy_non_kafka_namespaces;;
 	destroy_kafka_namespace) destroy_kafka_namespace;;
 	deploy_kafka) deploy_kafka ;;
-	deploy_avro_registry_schema) deploy_avro_registry_schema ;;
-	register_avro_schemas) register_avro_schemas ;;
+	deploy_avro_schema_registry) deploy_avro_registry_schema ;;
 	deploy_ib_connector_legacy) deploy_ib_connector_legacy ;;
 	simulate_stream_legacy) shift; simulate_stream_legacy "$@";;
 	deploy_ib_connector) deploy_ib_connector ;;

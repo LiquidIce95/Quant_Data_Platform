@@ -4,6 +4,8 @@ metadata:
   labels:
     streamlane/role: spark-exec
 spec:
+  nodeSelector:
+    env: dev  # This matches the label we created in Task 1
   restartPolicy: Never
   containers:
     - name: spark-kubernetes-executor

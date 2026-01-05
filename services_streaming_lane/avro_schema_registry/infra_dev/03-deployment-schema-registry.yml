@@ -13,6 +13,8 @@ spec:
       labels:
         app: schema-registry
     spec:
+      nodeSelector:
+        env: dev  # This matches the label we created in Task 1
       enableServiceLinks: false   # <<< THIS IS THE FIX
       imagePullSecrets:
         - name: dockerhub-pull

@@ -6,6 +6,8 @@ metadata:
   labels:
     app: clickhouse
 spec:
+  nodeSelector:
+    env: dev  # This matches the label we created in Task 1
   imagePullSecrets:
     - name: dockerhub-pull
   containers:
