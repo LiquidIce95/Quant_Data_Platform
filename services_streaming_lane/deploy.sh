@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# ====== good to know commands =======
+# kubectl delete pods --all -n spark
+
 # ========= Settings (override via env if needed) =========
 CLUSTER_NAME="${CLUSTER_NAME:-kind}"
 
@@ -42,6 +45,9 @@ LBL_VAL_SPARK="spark"
 # ========= Repo paths =========
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+DEFAULT_DOPPLER_SECRETS_FILE="${SCRIPT_DIR}/default_secrets.yml"
+
 
 KAFKA_DIR="$ROOT/services_streaming_lane/kafka_message_broker"
 IB_DIR_LEGACY="$ROOT/services_streaming_lane/ib_connector_legacy/source"
@@ -89,6 +95,7 @@ IB_NS_FILE="$IB_DIR/infra_dev/00-namespace.yml"
 IB_RBAC_FILE="$IB_DIR/infra_dev/05-ib-connector-rbac.yml"
 IB_POD_FILE="$IB_DIR/infra_dev/10-ib-connector-pod.yml"
 IB_IMG="ib-connector:dev"
+IB_SECRETS_FILE="${IB_DIR}/infra_dev/20-secrets.yml"
 
 # ========= Avro Schema Registry =========
 NAMESPACE_AVRO="${NAMESPACE_AVRO:-avro-schema-registry}"
@@ -146,7 +153,18 @@ label_workers() {
         echo "Labelling node $node with env=${DEPLOYMENT_ENV}"
         kubectl label node "$node" env="${DEPLOYMENT_ENV}" --overwrite
     done
+} 
+
+apply_default_secrets() {
+	# install_doppler and create_doppler_service_token need to run first
+	need kubectl
+
+	have "${DEFAULT_DOPPLER_SECRETS_FILE}"
+	have "${IB_SECRETS_FILE}"
+
+	kubectl apply -f "${DEFAULT_DOPPLER_SECRETS_FILE}"
 }
+
 
 # ========= Terraform Environment Management =========:
 # these are less dynamic and more hardcoded to avoid accidental mixture of terraform states of the different environemnts
@@ -241,7 +259,7 @@ create_dockerhub_pull_secret() {
 	[[ -n "${NS}" ]] || { echo "ERROR: missing namespace argument" >&2; return 1; }
 
 	local TOKEN
-	TOKEN="$(az keyvault secret show --vault-name "${DOCKERHUB_TOKEN_KV_NAME}" --name "${DOCKERHUB_TOKEN_SECRET_NAME}" --query value -o tsv)"
+	TOKEN="$(kubectl -n default get secret "${DOCKERHUB_PULL_SECRET_NAME}" -o jsonpath='{.data.DOCKER_HUB_TOKEN}' | base64 -d)"
 
 	kubectl -n "${NS}" create secret docker-registry "${DOCKERHUB_PULL_SECRET_NAME}" \
 		--docker-server="https://index.docker.io/v1/" \
@@ -250,6 +268,25 @@ create_dockerhub_pull_secret() {
 		--docker-email="unused@example.com" \
 		--dry-run=client -o yaml | kubectl apply -f -
 }
+
+install_doppler() {
+	need kubectl
+
+	kubectl apply -f https://github.com/DopplerHQ/kubernetes-operator/releases/download/v1.7.1/recommended.yaml
+	kubectl -n doppler-operator-system get deploy
+	kubectl -n doppler-operator-system rollout status deploy/doppler-operator-controller-manager --timeout=300s
+}
+
+create_doppler_service_token_secret() {
+	need kubectl
+
+	local service_token="${1:?ERROR: missing Doppler serviceToken argument}"
+
+	kubectl -n doppler-operator-system create secret generic doppler-token-secret \
+		--from-literal="serviceToken=${service_token}" \
+		--dry-run=client -o yaml | kubectl apply -f -
+}
+
 
 get_dockerhub_token() {
 	need az
@@ -292,7 +329,9 @@ prepare_env() {
 
     # 2. Label only the nodes matching that environment
     label_workers
+	apply_default_secrets
 }
+
 set_deployment_env() {
 	# needs to be run like this :
 	# source ./deploy.sh
@@ -566,10 +605,7 @@ deploy_ib_connector() {
 	echo "[ib-connector] Applying namespace …"
 	kubectl apply -f "$IB_NS_FILE"
 	create_dockerhub_pull_secret "${NAMESPACE_IB}"
-
-
-	echo "syncing the secrets from the key vault"
-	sync_ibkr_secrets_from_keyvault
+	kubectl apply -f "${IB_SECRETS_FILE}"
 
 	echo "[ib-connector] Building image ib-connector:dev from ${IB_SRC_DIR} …"
 	
@@ -845,6 +881,24 @@ SHOW CREATE TABLE realtime_store.derivatives_tick_market_data;
 "
 }
 
+check_clickhouse_ingestion_tables() {
+	need kubectl
+
+	local NS="${NAMESPACE_CLICKHOUSE}"
+	local POD
+	local ROWS
+
+	POD="$(kubectl -n "${NS}" get pods -l app=clickhouse -o jsonpath='{.items[0].metadata.name}')"
+
+	ROWS="$(kubectl -n "${NS}" exec "${POD}" -- \
+		clickhouse-client --query "SELECT count() FROM realtime_store.derivatives_tick_market_data;" | tr -d '\r\n')"
+
+	test "${ROWS}" -gt 0
+
+	echo "[clickhouse] OK: realtime_store.derivatives_tick_market_data has ${ROWS} rows"
+}
+
+
 
 azure_authenticate_first() {
 	need kubectl
@@ -893,16 +947,19 @@ destroy_kafka_namespace(){
 }
 
 destroy_non_kafka_namespaces() {
+	kubectl delete namespace ib-connector
 	kubectl delete namespace spark
 	kubectl delete namespace clickhouse
 	kubectl delete namespace avro-schema-registry
-	kubectl delete namespace ib-connector
 
 }
 
 usage() {
 	cat <<EOF
 Usage: $0 <command>
+Doppler:
+  install_doppler                     Install Doppler K8s operator (v1.7.1) in current context
+  create_doppler_service_token_secret <serviceToken>  Create/replace doppler-token-secret in doppler-operator-system
 
 Cluster:
   create_cluster_dev          Create kind cluster and label nodes (kafka/spark)
@@ -918,7 +975,7 @@ Kafka:
   peek_topic_l2_data          Tail last 10 messages from 'l2-data'
 
 Avro Schema Registry:
-  deploy_avro_registry_schema Deploy Schema Registry into the avro-schema-registry namespace
+  deploy_avro_schema_registry Deploy Schema Registry into the avro-schema-registry namespace
   register_avro_schemas       Register all .avsc files into Schema Registry (compat=${AVRO_REG_COMPATIBILITY})
 
 IB Connector (legacy):
@@ -940,6 +997,8 @@ Spark:
 ClickHouse:
   deploy_clickhouse           Build clickhouse:dev image, load to kind, deploy pod + service in clickhouse namespace
   peek_clickhouse_market_trades  Show 10 latest rows from quant.market_trades
+  check_clickhouse_ingestion_tables   Fail if realtime_store.derivatives_tick_market_data is empty
+
 
 
 EOF
@@ -951,8 +1010,11 @@ need kubectl
 
 cmd="${1:-help}"
 case "$cmd" in
+	install_doppler) install_doppler ;;
+	create_doppler_service_token_secret) shift; create_doppler_service_token_secret "$@" ;;
 	create_cluster_dev) create_cluster_dev ;;
 	prepare_env) shift; prepare_env "$@";;
+	delete_all_pods_all_namespaces) delete_all_pods_all_namespaces;;
     create_cluster_prod)  create_cluster_prod ;;
     destroy_cluster_prod) destroy_cluster_prod ;;
 	create_cluster_test) create_cluster_test;;
@@ -961,7 +1023,7 @@ case "$cmd" in
 	destroy_non_kafka_namespaces) destroy_non_kafka_namespaces;;
 	destroy_kafka_namespace) destroy_kafka_namespace;;
 	deploy_kafka) deploy_kafka ;;
-	deploy_avro_schema_registry) deploy_avro_registry_schema ;;
+	deploy_avro_schema_registry) deploy_avro_schema_registry ;;
 	deploy_ib_connector_legacy) deploy_ib_connector_legacy ;;
 	simulate_stream_legacy) shift; simulate_stream_legacy "$@";;
 	deploy_ib_connector) deploy_ib_connector ;;
@@ -975,6 +1037,7 @@ case "$cmd" in
 	deploy_clickhouse) deploy_clickhouse ;;
 	peek_clickhouse_market_trades) peek_clickhouse_market_trades ;;
 	check_clickhouse_tables) check_clickhouse_tables ;;
+	check_clickhouse_ingestion_tables) check_clickhouse_ingestion_tables ;;
 	peek_topic_ticklast) peek_topic_ticklast ;;
 	peek_topic_l2_data) peek_topic_l2_data ;;
 	peek_spark) peek_spark ;;
