@@ -1,0 +1,24 @@
+variables:
+  SCRIPT_PATH: "services_streaming_lane/deploy.sh"
+stages:
+  - build
+  - test
+
+job_build:
+  stage: build
+  tags:
+    - master_k3
+  script:
+    - pwd
+    - echo "Building the project"
+  only:
+    - main
+
+job_test:
+  stage: test
+  tags:
+    - master_k3
+  script:
+    - echo "Running tests"
+  only: 
+    - main
