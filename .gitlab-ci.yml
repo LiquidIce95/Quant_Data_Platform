@@ -18,34 +18,35 @@ test_pipeline:
     - rsync -a ${REPO_PATH}/ib_connector/infra_test/gen-ibkr-trust.sh services_streaming_lane/ib_connector/infra_test/gen-ibkr-trust.sh
     - rsync -a ${REPO_PATH}/ib_connector/infra_test/ibkr_client_portal.pem services_streaming_lane/ib_connector/infra_test/ibkr_client_portal.pem
     - rsync -a ${REPO_PATH}/ib_connector/infra_test/ibkr_truststore.jks services_streaming_lane/ib_connector/infra_test/ibkr_truststore.jks
+    - rsync -a "${REPO_PATH}/spark-3.5.7-bin-hadoop3/" "services_streaming_lane/spark-3.5.7-bin-hadoop3/"
 
     # --- run the full pipeline sequentially (sleep 5s between steps) ---
     - bash "$SCRIPT_PATH" create_cluster_test
-    - sleep 5
+    - sleep 60
     - bash "$SCRIPT_PATH" prepare_env test
-    - sleep 5
+    - sleep 30
     - bash "$SCRIPT_PATH" deploy_kafka
-    - sleep 5
+    - sleep 10
     - bash "$SCRIPT_PATH" deploy_avro_schema_registry
-    - sleep 5
+    - sleep 10
     - bash "$SCRIPT_PATH" deploy_clickhouse
-    - sleep 5
+    - sleep 10
     - bash "$SCRIPT_PATH" deploy_spark
-    - sleep 5
+    - sleep 10
     - bash "$SCRIPT_PATH" submit_spark_job
-    - sleep 5
+    - sleep 10
     - bash "$SCRIPT_PATH" deploy_ib_connector
     - sleep 5
     - sleep 200
     - sleep 5
     - bash "$SCRIPT_PATH" check_clickhouse_ingestion_tables
-    - sleep 5
+    - sleep 10
     - bash "$SCRIPT_PATH" destroy_non_kafka_namespaces
-    - sleep 5
+    - sleep 10
     - bash "$SCRIPT_PATH" destroy_kafka_namespace
-    - sleep 5
+    - sleep 10
     - bash "$SCRIPT_PATH" destroy_cluster_test
-    - sleep 5
+    - sleep 10
     - bash "$SCRIPT_PATH" remove_workers_test
   only: [main]
 
@@ -67,8 +68,11 @@ teardown_on_failure:
   script:
     - set +e
     - bash "$SCRIPT_PATH" destroy_non_kafka_namespaces
+    - sleep 10
     - bash "$SCRIPT_PATH" destroy_kafka_namespace
+    - sleep 10
     - bash "$SCRIPT_PATH" destroy_cluster_test
+    - sleep 10
     - bash "$SCRIPT_PATH" remove_workers_test
     - exit 0
   only: [main]
