@@ -807,6 +807,22 @@ destroy_non_kafka_namespaces() {
 
 }
 
+destroy_namespace_spark() {
+	kubectl delete namespace $NAMESPACE_SPARK	
+}
+
+destroy_namespace_ib() {
+	kubectl delete namespace $NAMESPACE_IB
+}
+
+destroy_namespace_avro() {
+	kubectl delete namespace $NAMESPACE_AVRO
+}
+
+destroy_namespace_clickhouse(){
+	kubectl delete namespace $NAMESPACE_CLICKHOUSE
+}
+
 usage() {
 	cat <<EOF
 Usage: $0 <command>
@@ -851,10 +867,20 @@ ClickHouse:
   check_clickhouse_ingestion_tables   Fail if realtime_store.derivatives_tick_market_data is empty
 
 canonical use:
+  install_doppler // one time 
+  create_doppler_service_token_secret // one time
   create_cluster_test
-  install_doppler
   prepare_env test
-
+  deploy_kafka
+  deploy_avro_schema_registry
+  deploy_clickhouse
+  deploy_spark
+  submit_spark_job
+  deploy_ib_connector
+  destroy_non_kafka_namespaces
+  destroy_kafka_namespace
+  destroy_cluster_test
+  remove_workers_test
 
 
 EOF
@@ -874,6 +900,10 @@ case "$cmd" in
 	remove_workers_test) remove_workers_test;;
 	set_deployment_env) shift; set_deployment_env "$@";;
 	destroy_non_kafka_namespaces) destroy_non_kafka_namespaces;;
+	destroy_namespace_spark) destroy_namespace_spark;;
+	destroy_namespace_ib) destroy_namespace_ib;;
+	destroy_namespace_avro) destroy_namespace_avro;;
+	destroy_namespace_clickhouse) destroy_namespace_clickhouse;;
 	destroy_kafka_namespace) destroy_kafka_namespace;;
 	deploy_kafka) deploy_kafka ;;
 	deploy_avro_schema_registry) deploy_avro_schema_registry ;;

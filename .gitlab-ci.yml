@@ -69,7 +69,13 @@ teardown_on_failure:
   allow_failure: true
   script:
     - set +e
-    - bash "$SCRIPT_PATH" destroy_non_kafka_namespaces
+    - bash "$SCRIPT_PATH" destroy_namespace_ib
+    - sleep 10
+    - bash "$SCRIPT_PATH" destroy_namespace_spark
+    - sleep 10
+    - bash "$SCRIPT_PATH" destroy_namespace_clickhouse
+    - sleep 10
+    - bash "$SCRIPT_PATH" destroy_namespace_avro
     - sleep 10
     - bash "$SCRIPT_PATH" destroy_kafka_namespace
     - sleep 10
