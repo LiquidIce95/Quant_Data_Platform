@@ -1,5 +1,5 @@
 variables:
-  SCRIPT_PATH: "/services_streaming_lane/test.sh"
+  SCRIPT_PATH: "./services_streaming_lane/test.sh"
   REPO_PATH: "/root/SOURCE_FILES/Quant_Data_Platform/services_streaming_lane"
 
 stages:
