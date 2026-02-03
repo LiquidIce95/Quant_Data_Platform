@@ -354,7 +354,7 @@ deploy_kafka() {
 	install_strimzi 
 	apply_kafka_cluster 
 	apply_topics 
-	kubectl wait --for=condition=Ready pod --all -n "${NAMESPACE_KAFKA}" --timeout=60s
+	kubectl wait --for=condition=Ready pod --all -n "${NAMESPACE_KAFKA}" --timeout=120s
 
 }
 

@@ -18,6 +18,8 @@ test_pipeline:
     - rsync -a ${REPO_PATH}/ib_connector/infra_test/gen-ibkr-trust.sh services_streaming_lane/ib_connector/infra_test/gen-ibkr-trust.sh
     - rsync -a ${REPO_PATH}/ib_connector/infra_test/ibkr_client_portal.pem services_streaming_lane/ib_connector/infra_test/ibkr_client_portal.pem
     - rsync -a ${REPO_PATH}/ib_connector/infra_test/ibkr_truststore.jks services_streaming_lane/ib_connector/infra_test/ibkr_truststore.jks
+    - rsync -a ${REPO_PATH}/ib_connector/infra_test/ibkr_client_portal.pem services_streaming_lane/ib_connector/source/ibkr_client_portal.pem
+    - rsync -a ${REPO_PATH}/ib_connector/infra_test/ibkr_truststore.jks services_streaming_lane/ib_connector/source/ibkr_truststore.jks
     - rsync -a "${REPO_PATH}/spark-3.5.7-bin-hadoop3/" "services_streaming_lane/spark-3.5.7-bin-hadoop3/"
 
     # --- run the full pipeline sequentially (sleep 5s between steps) ---
