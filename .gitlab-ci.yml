@@ -2,6 +2,7 @@ variables:
   SCRIPT_PATH: "/root/SOURCE_FILES/Quant_Data_Platform/services_streaming_lane/test.sh"
   TERRAFORM_PATH: "/root/SOURCE_FILES/Quant_Data_Platform/services_streaming_lane/test.sh"
 
+
 stages:
   - create_cluster_test
   - prepare_env_test
