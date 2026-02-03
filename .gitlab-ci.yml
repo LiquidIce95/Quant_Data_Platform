@@ -1,134 +1,62 @@
 variables:
-  SCRIPT_PATH: "/root/SOURCE_FILES/Quant_Data_Platform/services_streaming_lane/test.sh"
-  TERRAFORM_PATH: "/root/SOURCE_FILES/Quant_Data_Platform/services_streaming_lane/test.sh"
-
+  SCRIPT_PATH: "/services_streaming_lane/test.sh"
+  REPO_PATH: "/root/SOURCE_FILES/Quant_Data_Platform/services_streaming_lane"
 
 stages:
-  - create_cluster_test
-  - prepare_env_test
-  - deploy_kafka
-  - deploy_avro_schema_registry
-  - deploy_clickhouse
-  - deploy_spark
-  - submit_spark_job
-  - deploy_ib_connector
-  - sleep_200_seconds
-  - check_clickhouse_ingestion_tables
-  - destroy_non_kafka_namespaces
-  - destroy_kafka_namespace
-  - destroy_cluster_test
-  - remove_workers
+  - test_pipeline
+  - deploy
   - teardown
 
-create_cluster_test:
-  stage: create_cluster_test
+test_pipeline:
+  stage: test_pipeline
   tags: [master_k3]
   script:
-    - bash "$TERRAFORM_PATH" create_cluster_test
-  only: [main]
+    - set -euo pipefail
 
-prepare_env_test:
-  stage: prepare_env_test
-  tags: [master_k3]
-  needs: [create_cluster_test]
-  script:
+    # --- copy required local artifacts into the freshly cloned repo workspace (overwrite only) ---
+    - rsync -a ${REPO_PATH}/test_env/.terraform/ services_streaming_lane/test_env/.terraform/
+    - rsync -a ${REPO_PATH}/ib_connector/infra_test/gen-ibkr-trust.sh services_streaming_lane/ib_connector/infra_test/gen-ibkr-trust.sh
+    - rsync -a ${REPO_PATH}/ib_connector/infra_test/ibkr_client_portal.pem services_streaming_lane/ib_connector/infra_test/ibkr_client_portal.pem
+    - rsync -a ${REPO_PATH}/ib_connector/infra_test/ibkr_truststore.jks services_streaming_lane/ib_connector/infra_test/ibkr_truststore.jks
+
+    # --- run the full pipeline sequentially (sleep 5s between steps) ---
+    - bash "$SCRIPT_PATH" create_cluster_test
+    - sleep 5
     - bash "$SCRIPT_PATH" prepare_env test
-  only: [main]
-
-deploy_kafka:
-  stage: deploy_kafka
-  tags: [master_k3]
-  needs: [prepare_env_test]
-  script:
+    - sleep 5
     - bash "$SCRIPT_PATH" deploy_kafka
-  only: [main]
-
-deploy_avro_schema_registry:
-  stage: deploy_avro_schema_registry
-  tags: [master_k3]
-  needs: [deploy_kafka]
-  script:
+    - sleep 5
     - bash "$SCRIPT_PATH" deploy_avro_schema_registry
-  only: [main]
-
-deploy_clickhouse:
-  stage: deploy_clickhouse
-  tags: [master_k3]
-  needs: [deploy_avro_schema_registry]
-  script:
+    - sleep 5
     - bash "$SCRIPT_PATH" deploy_clickhouse
-  only: [main]
-
-deploy_spark:
-  stage: deploy_spark
-  tags: [master_k3]
-  needs: [deploy_clickhouse]
-  script:
+    - sleep 5
     - bash "$SCRIPT_PATH" deploy_spark
-  only: [main]
-
-submit_spark_job:
-  stage: submit_spark_job
-  tags: [master_k3]
-  needs: [deploy_spark]
-  script:
+    - sleep 5
     - bash "$SCRIPT_PATH" submit_spark_job
-  only: [main]
-
-deploy_ib_connector:
-  stage: deploy_ib_connector
-  tags: [master_k3]
-  needs: [submit_spark_job]
-  script:
+    - sleep 5
     - bash "$SCRIPT_PATH" deploy_ib_connector
-  only: [main]
-
-sleep_180_seconds:
-  stage: sleep_200_seconds
-  tags: [master_k3]
-  needs: [deploy_ib_connector]
-  script:
+    - sleep 5
     - sleep 200
-  only: [main]
-
-check_clickhouse_ingestion_tables:
-  stage: check_clickhouse_ingestion_tables
-  tags: [master_k3]
-  needs: [sleep_180_seconds]
-  script:
+    - sleep 5
     - bash "$SCRIPT_PATH" check_clickhouse_ingestion_tables
-  only: [main]
-
-destroy_non_kafka_namespaces:
-  stage: destroy_non_kafka_namespaces
-  tags: [master_k3]
-  needs: [check_clickhouse_ingestion_tables]
-  script:
+    - sleep 5
     - bash "$SCRIPT_PATH" destroy_non_kafka_namespaces
-  only: [main]
-
-destroy_kafka_namespace:
-  stage: destroy_kafka_namespace
-  tags: [master_k3]
-  needs: [destroy_non_kafka_namespaces]
-  script:
+    - sleep 5
     - bash "$SCRIPT_PATH" destroy_kafka_namespace
+    - sleep 5
+    - bash "$SCRIPT_PATH" destroy_cluster_test
+    - sleep 5
+    - bash "$SCRIPT_PATH" remove_workers_test
   only: [main]
 
-destroy_cluster_test:
-  stage: destroy_cluster_test
+deploy:
+  stage: deploy
   tags: [master_k3]
-  needs: [destroy_kafka_namespace]
+  needs: [test_pipeline]
   script:
-    - bash "$TERRAFORM_PATH" destroy_cluster_test
-  only: [main]
-
-remove_workers:
-  stage: remove_workers
-  tags: [master_k3]
-  needs: [destroy_cluster_test]
-  script:
-    - bash "$TERRAFORM_PATH" remove_workers_test
+    - set -euo pipefail
+    - cd /root/SOURCE_FILES/Quant_Data_Platform
+    - git pull
   only: [main]
 
 teardown_on_failure:
@@ -140,7 +68,7 @@ teardown_on_failure:
     - set +e
     - bash "$SCRIPT_PATH" destroy_non_kafka_namespaces
     - bash "$SCRIPT_PATH" destroy_kafka_namespace
-    - bash "$TERRAFORM_PATH" destroy_cluster_test
-    - bash "$TERRAFORM_PATH" remove_workers_test
+    - bash "$SCRIPT_PATH" destroy_cluster_test
+    - bash "$SCRIPT_PATH" remove_workers_test
     - exit 0
   only: [main]
