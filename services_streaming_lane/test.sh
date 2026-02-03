@@ -883,7 +883,6 @@ canonical use:
   destroy_cluster_test
   remove_workers_test
 
-
 EOF
 }
 
