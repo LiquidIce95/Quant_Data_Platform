@@ -11,7 +11,7 @@ stages:
   - deploy_spark
   - submit_spark_job
   - deploy_ib_connector
-  - sleep_180_seconds
+  - sleep_200_seconds
   - check_clickhouse_ingestion_tables
   - destroy_non_kafka_namespaces
   - destroy_kafka_namespace
