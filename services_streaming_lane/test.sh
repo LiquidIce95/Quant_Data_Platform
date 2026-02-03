@@ -819,6 +819,7 @@ Cluster:
   status                      Show nodes/pods/services/topics
   destroy_kafka_namespace	  Deletes kafka namespace and all of its ressources
   destroy_non_kafka_namespaces Deletes the remaining namespaces and all of their ressources
+  remove_workers_test         Deletes the test workers from the k3s server 
 
 Kafka:
   deploy_kafka                Install Strimzi, deploy Kafka & topics
@@ -871,6 +872,7 @@ case "$cmd" in
 	prepare_env) shift; prepare_env "$@";;
 	create_cluster_test) create_cluster_test;;
 	destroy_cluster_test) destroy_cluster_test;;
+	remove_workers_test) remove_workers_test;;
 	set_deployment_env) shift; set_deployment_env "$@";;
 	destroy_non_kafka_namespaces) destroy_non_kafka_namespaces;;
 	destroy_kafka_namespace) destroy_kafka_namespace;;
