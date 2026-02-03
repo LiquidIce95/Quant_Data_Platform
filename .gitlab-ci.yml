@@ -1,24 +1,144 @@
 variables:
-  SCRIPT_PATH: "services_streaming_lane/deploy.sh"
+  SCRIPT_PATH: "/root/SOURCE_FILES/Quant_Data_Platform/services_streaming_lane/test.sh"
+  TERRAFORM_PATH: "/root/SOURCE_FILES/Quant_Data_Platform/services_streaming_lane/test.sh"
+
 stages:
-  - build
-  - test
+  - create_cluster_test
+  - prepare_env_test
+  - deploy_kafka
+  - deploy_avro_schema_registry
+  - deploy_clickhouse
+  - deploy_spark
+  - submit_spark_job
+  - deploy_ib_connector
+  - sleep_180_seconds
+  - check_clickhouse_ingestion_tables
+  - destroy_non_kafka_namespaces
+  - destroy_kafka_namespace
+  - destroy_cluster_test
+  - remove_workers
+  - teardown
 
-job_build:
-  stage: build
-  tags:
-    - master_k3
+create_cluster_test:
+  stage: create_cluster_test
+  tags: [master_k3]
   script:
-    - pwd
-    - echo "Building the project"
-  only:
-    - main
+    - bash "$TERRAFORM_PATH" create_cluster_test
+  only: [main]
 
-job_test:
-  stage: test
-  tags:
-    - master_k3
+prepare_env_test:
+  stage: prepare_env_test
+  tags: [master_k3]
+  needs: [create_cluster_test]
   script:
-    - echo "Running tests"
-  only: 
-    - main
+    - bash "$SCRIPT_PATH" prepare_env test
+  only: [main]
+
+deploy_kafka:
+  stage: deploy_kafka
+  tags: [master_k3]
+  needs: [prepare_env_test]
+  script:
+    - bash "$SCRIPT_PATH" deploy_kafka
+  only: [main]
+
+deploy_avro_schema_registry:
+  stage: deploy_avro_schema_registry
+  tags: [master_k3]
+  needs: [deploy_kafka]
+  script:
+    - bash "$SCRIPT_PATH" deploy_avro_schema_registry
+  only: [main]
+
+deploy_clickhouse:
+  stage: deploy_clickhouse
+  tags: [master_k3]
+  needs: [deploy_avro_schema_registry]
+  script:
+    - bash "$SCRIPT_PATH" deploy_clickhouse
+  only: [main]
+
+deploy_spark:
+  stage: deploy_spark
+  tags: [master_k3]
+  needs: [deploy_clickhouse]
+  script:
+    - bash "$SCRIPT_PATH" deploy_spark
+  only: [main]
+
+submit_spark_job:
+  stage: submit_spark_job
+  tags: [master_k3]
+  needs: [deploy_spark]
+  script:
+    - bash "$SCRIPT_PATH" submit_spark_job
+  only: [main]
+
+deploy_ib_connector:
+  stage: deploy_ib_connector
+  tags: [master_k3]
+  needs: [submit_spark_job]
+  script:
+    - bash "$SCRIPT_PATH" deploy_ib_connector
+  only: [main]
+
+sleep_180_seconds:
+  stage: sleep_200_seconds
+  tags: [master_k3]
+  needs: [deploy_ib_connector]
+  script:
+    - sleep 200
+  only: [main]
+
+check_clickhouse_ingestion_tables:
+  stage: check_clickhouse_ingestion_tables
+  tags: [master_k3]
+  needs: [sleep_180_seconds]
+  script:
+    - bash "$SCRIPT_PATH" check_clickhouse_ingestion_tables
+  only: [main]
+
+destroy_non_kafka_namespaces:
+  stage: destroy_non_kafka_namespaces
+  tags: [master_k3]
+  needs: [check_clickhouse_ingestion_tables]
+  script:
+    - bash "$SCRIPT_PATH" destroy_non_kafka_namespaces
+  only: [main]
+
+destroy_kafka_namespace:
+  stage: destroy_kafka_namespace
+  tags: [master_k3]
+  needs: [destroy_non_kafka_namespaces]
+  script:
+    - bash "$SCRIPT_PATH" destroy_kafka_namespace
+  only: [main]
+
+destroy_cluster_test:
+  stage: destroy_cluster_test
+  tags: [master_k3]
+  needs: [destroy_kafka_namespace]
+  script:
+    - bash "$TERRAFORM_PATH" destroy_cluster_test
+  only: [main]
+
+remove_workers:
+  stage: remove_workers
+  tags: [master_k3]
+  needs: [destroy_cluster_test]
+  script:
+    - bash "$TERRAFORM_PATH" remove_workers_test
+  only: [main]
+
+teardown_on_failure:
+  stage: teardown
+  tags: [master_k3]
+  when: on_failure
+  allow_failure: true
+  script:
+    - set +e
+    - bash "$SCRIPT_PATH" destroy_non_kafka_namespaces
+    - bash "$SCRIPT_PATH" destroy_kafka_namespace
+    - bash "$TERRAFORM_PATH" destroy_cluster_test
+    - exit 0
+  only: [main]
