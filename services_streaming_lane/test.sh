@@ -120,6 +120,7 @@ label_workers() {
         return 1
     fi
 
+
     echo "Scanning nodes for environment: ${DEPLOYMENT_ENV}"
 
     # Filter nodes that start with the specific environment prefix (e.g., "dev-")
