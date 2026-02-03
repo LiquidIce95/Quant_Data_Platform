@@ -4,7 +4,6 @@
 .scala-uild/
 .bloop
 target
-project
 services_streaming_lane/app.jar
 services_streaming_lane/spark-4.0.1-bin-hadoop3/
 services_streaming_lane/spark-3.5.7-bin-hadoop3/
