@@ -5,25 +5,20 @@ metadata:
     streamlane/role: spark-exec
 spec:
   nodeSelector:
-    streamlane/role: spark
+    env: test  # This matches the label we created in Task 1
   restartPolicy: Never
   containers:
     - name: spark-kubernetes-executor
       env:
         - name: KAFKA_BOOTSTRAP_SERVERS
-          value: "test-kafka-kafka-bootstrap.test-kafka:9092"
+          value: "test-kafka-kafka-bootstrap.testenv-kafka:9092"
         - name: KAFKA_STARTING_OFFSETS
           value: "latest"
         - name: KAFKA_TOPIC
           value: "derivatives_tick_market_data"
         - name: SCHEMA_REGISTRY_URL
-          value: "http://schema-registry.test-avro-schema-registry:8081"
+          value: "http://test-schema-registry.testenv-avro-schema-registry:8081"
         - name: CH_DATABASE
-          value: "realtime_store"
+          value: "test_realtime_store"
         - name: CH_TABLE
           value: "derivatives_tick_market_data"
-        - name: CH_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: clickhouse-spark-user
-              key: password

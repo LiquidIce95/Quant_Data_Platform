@@ -1,8 +1,9 @@
+# infra/kafka/20-topics.yml
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
 metadata:
   name: derivatives-tick-market-data
-  namespace: test-kafka
+  namespace: testenv-kafka
   labels:
     strimzi.io/cluster: test-kafka
 spec:
@@ -12,12 +13,13 @@ spec:
   config:
     cleanup.policy: delete
     retention.ms: 86400000
+
 ---
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
 metadata:
   name: derivatives-l2-market-data
-  namespace: test-kafka
+  namespace: testenv-kafka
   labels:
     strimzi.io/cluster: test-kafka
 spec:
@@ -27,12 +29,13 @@ spec:
   config:
     cleanup.policy: delete
     retention.ms: 86400000
+
 ---
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
 metadata:
   name: indicators
-  namespace: test-kafka
+  namespace: testenv-kafka
   labels:
     strimzi.io/cluster: test-kafka
 spec:
@@ -42,12 +45,13 @@ spec:
   config:
     cleanup.policy: delete
     retention.ms: 86400000
+
 ---
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
 metadata:
   name: numeric-economic-data
-  namespace: test-kafka
+  namespace: testenv-kafka
   labels:
     strimzi.io/cluster: test-kafka
 spec:

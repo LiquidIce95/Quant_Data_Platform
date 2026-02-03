@@ -2,15 +2,28 @@ apiVersion: kafka.strimzi.io/v1beta2
 kind: Kafka
 metadata:
   name: test-kafka
-  namespace: test-kafka
 spec:
   kafka:
     version: 4.1.0
+
+    template:
+      pod:
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: env
+                      operator: In
+                      values:
+                        - test
+
     listeners:
       - name: plain
         port: 9092
         type: internal
         tls: false
+
     config:
       auto.create.topics.enable: "false"
       inter.broker.listener.name: INTERNAL
@@ -19,15 +32,27 @@ spec:
       transaction.state.log.min.isr: 1
       default.replication.factor: 1
       min.insync.replicas: 1
+
   entityOperator:
+    template:
+      pod:
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: env
+                      operator: In
+                      values:
+                        - test
     topicOperator: {}
     userOperator: {}
+
 ---
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaNodePool
 metadata:
   name: test-kafka-all
-  namespace: test-kafka
   labels:
     strimzi.io/cluster: test-kafka
 spec:
@@ -35,5 +60,16 @@ spec:
   roles:
     - controller
     - broker
+  template:
+    pod:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: env
+                    operator: In
+                    values:
+                      - test
   storage:
     type: ephemeral

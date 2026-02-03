@@ -99,9 +99,10 @@ runcmd:
     while ! ip -4 addr show enp7s0 | grep -q 'inet '; do sleep 2; done
     IP=$(ip -4 addr show enp7s0 | awk '/inet / {print $2}' | cut -d/ -f1)
     curl -sfL https://get.k3s.io | \
+      INSTALL_K3S_VERSION="v1.33.6+k3s1" \
       K3S_URL="https://10.0.0.2:6443" \
       K3S_TOKEN="${var.k3s_token}" \
-      INSTALL_K3S_EXEC="agent --node-ip $IP" \
+      INSTALL_K3S_EXEC="agent --node-ip $IP --flannel-iface=enp7s0" \
       K3S_NODE_LABEL="node-role.kubernetes.io/worker=true" \
       sh -
 EOF

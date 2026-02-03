@@ -1,6 +1,4 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: test-ib-connector
-  labels:
-    azure.workload.identity/use: "true"
+  name: testenv-ib-connector

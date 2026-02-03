@@ -1,24 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: schema-registry
-  namespace: test-avro-schema-registry
+  name: test-schema-registry
+  namespace: testenv-avro-schema-registry
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: schema-registry
+      app: test-schema-registry
   template:
     metadata:
       labels:
-        app: schema-registry
+        app: test-schema-registry
     spec:
-      enableServiceLinks: false
+      nodeSelector:
+        env: test  # This matches the label we created in Task 1
+      enableServiceLinks: false   # <<< THIS IS THE FIX
       imagePullSecrets:
-        - name: acr-pull
+        - name: dockerhub-pull
       containers:
-        - name: schema-registry
-          image: confluentinc/cp-schema-registry:7.6.1
+        - name: test-schema-registry
+          image: commodore95/quant_data_platform_repository:confluentinc-cp-schema-registry-7.6.1
           imagePullPolicy: IfNotPresent
           env:
             - name: SCHEMA_REGISTRY_HOST_NAME
@@ -28,4 +30,4 @@ spec:
             - name: SCHEMA_REGISTRY_LISTENERS
               value: "http://0.0.0.0:8081"
             - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
-              value: "test-kafka-kafka-bootstrap.test-kafka:9092"
+              value: "test-kafka-kafka-bootstrap.testenv-kafka:9092"

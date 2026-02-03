@@ -14,18 +14,17 @@ DOCKERHUB_TOKEN_KV_NAME="ibkr-secrets"
 DOCKERHUB_TOKEN_SECRET_NAME="docker-hub-token"
 DOCKERHUB_PULL_SECRET_NAME="dockerhub-pull"
 
-# IB namespace (legacy kept separate)
-NAMESPACE_IB_LEGACY="${NAMESPACE_IB_LEGACY:-ib-connector-legacy}"
-NAMESPACE_IB="${NAMESPACE_IB:-ib-connector}"
+# IB connector
+NAMESPACE_IB="${NAMESPACE_IB:-testenv-ib-connector}"
 
 # Kafka / Strimzi
-NAMESPACE_KAFKA="${NAMESPACE_KAFKA:-kafka}"
-KAFKA_NAME="${KAFKA_NAME:-dev-kafka}"
+NAMESPACE_KAFKA="${NAMESPACE_KAFKA:-testenv-kafka}"
+KAFKA_NAME="${KAFKA_NAME:-test-kafka}"
 STRIMZI_URL="https://strimzi.io/install/latest?namespace=${NAMESPACE_KAFKA}"
 BOOTSTRAP_LOCAL_PORT="${BOOTSTRAP_LOCAL_PORT:-9092}"
 
 # Spark (K8s)
-NAMESPACE_SPARK="${NAMESPACE_SPARK:-spark}"
+NAMESPACE_SPARK="${NAMESPACE_SPARK:-testenv-spark}"
 SPARK_SA="${SPARK_SA:-spark-sa}"
 SPARK_VERSION="${SPARK_VERSION:-3.5.7}"
 SPARK_IMAGE_TAG="spark-our-own-apache-spark-kb8"
@@ -34,13 +33,9 @@ SPARK_IMAGE_ADDRESS="${DOCKERHUB_REPO}:${APP_IMAGE_TAG}"
 SPARK_APP_CLASS="${SPARK_APP_CLASS:-com.yourorg.spark.ReadTickLastPrint}"
 
 # ClickHouse (disjoint namespace)
-NAMESPACE_CLICKHOUSE="${NAMESPACE_CLICKHOUSE:-clickhouse}"
-CLICKHOUSE_IMAGE_TAG="${CLICKHOUSE_IMAGE_TAG:-clickhouse:dev}"
+NAMESPACE_CLICKHOUSE="${NAMESPACE_CLICKHOUSE:-testenv-clickhouse}"
+CLICKHOUSE_IMAGE_TAG="${CLICKHOUSE_IMAGE_TAG:-clickhouse:test}"
 
-# Node labels
-LBL_KEY="streamlane/role"
-LBL_VAL_KAFKA="kafka"
-LBL_VAL_SPARK="spark"
 
 # ========= Repo paths =========
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -55,53 +50,40 @@ SPARK_DIR="$ROOT/services_streaming_lane/spark_processor"
 SPARK_HOME="$ROOT/services_streaming_lane/spark-${SPARK_VERSION}-bin-hadoop3"
 
 CLICKHOUSE_DIR="$ROOT/services_streaming_lane/click_house"
-CLICKHOUSE_INFRA_DIR="$CLICKHOUSE_DIR/infra_dev"
+CLICKHOUSE_INFRA_DIR="$CLICKHOUSE_DIR/infra_test"
 
 # Kafka manifests (now under infra_dev)
-NS_FILE="$KAFKA_DIR/infra_dev/00-namespace.yml"
-KAFKA_FILE="$KAFKA_DIR/infra_dev/10-kafka-cluster.yml"
-TOPICS_FILE="$KAFKA_DIR/infra_dev/20-topics.yml"
+NS_FILE="$KAFKA_DIR/infra_test/00-namespace.yml"
+KAFKA_FILE="$KAFKA_DIR/infra_test/10-kafka-cluster.yml"
+TOPICS_FILE="$KAFKA_DIR/infra_test/20-topics.yml"
 
 # Spark infra files (infra_dev)
-SPARK_NS_FILE="$SPARK_DIR/infra_dev/00-namespace.yml"
-SPARK_RBAC_FILE="$SPARK_DIR/infra_dev/10-rbac.yml"
-SPARK_DRIVER_POD_TMPL="$SPARK_DIR/infra_dev/20-driver-pod-template.yml"
-SPARK_EXEC_POD_TMPL="$SPARK_DIR/infra_dev/21-executor-pod-template.yml"
-SPARK_DEFAULTS_FILE="$SPARK_DIR/infra_dev/30-spark-defaults.conf"
+SPARK_NS_FILE="$SPARK_DIR/infra_test/00-namespace.yml"
+SPARK_RBAC_FILE="$SPARK_DIR/infra_test/10-rbac.yml"
+SPARK_DRIVER_POD_TMPL="$SPARK_DIR/infra_test/20-driver-pod-template.yml"
+SPARK_EXEC_POD_TMPL="$SPARK_DIR/infra_test/21-executor-pod-template.yml"
+SPARK_DEFAULTS_FILE="$SPARK_DIR/infra_test/30-spark-defaults.conf"
 
 # ========= ClickHouse infra files (infra_dev) =========
 CLICKHOUSE_NS_FILE="$CLICKHOUSE_INFRA_DIR/00-namespace.yml"
 CLICKHOUSE_POD_FILE="$CLICKHOUSE_INFRA_DIR/10-clickhouse-pod.yml"
 CLICKHOUSE_SVC_FILE="$CLICKHOUSE_INFRA_DIR/20-clickhouse-svc.yml"
 
-# ========= IB Connector (legacy) =========
-IB_NS_FILE_LEGACY="$ROOT/services_streaming_lane/ib_connector_legacy/infra_dev/00-namespace.yml"
-IB_POD_FILE_LEGACY="$ROOT/services_streaming_lane/ib_connector_legacy/infra_dev/10-ib-connector-pod.yml"
-
-# ========= Client Portal =========
-CLIENT_PORTAL_NS="${CLIENT_PORTAL_NS:-client-portal-api}"
-CLIENT_PORTAL_DIR="$ROOT/services_streaming_lane/ib_client_portal_api"
-CLIENT_PORTAL_SRC_DIR="$CLIENT_PORTAL_DIR/source"
-CLIENT_PORTAL_IMG="client-portal:1.0.0"
-
-CLIENT_PORTAL_NS_FILE="$CLIENT_PORTAL_DIR/infra_dev/00-namespace.yml"
-CLIENT_PORTAL_DEPLOY_FILE="$CLIENT_PORTAL_DIR/infra_dev/30-client-portal-deployment.yml"
-CLIENT_PORTAL_SVC_FILE="$CLIENT_PORTAL_DIR/infra_dev/40-client-portal-service.yml"
 
 # ========= IB Connector (current project) =========
 IB_DIR="$ROOT/services_streaming_lane/ib_connector"
+IB_INFRA_DIR="infra_test"
 IB_SRC_DIR="$IB_DIR/source"
-IB_NS_FILE="$IB_DIR/infra_dev/00-namespace.yml"
-IB_RBAC_FILE="$IB_DIR/infra_dev/05-ib-connector-rbac.yml"
-IB_POD_FILE="$IB_DIR/infra_dev/10-ib-connector-pod.yml"
-IB_IMG="ib-connector:dev"
-IB_SECRETS_FILE="${IB_DIR}/infra_dev/20-secrets.yml"
+IB_NS_FILE="$IB_DIR/$IB_INFRA_DIR/00-namespace.yml"
+IB_RBAC_FILE="$IB_DIR/$IB_INFRA_DIR/05-ib-connector-rbac.yml"
+IB_POD_FILE="$IB_DIR/$IB_INFRA_DIR/10-ib-connector-pod.yml"
+IB_SECRETS_FILE="${IB_DIR}/$IB_INFRA_DIR/20-secrets.yml"
 
 # ========= Avro Schema Registry =========
-NAMESPACE_AVRO="${NAMESPACE_AVRO:-avro-schema-registry}"
+NAMESPACE_AVRO="${NAMESPACE_AVRO:-testenv-avro-schema-registry}"
 
 AVRO_REG_DIR="$ROOT/services_streaming_lane/avro_schema_registry"
-AVRO_REG_INFRA_DIR="$AVRO_REG_DIR/infra_dev"
+AVRO_REG_INFRA_DIR="$AVRO_REG_DIR/infra_test"
 AVRO_SCHEMA_DIR="$AVRO_REG_DIR/category_schemas"
 
 AVRO_REG_NS_FILE="$AVRO_REG_INFRA_DIR/01-namespace.yml"
@@ -110,7 +92,7 @@ AVRO_REG_DEPLOY_FILE="$AVRO_REG_INFRA_DIR/03-deployment-schema-registry.yml"
 AVRO_REG_SVC_FILE="$AVRO_REG_INFRA_DIR/04-service-schema-registry.yml"
 AVRO_REG_KUSTOM_FILE="$AVRO_REG_INFRA_DIR/kustomization.yml"
 
-AVRO_REG_SVC_NAME="${AVRO_REG_SVC_NAME:-schema-registry}"
+AVRO_REG_SVC_NAME="${AVRO_REG_SVC_NAME:-test-schema-registry}"
 AVRO_REG_LOCAL_PORT="${AVRO_REG_LOCAL_PORT:-8081}"
 AVRO_REG_COMPATIBILITY="${AVRO_REG_COMPATIBILITY:-BACKWARD}"
 
@@ -210,49 +192,15 @@ destroy_cluster_test() {
     echo "[terraform] Success: Cluster resources have been torn down."
 }
 
-# ========= Terraform Production Environment =========
 
-create_cluster_prod() {
-    local target_dir="$SCRIPT_DIR/prod_env"
-    
-    if [[ ! -d "$target_dir" ]]; then
-        echo "ERROR: Production directory $target_dir not found." >&2
-        return 1
-    fi
+remove_workers_test(){
+	kubectl get nodes -o name \
+	| grep '^node/test' \
+	| xargs -r kubectl delete
 
-    echo "[terraform-PROD] Starting production cluster creation in $target_dir..."
-    
-    (
-        cd "$target_dir"
-        terraform init -input=false
-        # Blocks execution until the production environment is fully provisioned
-        terraform apply -auto-approve -input=false
-    )
-    
-    echo "[terraform-PROD] Success: Production cluster is provisioned."
-}
-
-destroy_cluster_prod() {
-    local target_dir="$SCRIPT_DIR/prod_env"
-    
-    if [[ ! -d "$target_dir" ]]; then
-        echo "ERROR: Production directory $target_dir not found." >&2
-        return 1
-    fi
-
-    echo "[terraform-PROD] Starting production cluster destruction in $target_dir..."
-    
-    (
-        cd "$target_dir"
-        # Blocks until all production resources are verified deleted
-        terraform destroy -auto-approve -input=false
-    )
-    
-    echo "[terraform-PROD] Success: Production resources have been torn down."
 }
 
 create_dockerhub_pull_secret() {
-	need az
 	need kubectl
 
 	local NS="${1:-}"
@@ -269,6 +217,7 @@ create_dockerhub_pull_secret() {
 		--dry-run=client -o yaml | kubectl apply -f -
 }
 
+## if for some reason doppler is missing.. first install and then run create_doppler_service_token_secret
 install_doppler() {
 	need kubectl
 
@@ -287,6 +236,10 @@ create_doppler_service_token_secret() {
 		--dry-run=client -o yaml | kubectl apply -f -
 }
 
+get_dockerhub_token_from_k8s_default() {
+	need kubectl
+	kubectl -n default get secret "${DOCKERHUB_PULL_SECRET_NAME}" -o jsonpath='{.data.DOCKER_HUB_TOKEN}' | base64 -d
+}
 
 get_dockerhub_token() {
 	need az
@@ -300,7 +253,7 @@ push_to_dockerhub() {
 	[[ -n "${LOCAL_IMAGE}" ]] || { echo "ERROR: missing image argument" >&2; return 1; }
 
 	local TOKEN
-	TOKEN="$(get_dockerhub_token)"
+	TOKEN="$(get_dockerhub_token_from_k8s_default)"
 
 	docker login -u "${DOCKERHUB_USER}" -p "${TOKEN}"
 
@@ -360,33 +313,22 @@ need() { command -v "$1" >/dev/null 2>&1 || { echo "Missing dependency: $1"; exi
 have() { [[ -f "$1" ]] || { echo "Required file not found: $1"; exit 1; }; }
 ns_exists() { kubectl get ns "$1" >/dev/null 2>&1; }
 
-# ========= Cluster creation (kind) =========
-create_cluster_dev() {
-	need kind; need kubectl
-	kind delete cluster || true
-	kind create cluster --config kind-config.yml
-	kubectl label nodes kind-worker  "${LBL_KEY}=${LBL_VAL_KAFKA}" --overwrite
-	kubectl label nodes kind-worker2 "${LBL_KEY}=${LBL_VAL_SPARK}" --overwrite
-	kubectl get nodes --show-labels
-}
 
 # ========= Misc =========
 status() {
+	echo "status of TEST environment"
 	echo "== Nodes =="; kubectl get nodes -o wide --show-labels || true
 	echo "== Kafka Pods =="; kubectl -n "$NAMESPACE_KAFKA" get pods -o wide || true
 	echo "== Services (kafka) =="; kubectl -n "$NAMESPACE_KAFKA" get svc || true
 	echo "== Topics =="; kubectl -n "$NAMESPACE_KAFKA" get kafkatopic || true
 	echo "== Spark Pods =="; kubectl -n "$NAMESPACE_SPARK" get pods -o wide || true
 	echo "== ClickHouse Pods =="; kubectl -n "$NAMESPACE_CLICKHOUSE" get pods -o wide || true
-	echo "== ClickHouse Svc =="; kubectl -n "$NAMESPACE_CLICKHOUSE" get svc clickhouse -o wide || true
-	echo "== ClientPortalAPI =="; kubectl -n "$CLIENT_PORTAL_NS" get pods -o wide || true
+	echo "== ClickHouse Svc =="; kubectl -n "$NAMESPACE_CLICKHOUSE" get svc test-clickhouse -o wide || true
 	echo "== IbConnector =="; kubectl -n "$NAMESPACE_IB" get pods -o wide || true
-	echo "== IbConnectorLegacy =="; kubectl -n "$NAMESPACE_IB_LEGACY" get pods -o wide || true
 	echo "== SchemaRegistry =="; kubectl -n "$NAMESPACE_AVRO" get pods -o wide || true
 	echo "== SchemaRegistry Svc =="; kubectl -n "$NAMESPACE_AVRO" get svc "$AVRO_REG_SVC_NAME" -o wide || true
 }
 
-down() { kind delete cluster --name "${CLUSTER_NAME}" || true; }
 
 # ========= Kafka / Strimzi =========
 install_strimzi() {
@@ -465,8 +407,8 @@ deploy_avro_schema_registry() {
 	kubectl apply -n "$NAMESPACE_AVRO" -f "$AVRO_REG_DEPLOY_FILE"
 	kubectl apply -n "$NAMESPACE_AVRO" -f "$AVRO_REG_SVC_FILE"
 
-	kubectl -n "$NAMESPACE_AVRO" rollout status deployment/schema-registry --timeout=400s || true
-	kubectl -n "$NAMESPACE_AVRO" get pods -l app=schema-registry -o wide || true
+	kubectl -n "$NAMESPACE_AVRO" rollout status deployment/test-schema-registry --timeout=400s || true
+	kubectl -n "$NAMESPACE_AVRO" get pods -l app=test-schema-registry -o wide || true
 	kubectl -n "$NAMESPACE_AVRO" get svc "$AVRO_REG_SVC_NAME" -o wide || true
 
 	sleep 10
@@ -530,64 +472,8 @@ register_avro_schemas() {
 	kill "$PF_PID" >/dev/null 2>&1 || true
 }
 
-# ========= IB Connector (LEGACY) =========
-deploy_ib_connector_legacy() {
-	need docker; need kind; need kubectl; need envsubst
-	have "$IB_DIR_LEGACY/Dockerfile"
-	have "$IB_POD_FILE_LEGACY"
-	have "$IB_NS_FILE_LEGACY"
-
-	echo "[ib-connector-legacy] Applying namespace …"
-	kubectl apply -f "$IB_NS_FILE_LEGACY"
-	create_dockerhub_pull_secret "${NAMESPACE_IB_LEGACY}"
-
-
-	echo "[ib-connector-legacy] Building image ib-connector-legacy:dev from ${IB_DIR_LEGACY} …"
-	docker build -t ib-connector-legacy:dev "$IB_DIR_LEGACY"
-
-	echo "[ib-connector-legacy] Loading image into kind cluster '${CLUSTER_NAME}' …"
-	push_to_dockerhub "ib-connector-legacy:dev" >/dev/null
-
-	echo "[ib-connector-legacy] Applying pod manifest …"
-	export NAMESPACE_IB_LEGACY NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
-	envsubst < "$IB_POD_FILE_LEGACY" | kubectl apply -f -
-
-	echo "[ib-connector-legacy] Waiting for pod/ib-connector-legacy Ready …"
-	kubectl -n "$NAMESPACE_IB_LEGACY" wait --for=condition=Ready pod/ib-connector-legacy --timeout=180s || true
-
-	echo "[ib-connector-legacy] Pods:"
-	kubectl -n "$NAMESPACE_IB_LEGACY" get pods -o wide || true
-}
-
-simulate_stream_legacy() {
-	need kubectl
-	local sim_id="${1:-1}"
-	local interval_ms="${2:-250}"
-	local max_ticks="${3:-1000}"
-	kubectl -n "${NAMESPACE_IB_LEGACY}" exec -it ib-connector-legacy -- \
-		bash -lc "cd /work && sbt -batch 'runMain src.main.scala.SimulateStreaming ${sim_id} ${interval_ms} ${max_ticks}'"
-}
 
 # ========= IB Connector (CURRENT) — stupid simple deploy =========
-sync_ibkr_secrets_from_keyvault() {
-	need az
-	need kubectl
-
-	local KV_NAME="ibkr-secrets"
-	local NS="${NAMESPACE_IB}"
-	local K8S_SECRET_NAME="ibkr-secret"
-
-	local USERNAME_1
-	local PASSWORD_1
-
-	USERNAME_1="$(az keyvault secret show --vault-name "${KV_NAME}" --name "ibkr-username-1" --query value -o tsv)"
-	PASSWORD_1="$(az keyvault secret show --vault-name "${KV_NAME}" --name "ibkr-password-1" --query value -o tsv)"
-
-	kubectl -n "${NS}" create secret generic "${K8S_SECRET_NAME}" \
-		--from-literal="IBKR_USERNAME_1=${USERNAME_1}" \
-		--from-literal="IBKR_PASSWORD_1=${PASSWORD_1}" \
-		--dry-run=client -o yaml | kubectl apply -f -
-}
 
 deploy_ib_connector() {
 	# Ensure you ran az login and it was successfull!
@@ -599,34 +485,34 @@ deploy_ib_connector() {
 	have "$IB_SRC_DIR/Dockerfile"
 
 	# Ensure cert artifacts exist so the image can bake them in
-	have "$IB_DIR/infra_dev/ibkr_truststore.jks"
-	have "$IB_DIR/infra_dev/ibkr_client_portal.pem"
+	have "$IB_DIR/$IB_INFRA_DIR/ibkr_truststore.jks"
+	have "$IB_DIR/$IB_INFRA_DIR/ibkr_client_portal.pem"
 
 	echo "[ib-connector] Applying namespace …"
 	kubectl apply -f "$IB_NS_FILE"
 	create_dockerhub_pull_secret "${NAMESPACE_IB}"
 	kubectl apply -f "${IB_SECRETS_FILE}"
 
-	echo "[ib-connector] Building image ib-connector:dev from ${IB_SRC_DIR} …"
+	echo "[ib-connector] Building image ib-connector:test from ${IB_SRC_DIR} …"
 	
 	docker build \
 		-f "$IB_SRC_DIR/Dockerfile" \
-		-t ib-connector:dev \
+		-t ib-connector:test \
 		"$ROOT/services_streaming_lane"
 
 	echo "[ib-connector] Loading image into kind cluster '${CLUSTER_NAME}' …"
-	push_to_dockerhub "ib-connector:dev" >/dev/null
+	push_to_dockerhub "ib-connector:test" >/dev/null
 
 	echo "[ib-connector] Applying RBAC manifest …"
-	export NAMESPACE_IB NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
+	export NAMESPACE_IB NAMESPACE_KAFKA KAFKA_NAME
 	envsubst < "$IB_RBAC_FILE" | kubectl apply -f -
 
 	echo "[ib-connector] Applying pod manifest …"
-	export NAMESPACE_IB NAMESPACE_KAFKA KAFKA_NAME LBL_KEY LBL_VAL_KAFKA
+	export NAMESPACE_IB NAMESPACE_KAFKA KAFKA_NAME
 	envsubst < "$IB_POD_FILE" | kubectl apply -f -
 
 	echo "[ib-connector] Waiting for pod/ib-connector Ready …"
-	kubectl -n "$NAMESPACE_IB" wait --for=condition=Ready pod/ib-connector --timeout=360s || true
+	kubectl -n "$NAMESPACE_IB" wait --for=condition=Ready pod/test-ib-connector --timeout=360s || true
 
 	echo "[ib-connector] Pods:"
 	kubectl -n "$NAMESPACE_IB" get pods -o wide || true
@@ -635,7 +521,7 @@ deploy_ib_connector() {
 ib_connector_play() {
 	need kubectl
 	echo "[ib-connector] Running 'runMain src.main.scala.Boilerplate.play' inside the ib-connector pod …"
-	kubectl -n "${NAMESPACE_IB}" exec -it ib-connector -c ib-connector -- \
+	kubectl -n "${NAMESPACE_IB}" exec -it test-ib-connector -c test-ib-connector -- \
 		bash -lc '
 			cd /work
 			sbt -batch "runMain src.main.scala.Boilerplate.play"
@@ -645,7 +531,7 @@ ib_connector_play() {
 ib_connector_run() {
 	need kubectl
 	echo "[ib-connector] Running 'runMain src.main.scala.IbConnector' inside the ib-connector pod …"
-	kubectl -n "${NAMESPACE_IB}" exec -it ib-connector -c ib-connector -- \
+	kubectl -n "${NAMESPACE_IB}" exec -it test-ib-connector -c test-ib-connector -- \
 		bash -lc '
 			cd /work
 			sbt -batch "runMain src.main.scala.IbConnector"
@@ -654,7 +540,7 @@ ib_connector_run() {
 
 ib_connector_inspect() {
 	# the last arg is the pod name 
-	kubectl -n "${NAMESPACE_IB}" logs -f ib-connector
+	kubectl -n "${NAMESPACE_IB}" logs -f test-ib-connector
 }
 
 # ========= Spark: base runtime image =========
@@ -715,10 +601,8 @@ deploy_spark() {
 
 # ========= Spark submit (YOUR app.jar baked in image) =========
 submit_spark_job() {
-	NS="spark"
-	SA="spark-sa"
 
-	kubectl -n "${NS}" create token "${SA}" > /tmp/spark-sa.token
+	kubectl -n "${NAMESPACE_SPARK}" create token "${SPARK_SA}" > /tmp/spark-sa.token
 
 	SERVER="$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')"
 	CA="$(kubectl config view --raw --minify -o jsonpath='{.clusters[0].cluster.certificate-authority-data}')"
@@ -740,15 +624,13 @@ contexts:
   context:
     cluster: k3s
     user: spark-submit
-    namespace: ${NS}
+    namespace: ${NAMESPACE_SPARK}
 current-context: spark-submit@k3s
 EOF
 
 	unset KUBECONFIG
 	export KUBECONFIG="/tmp/spark-submit.kubeconfig"
 
-	NS="spark"
-	SA="spark-sa"
 	CTX="spark-submit@k3s"
 	SERVER="$(kubectl config view --raw --kubeconfig "${KUBECONFIG}" --minify -o jsonpath='{.clusters[0].cluster.server}')"
 
@@ -757,10 +639,10 @@ EOF
 		--deploy-mode cluster \
 		--name spark-app \
 		--class "${SPARK_APP_CLASS}" \
-		--conf "spark.kubernetes.namespace=${NS}" \
+		--conf "spark.kubernetes.namespace=${NAMESPACE_SPARK}" \
 		--conf "spark.kubernetes.authenticate.submission.kubeconfigFile=${KUBECONFIG}" \
 		--conf "spark.kubernetes.authenticate.submission.context=${CTX}" \
-		--conf "spark.kubernetes.authenticate.driver.serviceAccountName=${SA}" \
+		--conf "spark.kubernetes.authenticate.driver.serviceAccountName=${SPARK_SA}" \
 		--conf "spark.kubernetes.container.image=${SPARK_IMAGE_ADDRESS}" \
 		--conf "spark.kubernetes.container.image.pullPolicy=IfNotPresent" \
 		--conf "spark.kubernetes.driver.podTemplateFile=${SPARK_DRIVER_POD_TMPL}" \
@@ -846,22 +728,22 @@ deploy_clickhouse() {
 
 	have "${CLICKHOUSE_POD_FILE}"
 	have "${CLICKHOUSE_SVC_FILE}"
-	export NAMESPACE_CLICKHOUSE LBL_KEY LBL_VAL_SPARK
+	export NAMESPACE_CLICKHOUSE
 	envsubst < "${CLICKHOUSE_POD_FILE}" | kubectl apply -f -
 	envsubst < "${CLICKHOUSE_SVC_FILE}" | kubectl apply -f -
 
-	kubectl -n "${NAMESPACE_CLICKHOUSE}" wait --for=condition=Ready pod/clickhouse --timeout=240s || true
+	kubectl -n "${NAMESPACE_CLICKHOUSE}" wait --for=condition=Ready pod/test-clickhouse --timeout=240s || true
 	kubectl -n "${NAMESPACE_CLICKHOUSE}" get pods -o wide
-	kubectl -n "${NAMESPACE_CLICKHOUSE}" get svc clickhouse -o wide || true
+	kubectl -n "${NAMESPACE_CLICKHOUSE}" get svc test-clickhouse -o wide || true
 }
 
 peek_clickhouse_market_trades() {
 	need kubectl
 	local NS="${NAMESPACE_CLICKHOUSE}"
 	local POD
-	POD="$(kubectl -n "${NS}" get pods -l app=clickhouse -o jsonpath='{.items[0].metadata.name}')"
+	POD="$(kubectl -n "${NS}" get pods -l app=test-clickhouse -o jsonpath='{.items[0].metadata.name}')"
 
-	local Q='SELECT * FROM realtime_store.derivatives_tick_market_data ORDER BY tick_time DESC LIMIT 10;'
+	local Q='SELECT * FROM test_realtime_store.derivatives_tick_market_data ORDER BY tick_time DESC LIMIT 10;'
 
 	kubectl -n "${NS}" exec -it "${POD}" -- \
 		clickhouse-client --multiquery --query "${Q}"
@@ -871,13 +753,13 @@ check_clickhouse_tables() {
 	need kubectl
 	local NS="${NAMESPACE_CLICKHOUSE}"
 	local POD
-	POD="$(kubectl -n "${NS}" get pods -l app=clickhouse -o jsonpath='{.items[0].metadata.name}')"
+	POD="$(kubectl -n "${NS}" get pods -l app=test-clickhouse -o jsonpath='{.items[0].metadata.name}')"
 
 	kubectl -n "${NS}" exec -it "${POD}" -- \
 		clickhouse-client --multiquery --query "
 SHOW DATABASES;
-SHOW TABLES FROM realtime_store;
-SHOW CREATE TABLE realtime_store.derivatives_tick_market_data;
+SHOW TABLES FROM test_realtime_store;
+SHOW CREATE TABLE test_realtime_store.derivatives_tick_market_data;
 "
 }
 
@@ -888,69 +770,41 @@ check_clickhouse_ingestion_tables() {
 	local POD
 	local ROWS
 
-	POD="$(kubectl -n "${NS}" get pods -l app=clickhouse -o jsonpath='{.items[0].metadata.name}')"
+	POD="$(kubectl -n "${NS}" get pods -l app=test-clickhouse -o jsonpath='{.items[0].metadata.name}')"
 
 	ROWS="$(kubectl -n "${NS}" exec "${POD}" -- \
-		clickhouse-client --query "SELECT count() FROM realtime_store.derivatives_tick_market_data;" | tr -d '\r\n')"
+		clickhouse-client --query "SELECT count() FROM test_realtime_store.derivatives_tick_market_data;" | tr -d '\r\n')"
 
 	test "${ROWS}" -gt 0
 
-	echo "[clickhouse] OK: realtime_store.derivatives_tick_market_data has ${ROWS} rows"
+	echo "[clickhouse] OK: test_realtime_store.derivatives_tick_market_data has ${ROWS} rows"
 }
 
 
-
-azure_authenticate_first() {
-	need kubectl
-
-	# pick the first ib-connector pod in the namespace
-	local POD
-	POD="$(kubectl -n "${NAMESPACE_IB}" get pods -o jsonpath='{.items[0].metadata.name}')"
-
-	if [[ -z "${POD:-}" ]]; then
-		echo "[azure_authenticate] No ib-connector pod found in namespace ${NAMESPACE_IB}" >&2
-		exit 1
-	fi
-
-	echo "[azure_authenticate] Using pod ${POD} in namespace ${NAMESPACE_IB}"
-	echo "[azure_authenticate] Running 'az login --use-device-code' inside the pod."
-	echo "[azure_authenticate] Follow the URL and enter the device code in your host browser."
-
-	kubectl -n "${NAMESPACE_IB}" exec -it "${POD}" -- bash -lc '
-		set -euo pipefail
-		if ! command -v az >/dev/null 2>&1; then
-			echo "[azure] Azure CLI not found, installing …"
-			curl -sL https://aka.ms/InstallAzureCLIDeb | bash
-		fi
-		az login --use-device-code
-	'
-}
 
 destroy_kafka_namespace(){
-	NS="kafka"
-	CLUSTER="dev-kafka"
 
 	# 1) Delete Strimzi resources (topics/users first, then cluster)
-	kubectl -n "${NS}" delete kafkatopic --all
-	kubectl -n "${NS}" delete kafkauser --all
-	kubectl -n "${NS}" delete kafka "${CLUSTER}"
+	kubectl -n "${NAMESPACE_KAFKA}" delete kafkatopic --all
+	kubectl -n "${NAMESPACE_KAFKA}" delete kafkauser --all
+	kubectl -n "${NAMESPACE_KAFKA}" delete kafka "${KAFKA_NAME}"
 
 	# 2) Wait until they are really gone
-	kubectl -n "${NS}" wait --for=delete kafka/"${CLUSTER}" --timeout=10m || true
+	kubectl -n "${NAMESPACE_KAFKA}" wait --for=delete kafka/"${KAFKA_NAME}" --timeout=10m || true
 
 	# 3) (Optional, if you want a truly fresh start) delete storage
-	kubectl -n "${NS}" delete pvc --all
+	kubectl -n "${NAMESPACE_KAFKA}" delete pvc --all
 
 	# 4) Delete namespace last
-	kubectl delete ns "${NS}"
+	kubectl delete ns "${NAMESPACE_KAFKA}"
 
 }
 
 destroy_non_kafka_namespaces() {
-	kubectl delete namespace ib-connector
-	kubectl delete namespace spark
-	kubectl delete namespace clickhouse
-	kubectl delete namespace avro-schema-registry
+	kubectl delete namespace $NAMESPACE_IB
+	kubectl delete namespace $NAMESPACE_SPARK
+	kubectl delete namespace $NAMESPACE_CLICKHOUSE
+	kubectl delete namespace $NAMESPACE_AVRO
 
 }
 
@@ -962,8 +816,6 @@ Doppler:
   create_doppler_service_token_secret <serviceToken>  Create/replace doppler-token-secret in doppler-operator-system
 
 Cluster:
-  create_cluster_dev          Create kind cluster and label nodes (kafka/spark)
-  down                        Delete kind cluster
   status                      Show nodes/pods/services/topics
   destroy_kafka_namespace	  Deletes kafka namespace and all of its ressources
   destroy_non_kafka_namespaces Deletes the remaining namespaces and all of their ressources
@@ -984,7 +836,6 @@ IB Connector (legacy):
 
 IB Connector (current):
   deploy_ib_connector         Build image, load to kind, (re)create truststore Secret, apply pod
-  azure_authenticate_first	  Runs az login on the first pod in the ib connector namespace
   ib_connector_play           Exec into pod and run 'runMain play'
   ib_connector_run			  Run the produciton version of the ib connector
 
@@ -999,6 +850,11 @@ ClickHouse:
   peek_clickhouse_market_trades  Show 10 latest rows from quant.market_trades
   check_clickhouse_ingestion_tables   Fail if realtime_store.derivatives_tick_market_data is empty
 
+canonical use:
+  create_cluster_test
+  install_doppler
+  prepare_env test
+
 
 
 EOF
@@ -1012,20 +868,14 @@ cmd="${1:-help}"
 case "$cmd" in
 	install_doppler) install_doppler ;;
 	create_doppler_service_token_secret) shift; create_doppler_service_token_secret "$@" ;;
-	create_cluster_dev) create_cluster_dev ;;
 	prepare_env) shift; prepare_env "$@";;
-	delete_all_pods_all_namespaces) delete_all_pods_all_namespaces;;
-    create_cluster_prod)  create_cluster_prod ;;
-    destroy_cluster_prod) destroy_cluster_prod ;;
 	create_cluster_test) create_cluster_test;;
-	destroy_cluster_prod) destroy_cluster_prod;;
+	destroy_cluster_test) destroy_cluster_test;;
 	set_deployment_env) shift; set_deployment_env "$@";;
 	destroy_non_kafka_namespaces) destroy_non_kafka_namespaces;;
 	destroy_kafka_namespace) destroy_kafka_namespace;;
 	deploy_kafka) deploy_kafka ;;
 	deploy_avro_schema_registry) deploy_avro_schema_registry ;;
-	deploy_ib_connector_legacy) deploy_ib_connector_legacy ;;
-	simulate_stream_legacy) shift; simulate_stream_legacy "$@";;
 	deploy_ib_connector) deploy_ib_connector ;;
 	ib_connector_play) ib_connector_play ;;
 	ib_connector_run) ib_connector_run;;
@@ -1042,8 +892,6 @@ case "$cmd" in
 	peek_topic_l2_data) peek_topic_l2_data ;;
 	peek_spark) peek_spark ;;
 	status) status ;;
-	down) down ;;
-	azure_authenticate_first) azure_authenticate_first;;
 	label_workers) label_workers;;
 	help|*) usage ;;
 esac

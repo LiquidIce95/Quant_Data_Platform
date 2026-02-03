@@ -3,6 +3,6 @@ kind: Kustomization
 
 resources:
   - 01-namespace.yml
-  - 02-configmap-schema-registry.yml
+  - 02-configmap-schema.registry.yml
   - 03-deployment-schema-registry.yml
   - 04-service-schema-registry.yml
