@@ -781,7 +781,6 @@ check_clickhouse_ingestion_tables() {
 }
 
 
-
 destroy_kafka_namespace(){
 
 	# 1) Delete Strimzi resources (topics/users first, then cluster)
