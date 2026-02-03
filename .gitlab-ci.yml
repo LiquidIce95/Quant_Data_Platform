@@ -141,5 +141,6 @@ teardown_on_failure:
     - bash "$SCRIPT_PATH" destroy_non_kafka_namespaces
     - bash "$SCRIPT_PATH" destroy_kafka_namespace
     - bash "$TERRAFORM_PATH" destroy_cluster_test
+    - bash "$TERRAFORM_PATH" remove_workers_test
     - exit 0
   only: [main]
