@@ -69,6 +69,7 @@ teardown_on_failure:
   allow_failure: true
   script:
     - set +e
+    - rsync -a ${REPO_PATH}/test_env/.terraform/ services_streaming_lane/test_env/.terraform/
     - bash "$SCRIPT_PATH" destroy_namespace_ib
     - sleep 10
     - bash "$SCRIPT_PATH" destroy_namespace_spark

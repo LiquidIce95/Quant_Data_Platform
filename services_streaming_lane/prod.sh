@@ -15,16 +15,16 @@ DOCKERHUB_TOKEN_SECRET_NAME="docker-hub-token"
 DOCKERHUB_PULL_SECRET_NAME="dockerhub-pull"
 
 # IB connector
-NAMESPACE_IB="${NAMESPACE_IB:-testenv-ib-connector}"
+NAMESPACE_IB="${NAMESPACE_IB:-prodenv-ib-connector}"
 
 # Kafka / Strimzi
-NAMESPACE_KAFKA="${NAMESPACE_KAFKA:-testenv-kafka}"
-KAFKA_NAME="${KAFKA_NAME:-test-kafka}"
+NAMESPACE_KAFKA="${NAMESPACE_KAFKA:-prodenv-kafka}"
+KAFKA_NAME="${KAFKA_NAME:-prod-kafka}"
 STRIMZI_URL="https://strimzi.io/install/latest?namespace=${NAMESPACE_KAFKA}"
 BOOTSTRAP_LOCAL_PORT="${BOOTSTRAP_LOCAL_PORT:-9092}"
 
 # Spark (K8s)
-NAMESPACE_SPARK="${NAMESPACE_SPARK:-testenv-spark}"
+NAMESPACE_SPARK="${NAMESPACE_SPARK:-prodenv-spark}"
 SPARK_SA="${SPARK_SA:-spark-sa}"
 SPARK_VERSION="${SPARK_VERSION:-3.5.7}"
 SPARK_IMAGE_TAG="spark-our-own-apache-spark-kb8"
@@ -33,8 +33,8 @@ SPARK_IMAGE_ADDRESS="${DOCKERHUB_REPO}:${APP_IMAGE_TAG}"
 SPARK_APP_CLASS="${SPARK_APP_CLASS:-com.yourorg.spark.ReadTickLastPrint}"
 
 # ClickHouse (disjoint namespace)
-NAMESPACE_CLICKHOUSE="${NAMESPACE_CLICKHOUSE:-testenv-clickhouse}"
-CLICKHOUSE_IMAGE_TAG="${CLICKHOUSE_IMAGE_TAG:-clickhouse:test}"
+NAMESPACE_CLICKHOUSE="${NAMESPACE_CLICKHOUSE:-prodenv-clickhouse}"
+CLICKHOUSE_IMAGE_TAG="${CLICKHOUSE_IMAGE_TAG:-clickhouse:prod}"
 
 
 # ========= Repo paths =========
@@ -50,19 +50,19 @@ SPARK_DIR="$ROOT/services_streaming_lane/spark_processor"
 SPARK_HOME="$ROOT/services_streaming_lane/spark-${SPARK_VERSION}-bin-hadoop3"
 
 CLICKHOUSE_DIR="$ROOT/services_streaming_lane/click_house"
-CLICKHOUSE_INFRA_DIR="$CLICKHOUSE_DIR/infra_test"
+CLICKHOUSE_INFRA_DIR="$CLICKHOUSE_DIR/infra_prod"
 
 # Kafka manifests (now under infra_dev)
-NS_FILE="$KAFKA_DIR/infra_test/00-namespace.yml"
-KAFKA_FILE="$KAFKA_DIR/infra_test/10-kafka-cluster.yml"
-TOPICS_FILE="$KAFKA_DIR/infra_test/20-topics.yml"
+NS_FILE="$KAFKA_DIR/infra_prod/00-namespace.yml"
+KAFKA_FILE="$KAFKA_DIR/infra_prod/10-kafka-cluster.yml"
+TOPICS_FILE="$KAFKA_DIR/infra_prod/20-topics.yml"
 
 # Spark infra files (infra_dev)
-SPARK_NS_FILE="$SPARK_DIR/infra_test/00-namespace.yml"
-SPARK_RBAC_FILE="$SPARK_DIR/infra_test/10-rbac.yml"
-SPARK_DRIVER_POD_TMPL="$SPARK_DIR/infra_test/20-driver-pod-template.yml"
-SPARK_EXEC_POD_TMPL="$SPARK_DIR/infra_test/21-executor-pod-template.yml"
-SPARK_DEFAULTS_FILE="$SPARK_DIR/infra_test/30-spark-defaults.conf"
+SPARK_NS_FILE="$SPARK_DIR/infra_prod/00-namespace.yml"
+SPARK_RBAC_FILE="$SPARK_DIR/infra_prod/10-rbac.yml"
+SPARK_DRIVER_POD_TMPL="$SPARK_DIR/infra_prod/20-driver-pod-template.yml"
+SPARK_EXEC_POD_TMPL="$SPARK_DIR/infra_prod/21-executor-pod-template.yml"
+SPARK_DEFAULTS_FILE="$SPARK_DIR/infra_prod/30-spark-defaults.conf"
 
 # ========= ClickHouse infra files (infra_dev) =========
 CLICKHOUSE_NS_FILE="$CLICKHOUSE_INFRA_DIR/00-namespace.yml"
@@ -72,7 +72,7 @@ CLICKHOUSE_SVC_FILE="$CLICKHOUSE_INFRA_DIR/20-clickhouse-svc.yml"
 
 # ========= IB Connector (current project) =========
 IB_DIR="$ROOT/services_streaming_lane/ib_connector"
-IB_INFRA_DIR="infra_test"
+IB_INFRA_DIR="infra_prod"
 IB_SRC_DIR="$IB_DIR/source"
 IB_NS_FILE="$IB_DIR/$IB_INFRA_DIR/00-namespace.yml"
 IB_RBAC_FILE="$IB_DIR/$IB_INFRA_DIR/05-ib-connector-rbac.yml"
@@ -80,10 +80,10 @@ IB_POD_FILE="$IB_DIR/$IB_INFRA_DIR/10-ib-connector-pod.yml"
 IB_SECRETS_FILE="${IB_DIR}/$IB_INFRA_DIR/20-secrets.yml"
 
 # ========= Avro Schema Registry =========
-NAMESPACE_AVRO="${NAMESPACE_AVRO:-testenv-avro-schema-registry}"
+NAMESPACE_AVRO="${NAMESPACE_AVRO:-prodenv-avro-schema-registry}"
 
 AVRO_REG_DIR="$ROOT/services_streaming_lane/avro_schema_registry"
-AVRO_REG_INFRA_DIR="$AVRO_REG_DIR/infra_test"
+AVRO_REG_INFRA_DIR="$AVRO_REG_DIR/infra_prod"
 AVRO_SCHEMA_DIR="$AVRO_REG_DIR/category_schemas"
 
 AVRO_REG_NS_FILE="$AVRO_REG_INFRA_DIR/01-namespace.yml"
@@ -92,7 +92,7 @@ AVRO_REG_DEPLOY_FILE="$AVRO_REG_INFRA_DIR/03-deployment-schema-registry.yml"
 AVRO_REG_SVC_FILE="$AVRO_REG_INFRA_DIR/04-service-schema-registry.yml"
 AVRO_REG_KUSTOM_FILE="$AVRO_REG_INFRA_DIR/kustomization.yml"
 
-AVRO_REG_SVC_NAME="${AVRO_REG_SVC_NAME:-test-schema-registry}"
+AVRO_REG_SVC_NAME="${AVRO_REG_SVC_NAME:-prod-schema-registry}"
 AVRO_REG_LOCAL_PORT="${AVRO_REG_LOCAL_PORT:-8081}"
 AVRO_REG_COMPATIBILITY="${AVRO_REG_COMPATIBILITY:-BACKWARD}"
 
@@ -108,7 +108,7 @@ SBT_ASSEMBLY_ABS="${SPARK_DIR}/source/target/scala-2.12/spark-processor-assembly
 APP_JAR_PATH_IN_IMAGE="/opt/spark/app/app.jar"
 
 label_workers() {
-	# assumes that the names of the nodes appearing in 'kubectl get nodes' are of form test-worker-1 , dev-worker-1 or prod-worker-1
+	# assumes that the names of the nodes appearing in 'kubectl get nodes' are of form prod-worker-1 , dev-worker-1 or prod-worker-1
 	# needs to be run like this :
 	# source ./deploy.sh
 	# set_deployment_env dev
@@ -151,8 +151,8 @@ apply_default_secrets() {
 
 # ========= Terraform Environment Management =========:
 # these are less dynamic and more hardcoded to avoid accidental mixture of terraform states of the different environemnts
-create_cluster_test() {
-    local target_dir="$SCRIPT_DIR/test_env"
+create_cluster_prod() {
+    local target_dir="$SCRIPT_DIR/prod_env"
     
     if [[ ! -d "$target_dir" ]]; then
         echo "ERROR: Directory $target_dir not found." >&2
@@ -174,8 +174,8 @@ create_cluster_test() {
     echo "[terraform] Success: Cluster is provisioned and ready."
 }
 
-destroy_cluster_test() {
-    local target_dir="$SCRIPT_DIR/test_env"
+destroy_cluster_prod() {
+    local target_dir="$SCRIPT_DIR/prod_env"
     
     if [[ ! -d "$target_dir" ]]; then
         echo "ERROR: Directory $target_dir not found." >&2
@@ -194,9 +194,9 @@ destroy_cluster_test() {
 }
 
 
-remove_workers_test(){
+remove_workers_prod(){
 	kubectl get nodes -o name \
-	| grep '^node/test' \
+	| grep '^node/prod' \
 	| xargs -r kubectl delete
 
 }
@@ -317,14 +317,14 @@ ns_exists() { kubectl get ns "$1" >/dev/null 2>&1; }
 
 # ========= Misc =========
 status() {
-	echo "status of TEST environment"
+	echo "status of prod environment"
 	echo "== Nodes =="; kubectl get nodes -o wide --show-labels || true
 	echo "== Kafka Pods =="; kubectl -n "$NAMESPACE_KAFKA" get pods -o wide || true
 	echo "== Services (kafka) =="; kubectl -n "$NAMESPACE_KAFKA" get svc || true
 	echo "== Topics =="; kubectl -n "$NAMESPACE_KAFKA" get kafkatopic || true
 	echo "== Spark Pods =="; kubectl -n "$NAMESPACE_SPARK" get pods -o wide || true
 	echo "== ClickHouse Pods =="; kubectl -n "$NAMESPACE_CLICKHOUSE" get pods -o wide || true
-	echo "== ClickHouse Svc =="; kubectl -n "$NAMESPACE_CLICKHOUSE" get svc test-clickhouse -o wide || true
+	echo "== ClickHouse Svc =="; kubectl -n "$NAMESPACE_CLICKHOUSE" get svc prod-clickhouse -o wide || true
 	echo "== IbConnector =="; kubectl -n "$NAMESPACE_IB" get pods -o wide || true
 	echo "== SchemaRegistry =="; kubectl -n "$NAMESPACE_AVRO" get pods -o wide || true
 	echo "== SchemaRegistry Svc =="; kubectl -n "$NAMESPACE_AVRO" get svc "$AVRO_REG_SVC_NAME" -o wide || true
@@ -408,8 +408,8 @@ deploy_avro_schema_registry() {
 	kubectl apply -n "$NAMESPACE_AVRO" -f "$AVRO_REG_DEPLOY_FILE"
 	kubectl apply -n "$NAMESPACE_AVRO" -f "$AVRO_REG_SVC_FILE"
 
-	kubectl -n "$NAMESPACE_AVRO" rollout status deployment/test-schema-registry --timeout=400s || true
-	kubectl -n "$NAMESPACE_AVRO" get pods -l app=test-schema-registry -o wide || true
+	kubectl -n "$NAMESPACE_AVRO" rollout status deployment/prod-schema-registry --timeout=400s || true
+	kubectl -n "$NAMESPACE_AVRO" get pods -l app=prod-schema-registry -o wide || true
 	kubectl -n "$NAMESPACE_AVRO" get svc "$AVRO_REG_SVC_NAME" -o wide || true
 
 	sleep 10
@@ -494,15 +494,15 @@ deploy_ib_connector() {
 	create_dockerhub_pull_secret "${NAMESPACE_IB}"
 	kubectl apply -f "${IB_SECRETS_FILE}"
 
-	echo "[ib-connector] Building image ib-connector:test from ${IB_SRC_DIR} …"
+	echo "[ib-connector] Building image ib-connector:prod from ${IB_SRC_DIR} …"
 	
 	docker build \
 		-f "$IB_SRC_DIR/Dockerfile" \
-		-t ib-connector:test \
+		-t ib-connector:prod \
 		"$ROOT/services_streaming_lane"
 
 	echo "[ib-connector] Loading image into kind cluster '${CLUSTER_NAME}' …"
-	push_to_dockerhub "ib-connector:test" >/dev/null
+	push_to_dockerhub "ib-connector:prod" >/dev/null
 
 	echo "[ib-connector] Applying RBAC manifest …"
 	export NAMESPACE_IB NAMESPACE_KAFKA KAFKA_NAME
@@ -513,7 +513,7 @@ deploy_ib_connector() {
 	envsubst < "$IB_POD_FILE" | kubectl apply -f -
 
 	echo "[ib-connector] Waiting for pod/ib-connector Ready …"
-	kubectl -n "$NAMESPACE_IB" wait --for=condition=Ready pod/test-ib-connector --timeout=360s || true
+	kubectl -n "$NAMESPACE_IB" wait --for=condition=Ready pod/prod-ib-connector --timeout=360s || true
 
 	echo "[ib-connector] Pods:"
 	kubectl -n "$NAMESPACE_IB" get pods -o wide || true
@@ -522,7 +522,7 @@ deploy_ib_connector() {
 ib_connector_play() {
 	need kubectl
 	echo "[ib-connector] Running 'runMain src.main.scala.Boilerplate.play' inside the ib-connector pod …"
-	kubectl -n "${NAMESPACE_IB}" exec -it test-ib-connector -c test-ib-connector -- \
+	kubectl -n "${NAMESPACE_IB}" exec -it prod-ib-connector -c prod-ib-connector -- \
 		bash -lc '
 			cd /work
 			sbt -batch "runMain src.main.scala.Boilerplate.play"
@@ -532,7 +532,7 @@ ib_connector_play() {
 ib_connector_run() {
 	need kubectl
 	echo "[ib-connector] Running 'runMain src.main.scala.IbConnector' inside the ib-connector pod …"
-	kubectl -n "${NAMESPACE_IB}" exec -it test-ib-connector -c test-ib-connector -- \
+	kubectl -n "${NAMESPACE_IB}" exec -it prod-ib-connector -c prod-ib-connector -- \
 		bash -lc '
 			cd /work
 			sbt -batch "runMain src.main.scala.IbConnector"
@@ -541,7 +541,7 @@ ib_connector_run() {
 
 ib_connector_inspect() {
 	# the last arg is the pod name 
-	kubectl -n "${NAMESPACE_IB}" logs -f test-ib-connector
+	kubectl -n "${NAMESPACE_IB}" logs -f prod-ib-connector
 }
 
 # ========= Spark: base runtime image =========
@@ -733,18 +733,18 @@ deploy_clickhouse() {
 	envsubst < "${CLICKHOUSE_POD_FILE}" | kubectl apply -f -
 	envsubst < "${CLICKHOUSE_SVC_FILE}" | kubectl apply -f -
 
-	kubectl -n "${NAMESPACE_CLICKHOUSE}" wait --for=condition=Ready pod/test-clickhouse --timeout=240s || true
+	kubectl -n "${NAMESPACE_CLICKHOUSE}" wait --for=condition=Ready pod/prod-clickhouse --timeout=240s || true
 	kubectl -n "${NAMESPACE_CLICKHOUSE}" get pods -o wide
-	kubectl -n "${NAMESPACE_CLICKHOUSE}" get svc test-clickhouse -o wide || true
+	kubectl -n "${NAMESPACE_CLICKHOUSE}" get svc prod-clickhouse -o wide || true
 }
 
 peek_clickhouse_market_trades() {
 	need kubectl
 	local NS="${NAMESPACE_CLICKHOUSE}"
 	local POD
-	POD="$(kubectl -n "${NS}" get pods -l app=test-clickhouse -o jsonpath='{.items[0].metadata.name}')"
+	POD="$(kubectl -n "${NS}" get pods -l app=prod-clickhouse -o jsonpath='{.items[0].metadata.name}')"
 
-	local Q='SELECT * FROM test_realtime_store.derivatives_tick_market_data ORDER BY tick_time DESC LIMIT 10;'
+	local Q='SELECT * FROM prod_realtime_store.derivatives_tick_market_data ORDER BY tick_time DESC LIMIT 10;'
 
 	kubectl -n "${NS}" exec -it "${POD}" -- \
 		clickhouse-client --multiquery --query "${Q}"
@@ -754,13 +754,13 @@ check_clickhouse_tables() {
 	need kubectl
 	local NS="${NAMESPACE_CLICKHOUSE}"
 	local POD
-	POD="$(kubectl -n "${NS}" get pods -l app=test-clickhouse -o jsonpath='{.items[0].metadata.name}')"
+	POD="$(kubectl -n "${NS}" get pods -l app=prod-clickhouse -o jsonpath='{.items[0].metadata.name}')"
 
 	kubectl -n "${NS}" exec -it "${POD}" -- \
 		clickhouse-client --multiquery --query "
 SHOW DATABASES;
-SHOW TABLES FROM test_realtime_store;
-SHOW CREATE TABLE test_realtime_store.derivatives_tick_market_data;
+SHOW TABLES FROM prod_realtime_store;
+SHOW CREATE TABLE prod_realtime_store.derivatives_tick_market_data;
 "
 }
 
@@ -771,14 +771,14 @@ check_clickhouse_ingestion_tables() {
 	local POD
 	local ROWS
 
-	POD="$(kubectl -n "${NS}" get pods -l app=test-clickhouse -o jsonpath='{.items[0].metadata.name}')"
+	POD="$(kubectl -n "${NS}" get pods -l app=prod-clickhouse -o jsonpath='{.items[0].metadata.name}')"
 
 	ROWS="$(kubectl -n "${NS}" exec "${POD}" -- \
-		clickhouse-client --query "SELECT count() FROM test_realtime_store.derivatives_tick_market_data;" | tr -d '\r\n')"
+		clickhouse-client --query "SELECT count() FROM prod_realtime_store.derivatives_tick_market_data;" | tr -d '\r\n')"
 
 	test "${ROWS}" -gt 0
 
-	echo "[clickhouse] OK: test_realtime_store.derivatives_tick_market_data has ${ROWS} rows"
+	echo "[clickhouse] OK: prod_realtime_store.derivatives_tick_market_data has ${ROWS} rows"
 }
 
 
@@ -835,7 +835,7 @@ Cluster:
   status                      Show nodes/pods/services/topics
   destroy_kafka_namespace	  Deletes kafka namespace and all of its ressources
   destroy_non_kafka_namespaces Deletes the remaining namespaces and all of their ressources
-  remove_workers_test         Deletes the test workers from the k3s server 
+  remove_workers_prod         Deletes the prod workers from the k3s server 
 
 Kafka:
   deploy_kafka                Install Strimzi, deploy Kafka & topics
@@ -870,8 +870,8 @@ ClickHouse:
 canonical use:
   install_doppler // one time 
   create_doppler_service_token_secret // one time
-  create_cluster_test
-  prepare_env test
+  create_cluster_prod
+  prepare_env prod
   deploy_kafka
   deploy_avro_schema_registry
   deploy_clickhouse
@@ -880,8 +880,8 @@ canonical use:
   deploy_ib_connector
   destroy_non_kafka_namespaces
   destroy_kafka_namespace
-  destroy_cluster_test
-  remove_workers_test
+  destroy_cluster_prod
+  remove_workers_prod
 
 EOF
 }
@@ -895,9 +895,9 @@ case "$cmd" in
 	install_doppler) install_doppler ;;
 	create_doppler_service_token_secret) shift; create_doppler_service_token_secret "$@" ;;
 	prepare_env) shift; prepare_env "$@";;
-	create_cluster_test) create_cluster_test;;
-	destroy_cluster_test) destroy_cluster_test;;
-	remove_workers_test) remove_workers_test;;
+	create_cluster_prod) create_cluster_prod;;
+	destroy_cluster_prod) destroy_cluster_prod;;
+	remove_workers_prod) remove_workers_prod;;
 	set_deployment_env) shift; set_deployment_env "$@";;
 	destroy_non_kafka_namespaces) destroy_non_kafka_namespaces;;
 	destroy_namespace_spark) destroy_namespace_spark;;
