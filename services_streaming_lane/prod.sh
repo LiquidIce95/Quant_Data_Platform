@@ -875,7 +875,7 @@ canonical use:
   create_cluster_prod
   prepare_env prod
   deploy_kafka
-  deploy_avro_schema_registry
+  deploy_avro_schema_regiistry
   deploy_clickhouse
   deploy_spark
   submit_spark_job
