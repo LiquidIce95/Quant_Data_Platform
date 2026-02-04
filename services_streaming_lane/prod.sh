@@ -27,7 +27,7 @@ BOOTSTRAP_LOCAL_PORT="${BOOTSTRAP_LOCAL_PORT:-9092}"
 NAMESPACE_SPARK="${NAMESPACE_SPARK:-prodenv-spark}"
 SPARK_SA="${SPARK_SA:-spark-sa}"
 SPARK_VERSION="${SPARK_VERSION:-3.5.7}"
-SPARK_IMAGE_TAG="spark-our-own-apache-spark-kb8"
+SPARK_IMAGE_TAG="spark-our-own-apache-spark-kb8-prod"
 APP_IMAGE_TAG="${APP_IMAGE_TAG:-${SPARK_IMAGE_TAG}-app}"
 SPARK_IMAGE_ADDRESS="${DOCKERHUB_REPO}:${APP_IMAGE_TAG}"
 SPARK_APP_CLASS="${SPARK_APP_CLASS:-com.yourorg.spark.ReadTickLastPrint}"
@@ -473,7 +473,6 @@ register_avro_schemas() {
 	kill "$PF_PID" >/dev/null 2>&1 || true
 }
 
-
 # ========= IB Connector (CURRENT) — stupid simple deploy =========
 
 deploy_ib_connector() {
@@ -550,7 +549,8 @@ build_base_spark_image() {
 	need docker; need kind
 	have "$SPARK_HOME/bin/docker-image-tool.sh"
 	(cd "$SPARK_HOME" && ./bin/docker-image-tool.sh -t "$SPARK_IMAGE_TAG" build)
-	SPARK_REMOTE_BASE_IMAGE="$(push_to_dockerhub "${SPARK_IMAGE_TAG}")"
+	push_to_dockerhub "spark:${SPARK_IMAGE_TAG}"
+	SPARK_REMOTE_BASE_IMAGE="${DOCKERHUB_REPO}:spark-${SPARK_IMAGE_TAG}"
 	export SPARK_REMOTE_BASE_IMAGE
 }
 
@@ -579,11 +579,12 @@ build_app_image() {
 	need docker; need kind
 	have "${JAR_DEST}"
 	( cd "$ROOT" && docker build -t "${APP_IMAGE_TAG}" -f- . <<DOCKERFILE
-FROM ${DOCKERHUB_REPO}:${SPARK_IMAGE_TAG}
+FROM ${SPARK_REMOTE_BASE_IMAGE}
 COPY services_streaming_lane/app.jar ${APP_JAR_PATH_IN_IMAGE}
 DOCKERFILE
 	)
-	SPARK_REMOTE_APP_IMAGE="$(push_to_dockerhub "${APP_IMAGE_TAG}")"
+	push_to_dockerhub "${APP_IMAGE_TAG}"
+	SPARK_REMOTE_APP_IMAGE="${DOCKERHUB_REPO}:$APP_IMAGE_TAG"
 	export SPARK_REMOTE_APP_IMAGE
 }
 
@@ -713,9 +714,9 @@ peek_spark() {
 # ========= ClickHouse =========
 build_clickhouse_image() {
 	need docker
-	have "$CLICKHOUSE_DIR/Dockerfile"
+	have "$CLICKHOUSE_DIR/Dockerfile.prod"
 	have "$CLICKHOUSE_DIR/create_data_model.sql"
-	(cd "$CLICKHOUSE_DIR" && docker build -t "${CLICKHOUSE_IMAGE_TAG}" .)
+	(cd "$CLICKHOUSE_DIR" && docker build -f Dockerfile.prod -t "${CLICKHOUSE_IMAGE_TAG}" .)
 }
 
 deploy_clickhouse() {
@@ -776,7 +777,7 @@ check_clickhouse_ingestion_tables() {
 	ROWS="$(kubectl -n "${NS}" exec "${POD}" -- \
 		clickhouse-client --query "SELECT count() FROM prod_realtime_store.derivatives_tick_market_data;" | tr -d '\r\n')"
 
-	test "${ROWS}" -gt 0
+	prod "${ROWS}" -gt 0
 
 	echo "[clickhouse] OK: prod_realtime_store.derivatives_tick_market_data has ${ROWS} rows"
 }

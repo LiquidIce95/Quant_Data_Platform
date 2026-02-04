@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    streamlane/role: spark-exec
+spec:
+  nodeSelector:
+    env: prod  # This matches the label we created in Task 1
+  restartPolicy: Never
+  containers:
+    - name: spark-kubernetes-executor
+      env:
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "prod-kafka-kafka-bootstrap.prodenv-kafka:9092"
+        - name: KAFKA_STARTING_OFFSETS
+          value: "latest"
+        - name: KAFKA_TOPIC
+          value: "derivatives_tick_market_data"
+        - name: SCHEMA_REGISTRY_URL
+          value: "http://prod-schema-registry.prodenv-avro-schema-registry:8081"
+        - name: CH_DATABASE
+          value: "prod_realtime_store"
+        - name: CH_TABLE
+          value: "derivatives_tick_market_data"

@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS realtime_store;
-USE realtime_store;
+CREATE DATABASE IF NOT EXISTS test_realtime_store;
+USE test_realtime_store;
 
 CREATE TABLE IF NOT EXISTS derivatives_tick_market_data
 (

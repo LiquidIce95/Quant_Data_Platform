@@ -42,7 +42,7 @@ data "hcloud_ssh_key" "david_key" {
 }
 
 data "hcloud_firewall" "basic" {
-	name = "basic_firewall_test_env_workers"
+	name = "basic_firewall_prod_env_workers"
 }
 
 locals {

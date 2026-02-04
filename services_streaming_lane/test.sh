@@ -714,9 +714,9 @@ peek_spark() {
 # ========= ClickHouse =========
 build_clickhouse_image() {
 	need docker
-	have "$CLICKHOUSE_DIR/Dockerfile"
+	have "$CLICKHOUSE_DIR/Dockerfile.test"
 	have "$CLICKHOUSE_DIR/create_data_model.sql"
-	(cd "$CLICKHOUSE_DIR" && docker build -t "${CLICKHOUSE_IMAGE_TAG}" .)
+	(cd "$CLICKHOUSE_DIR" && docker build -f Dockerfile.test -t "${CLICKHOUSE_IMAGE_TAG}" .)
 }
 
 deploy_clickhouse() {
