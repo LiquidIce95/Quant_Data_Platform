@@ -1,0 +1,63 @@
+# infra/kafka/20-topics.yml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: derivatives-tick-market-data
+  namespace: prodenv-kafka
+  labels:
+    strimzi.io/cluster: prod-kafka
+spec:
+  topicName: derivatives_tick_market_data
+  partitions: 3
+  replicas: 2
+  config:
+    cleanup.policy: delete
+    retention.ms: 86400000
+
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: derivatives-l2-market-data
+  namespace: prodenv-kafka
+  labels:
+    strimzi.io/cluster: prod-kafka
+spec:
+  topicName: derivatives_l2_market_data
+  partitions: 3
+  replicas: 2
+  config:
+    cleanup.policy: delete
+    retention.ms: 86400000
+
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: indicators
+  namespace: prodenv-kafka
+  labels:
+    strimzi.io/cluster: prod-kafka
+spec:
+  topicName: indicators
+  partitions: 3
+  replicas: 2
+  config:
+    cleanup.policy: delete
+    retention.ms: 86400000
+
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: numeric-economic-data
+  namespace: prodenv-kafka
+  labels:
+    strimzi.io/cluster: prod-kafka
+spec:
+  topicName: numeric_economic_data
+  partitions: 3
+  replicas: 2
+  config:
+    cleanup.policy: delete
+    retention.ms: 86400000
