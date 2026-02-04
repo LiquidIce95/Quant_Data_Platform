@@ -29,7 +29,7 @@ SPARK_SA="${SPARK_SA:-spark-sa}"
 SPARK_VERSION="${SPARK_VERSION:-3.5.7}"
 SPARK_IMAGE_TAG="spark-our-own-apache-spark-kb8-test"
 APP_IMAGE_TAG="${APP_IMAGE_TAG:-${SPARK_IMAGE_TAG}-app}"
-SPARK_IMAGE_ADDRESS="${DOCKERHUB_REPO}:${APP_IMAGE_TAG}"
+SPARK_IMAGE_ADDRESS="${DOCKERHUB_REPO}:spark-${APP_IMAGE_TAG}"
 SPARK_APP_CLASS="${SPARK_APP_CLASS:-com.yourorg.spark.ReadTickLastPrint}"
 
 # ClickHouse (disjoint namespace)
@@ -549,7 +549,8 @@ build_base_spark_image() {
 	need docker; need kind
 	have "$SPARK_HOME/bin/docker-image-tool.sh"
 	(cd "$SPARK_HOME" && ./bin/docker-image-tool.sh -t "$SPARK_IMAGE_TAG" build)
-	SPARK_REMOTE_BASE_IMAGE="$(push_to_dockerhub "spark:${SPARK_IMAGE_TAG}")"
+	push_to_dockerhub "spark:${SPARK_IMAGE_TAG}"
+	SPARK_REMOTE_BASE_IMAGE="spark-${SPARK_IMAGE_TAG}"
 	export SPARK_REMOTE_BASE_IMAGE
 }
 
@@ -582,7 +583,8 @@ FROM ${SPARK_REMOTE_BASE_IMAGE}
 COPY services_streaming_lane/app.jar ${APP_JAR_PATH_IN_IMAGE}
 DOCKERFILE
 	)
-	SPARK_REMOTE_APP_IMAGE="$(push_to_dockerhub "${APP_IMAGE_TAG}")"
+	push_to_dockerhub "${APP_IMAGE_TAG}"
+	SPARK_REMOTE_APP_IMAGE="spark-$APP_IMAGE_TAG"
 	export SPARK_REMOTE_APP_IMAGE
 }
 
