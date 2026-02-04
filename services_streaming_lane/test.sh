@@ -29,7 +29,7 @@ SPARK_SA="${SPARK_SA:-spark-sa}"
 SPARK_VERSION="${SPARK_VERSION:-3.5.7}"
 SPARK_IMAGE_TAG="spark-our-own-apache-spark-kb8-test"
 APP_IMAGE_TAG="${APP_IMAGE_TAG:-${SPARK_IMAGE_TAG}-app}"
-SPARK_IMAGE_ADDRESS="${DOCKERHUB_REPO}:spark-${APP_IMAGE_TAG}"
+SPARK_IMAGE_ADDRESS="${DOCKERHUB_REPO}:${APP_IMAGE_TAG}"
 SPARK_APP_CLASS="${SPARK_APP_CLASS:-com.yourorg.spark.ReadTickLastPrint}"
 
 # ClickHouse (disjoint namespace)
@@ -584,7 +584,7 @@ COPY services_streaming_lane/app.jar ${APP_JAR_PATH_IN_IMAGE}
 DOCKERFILE
 	)
 	push_to_dockerhub "${APP_IMAGE_TAG}"
-	SPARK_REMOTE_APP_IMAGE="${DOCKERHUB_REPO}:spark-$APP_IMAGE_TAG"
+	SPARK_REMOTE_APP_IMAGE="${DOCKERHUB_REPO}:$APP_IMAGE_TAG"
 	export SPARK_REMOTE_APP_IMAGE
 }
 
