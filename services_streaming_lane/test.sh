@@ -550,7 +550,7 @@ build_base_spark_image() {
 	have "$SPARK_HOME/bin/docker-image-tool.sh"
 	(cd "$SPARK_HOME" && ./bin/docker-image-tool.sh -t "$SPARK_IMAGE_TAG" build)
 	push_to_dockerhub "spark:${SPARK_IMAGE_TAG}"
-	SPARK_REMOTE_BASE_IMAGE="spark-${SPARK_IMAGE_TAG}"
+	SPARK_REMOTE_BASE_IMAGE="${DOCKERHUB_REPO}:spark-${SPARK_IMAGE_TAG}"
 	export SPARK_REMOTE_BASE_IMAGE
 }
 
@@ -584,7 +584,7 @@ COPY services_streaming_lane/app.jar ${APP_JAR_PATH_IN_IMAGE}
 DOCKERFILE
 	)
 	push_to_dockerhub "${APP_IMAGE_TAG}"
-	SPARK_REMOTE_APP_IMAGE="spark-$APP_IMAGE_TAG"
+	SPARK_REMOTE_APP_IMAGE="${DOCKERHUB_REPO}:spark-$APP_IMAGE_TAG"
 	export SPARK_REMOTE_APP_IMAGE
 }
 
