@@ -7,7 +7,6 @@ and
 
 /usr/local/bin/k3s-uninstall.sh
 
-
 get join token from k3s serveer, store in terraform cloud
 
 cat /var/lib/rancher/k3s/server/node-token
