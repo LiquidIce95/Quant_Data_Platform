@@ -778,7 +778,7 @@ check_clickhouse_ingestion_tables() {
 	ROWS="$(kubectl -n "${NS}" exec "${POD}" -- \
 		clickhouse-client --query "SELECT count() FROM prod_realtime_store.derivatives_tick_market_data;" | tr -d '\r\n')"
 
-	prod "${ROWS}" -gt 0
+	test "${ROWS}" -gt 0
 
 	echo "[clickhouse] OK: prod_realtime_store.derivatives_tick_market_data has ${ROWS} rows"
 }
